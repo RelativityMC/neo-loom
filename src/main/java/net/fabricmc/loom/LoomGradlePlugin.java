@@ -51,7 +51,7 @@ import net.fabricmc.loom.util.LibraryLocationLogger;
 import net.fabricmc.loom.util.OneDrive;
 
 public class LoomGradlePlugin implements Plugin<PluginAware> {
-	public static final String NAME = "fabric-loom";
+	public static final String NAME = "org.relativitymc.neo-loom-legacy";
 	public static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
 	public static final String LOOM_VERSION = Objects.requireNonNullElse(LoomGradlePlugin.class.getPackage().getImplementationVersion(), "0.0.0+unknown");
 
@@ -79,7 +79,7 @@ public class LoomGradlePlugin implements Plugin<PluginAware> {
 	}
 
 	private void apply(Project project) {
-		project.getLogger().lifecycle("Fabric Loom: " + LOOM_VERSION);
+		project.getLogger().lifecycle("Neo Loom: " + LOOM_VERSION);
 
 		LibraryLocationLogger.logLibraryVersions();
 		OneDrive.verify(project);

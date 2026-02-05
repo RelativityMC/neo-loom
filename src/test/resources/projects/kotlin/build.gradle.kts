@@ -5,7 +5,7 @@ import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 plugins {
 	kotlin("jvm") version "2.2.21"
 	kotlin("plugin.serialization") version "2.2.21"
-	id("fabric-loom")
+	id("org.relativitymc.neo-loom-remap")
 	`maven-publish`
 }
 
