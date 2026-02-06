@@ -33,6 +33,7 @@ public class Constants {
 	public static final String VERSION_MANIFESTS = "https://piston-meta.mojang.com/mc/game/version_manifest_v2.json";
 	public static final String EXPERIMENTAL_VERSIONS = "https://maven.fabricmc.net/net/minecraft/experimental_versions.json";
 	public static final String FABRIC_REPOSITORY = "https://maven.fabricmc.net/";
+	public static final String NEOFORGE_REPOSITORY = "https://maven.neoforged.net/releases/";
 
 	public static final int ASM_VERSION = Opcodes.ASM9;
 	public static final String RELEASE_TIME_1_21_11_UNOBFUSCATED_SNAPSHOTS = "2025-11-01T00:00:00+00:00";
@@ -51,6 +52,9 @@ public class Constants {
 		public static final String INCLUDE = "include";
 		public static final String INCLUDE_INTERNAL = "includeInternal";
 		public static final String MINECRAFT = "minecraft";
+
+		public static final String NEOFORGE = "neoForge";
+		public static final String NFRT_TOOL = "neoFormRuntimeTool";
 
 		public static final String MINECRAFT_COMPILE_LIBRARIES = "minecraftLibraries";
 		public static final String MINECRAFT_RUNTIME_LIBRARIES = "minecraftRuntimeLibraries";
@@ -189,5 +193,9 @@ public class Constants {
 		public static final String MIXIN_VERSION = "Fabric-Mixin-Version";
 		public static final String MIXIN_GROUP = "Fabric-Mixin-Group";
 		public static final String KNOWN_IDY_BSMS = "Fabric-Loom-Known-Indy-BSMS";
+	}
+
+	public static final class NeoForge {
+		public static final String DEFAULT_NFRT_VERSION = "2.0.18";
 	}
 }

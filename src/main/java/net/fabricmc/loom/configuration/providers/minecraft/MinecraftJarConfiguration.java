@@ -39,6 +39,8 @@ import net.fabricmc.loom.configuration.providers.minecraft.mapped.MappedMinecraf
 import net.fabricmc.loom.configuration.providers.minecraft.mapped.NamedMinecraftProvider;
 import net.fabricmc.loom.configuration.providers.minecraft.mapped.ProcessedNamedMinecraftProvider;
 
+import org.relativitymc.neoloom.neoforge.NFRTMergedMinecraftProvider;
+
 public record MinecraftJarConfiguration<
 		M extends MinecraftProvider,
 		N extends NamedMinecraftProvider<M>,
@@ -102,6 +104,17 @@ public record MinecraftJarConfiguration<
 				NamedMinecraftProvider.SplitImpl::new,
 				ProcessedNamedMinecraftProvider.SplitImpl::new,
 				SplitDecompileConfiguration::new,
+				List.of("client", "server")
+			);
+	public static final MinecraftJarConfiguration<
+			MergedMinecraftProvider,
+			NamedMinecraftProvider.MergedImpl,
+			MappedMinecraftProvider> NEOFORGE_MERGED = new MinecraftJarConfiguration<>(
+				NFRTMergedMinecraftProvider::new,
+				IntermediaryMinecraftProvider.MergedImpl::new,
+				NamedMinecraftProvider.MergedImpl::new,
+				ProcessedNamedMinecraftProvider.MergedImpl::new,
+				SingleJarDecompileConfiguration::new,
 				List.of("client", "server")
 			);
 

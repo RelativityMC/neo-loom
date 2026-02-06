@@ -29,6 +29,7 @@ import java.io.UncheckedIOException;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.function.Function;
 
 import org.gradle.api.Project;
@@ -57,10 +58,12 @@ public final class MinecraftMetadataProvider {
 
 	public static MinecraftMetadataProvider create(ConfigContext configContext) {
 		final String minecraftVersion = resolveMinecraftVersion(configContext.project());
+		final String neoForgeVersion = resolveNeoForgeVersion(configContext.project());
 
 		return new MinecraftMetadataProvider(
 				MinecraftMetadataProvider.Options.create(
 						minecraftVersion,
+						neoForgeVersion,
 						configContext.project()
 				),
 				configContext.extension()::download
@@ -72,8 +75,18 @@ public final class MinecraftMetadataProvider {
 		return dependency.getDependency().getVersion();
 	}
 
+	private static @Nullable String resolveNeoForgeVersion(Project project) {
+		final Optional<DependencyInfo> dependency = DependencyInfo.createOptional(project, Constants.Configurations.NEOFORGE);
+		return dependency.map(dependencyInfo -> dependencyInfo.getDependency().getVersion()).orElse(null);
+	}
+
+
 	public String getMinecraftVersion() {
 		return options.minecraftVersion();
+	}
+
+	public @Nullable String getNeoForgeVersion() {
+		return options.neoForgeVersion();
 	}
 
 	public MinecraftVersionMeta getVersionMeta() {
@@ -176,23 +189,28 @@ public final class MinecraftMetadataProvider {
 	}
 
 	public record Options(String minecraftVersion,
+					@Nullable String neoForgeVersion,
 					ManifestLocations versionsManifests,
 					@Nullable String customManifestUrl,
 					Path userCache,
+					@Nullable Path neoForgeCache,
 					Path workingDir) {
-		public static Options create(String minecraftVersion, Project project) {
+		public static Options create(String minecraftVersion, @Nullable String neoForgeVersion, Project project) {
 			final LoomGradleExtension extension = LoomGradleExtension.get(project);
 			final Path userCache = extension.getFiles().getUserCache().toPath();
 			final Path workingDir = MinecraftProvider.minecraftWorkingDirectory(project, minecraftVersion).toPath();
+			final Path neoForgeCache = neoForgeVersion != null ? MinecraftProvider.neoForgeWorkingDirectory(project, minecraftVersion, neoForgeVersion).toPath() : null;
 
 			final ManifestLocations manifestLocations = extension.getVersionsManifests();
 			final Property<String> customMetaUrl = extension.getCustomMinecraftMetadata();
 
 			return new Options(
 					minecraftVersion,
+					neoForgeVersion,
 					manifestLocations,
 					customMetaUrl.getOrNull(),
 					userCache,
+					neoForgeCache,
 					workingDir
 			);
 		}

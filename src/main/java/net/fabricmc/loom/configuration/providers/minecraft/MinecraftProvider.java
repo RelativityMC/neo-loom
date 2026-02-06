@@ -101,7 +101,7 @@ public abstract class MinecraftProvider {
 		libraryProvider.provide();
 	}
 
-	private void verifyJavaVersion() {
+	protected void verifyJavaVersion() {
 		if (configContext.extension().disableObfuscation()) {
 			return;
 		}
@@ -295,6 +295,12 @@ public abstract class MinecraftProvider {
 	public static File minecraftWorkingDirectory(Project project, String version) {
 		LoomGradleExtension extension = LoomGradleExtension.get(project);
 		File workingDir = new File(extension.getFiles().getUserCache(), version);
+		workingDir.mkdirs();
+		return workingDir;
+	}
+
+	public static File neoForgeWorkingDirectory(Project project, String minecraftVersion, String neoForgeVersion) {
+		File workingDir = new File(minecraftWorkingDirectory(project, minecraftVersion), neoForgeVersion);
 		workingDir.mkdirs();
 		return workingDir;
 	}
