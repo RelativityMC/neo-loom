@@ -82,7 +82,7 @@ public final class MinecraftMetadataProvider {
 		final Optional<DependencyInfo> dependency = DependencyInfo.createOptional(project, Constants.Configurations.NEOFORGE);
 		Dependency dep1 = dependency.map(dependencyInfo -> dependencyInfo.getDependency()).orElse(null);
 
-		if (!(dep1 instanceof ExternalModuleDependency)) {
+		if (dep1 != null && !(dep1 instanceof ExternalModuleDependency)) {
 			throw new GradleException("neoForge dependency must be a ExternalModuleDependency, found: " + dep1 + " (" + dep1.getClass().getName() + ")");
 		}
 
