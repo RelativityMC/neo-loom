@@ -178,8 +178,7 @@ public abstract class LoomGradleExtensionApiImpl implements LoomGradleExtensionA
 					// based on the mc version and which sides are present for it
 					if (metadataProvider.getNeoForgeVersion() != null) {
 						return MinecraftJarConfiguration.NEOFORGE_MERGED;
-					}
-					if (!metadataProvider.getVersionMeta().hasServer()) {
+					} else if (!metadataProvider.getVersionMeta().hasServer()) {
 						return MinecraftJarConfiguration.CLIENT_ONLY;
 					} else if (!metadataProvider.getVersionMeta().hasClient()) {
 						return MinecraftJarConfiguration.SERVER_ONLY;

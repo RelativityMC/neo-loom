@@ -1,3 +1,27 @@
+/*
+ * This file is part of fabric-loom, licensed under the MIT License (MIT).
+ *
+ * Copyright (c) 2026 FabricMC
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ */
+
 package dev.architectury.loom.tool;
 
 import java.util.Collection;
@@ -15,7 +39,6 @@ import org.gradle.api.tasks.Optional;
 import org.gradle.process.ExecOperations;
 import org.gradle.process.ExecResult;
 import org.gradle.process.JavaExecSpec;
-import org.jetbrains.annotations.Nullable;
 
 /**
  * Contains helpers for executing Forge's command line tools
@@ -59,26 +82,15 @@ public final class ForgeToolExecutor {
 	}
 
 	private static void applyToSpec(Settings settings, JavaExecSpec spec) {
-		final @Nullable String executable = settings.getExecutable().getOrNull();
+		final String executable = settings.getExecutable().getOrNull();
 		if (executable != null) spec.setExecutable(executable);
-		final @Nullable String mainClass = settings.getMainClass().getOrNull();
+		final String mainClass = settings.getMainClass().getOrNull();
 		if (mainClass != null) spec.getMainClass().set(mainClass);
 		spec.setArgs(settings.getProgramArgs().get());
 		spec.setJvmArgs(settings.getJvmArgs().get());
 		spec.setClasspath(settings.getExecClasspath());
 
-//		if (settings.getShowVerboseStdout().get()) {
-//			spec.setStandardOutput(System.out);
-//		} else {
-//			spec.setStandardOutput(NullOutputStream.INSTANCE);
-//		}
 		spec.setStandardOutput(System.out);
-
-//		if (settings.getShowVerboseStderr().get()) {
-//			spec.setErrorOutput(System.err);
-//		} else {
-//			spec.setErrorOutput(NullOutputStream.INSTANCE);
-//		}
 		spec.setErrorOutput(System.err);
 	}
 

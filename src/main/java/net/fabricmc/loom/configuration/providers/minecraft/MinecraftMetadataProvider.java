@@ -80,7 +80,6 @@ public final class MinecraftMetadataProvider {
 		return dependency.map(dependencyInfo -> dependencyInfo.getDependency().getVersion()).orElse(null);
 	}
 
-
 	public String getMinecraftVersion() {
 		return options.minecraftVersion();
 	}

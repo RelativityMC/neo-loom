@@ -23,6 +23,6 @@
  */
 
 @NullMarked
-package dev.architectury.loom;
+package dev.architectury.loom.tool;
 
 import org.jspecify.annotations.NullMarked;

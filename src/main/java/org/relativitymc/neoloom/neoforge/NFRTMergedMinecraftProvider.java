@@ -1,21 +1,28 @@
+/*
+ * This file is part of fabric-loom, licensed under the MIT License (MIT).
+ *
+ * Copyright (c) 2026 FabricMC
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ */
+
 package org.relativitymc.neoloom.neoforge;
-
-import dev.architectury.loom.tool.ForgeToolValueSource;
-
-import dev.architectury.loom.tool.JavaExecutableFetcher;
-
-import net.fabricmc.loom.configuration.ConfigContext;
-import net.fabricmc.loom.configuration.providers.BundleMetadata;
-import net.fabricmc.loom.configuration.providers.minecraft.MergedMinecraftProvider;
-import net.fabricmc.loom.configuration.providers.minecraft.MinecraftLibraryProvider;
-import net.fabricmc.loom.configuration.providers.minecraft.MinecraftMetadataProvider;
-
-import net.fabricmc.loom.configuration.providers.minecraft.MinecraftVersionMeta;
-import net.fabricmc.loom.util.Constants;
-
-import org.gradle.api.GradleException;
-import org.gradle.api.provider.Provider;
-import org.jspecify.annotations.Nullable;
 
 import java.io.BufferedOutputStream;
 import java.io.File;
@@ -25,6 +32,20 @@ import java.nio.file.Path;
 import java.util.List;
 import java.util.Objects;
 import java.util.Properties;
+
+import org.gradle.api.GradleException;
+import org.gradle.api.provider.Provider;
+import org.jspecify.annotations.Nullable;
+
+import net.fabricmc.loom.configuration.ConfigContext;
+import net.fabricmc.loom.configuration.providers.BundleMetadata;
+import net.fabricmc.loom.configuration.providers.minecraft.MergedMinecraftProvider;
+import net.fabricmc.loom.configuration.providers.minecraft.MinecraftMetadataProvider;
+import net.fabricmc.loom.configuration.providers.minecraft.MinecraftVersionMeta;
+import net.fabricmc.loom.util.Constants;
+
+import dev.architectury.loom.tool.ForgeToolValueSource;
+import dev.architectury.loom.tool.JavaExecutableFetcher;
 
 public class NFRTMergedMinecraftProvider extends MergedMinecraftProvider {
 	private final ConfigContext configContext;
@@ -53,6 +74,7 @@ public class NFRTMergedMinecraftProvider extends MergedMinecraftProvider {
 		File tmpDir = getProject().getLayout().getBuildDirectory().dir("tmp/neoformruntime").get().getAsFile();
 		tmpDir.mkdirs();
 		File artifactManifestFile = new File(tmpDir, "nfrt_artifact_manifest.properties");
+
 		try (var out = new BufferedOutputStream(new FileOutputStream(artifactManifestFile))) {
 			artifactManifest.store(out, "");
 		} catch (IOException e) {

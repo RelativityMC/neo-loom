@@ -23,6 +23,6 @@
  */
 
 @NullMarked
-package dev.architectury.loom;
+package org.relativitymc.neoloom.neoforge;
 
 import org.jspecify.annotations.NullMarked;
