@@ -13,13 +13,18 @@ import net.fabricmc.loom.configuration.providers.minecraft.MinecraftMetadataProv
 import net.fabricmc.loom.configuration.providers.minecraft.MinecraftVersionMeta;
 import net.fabricmc.loom.util.Constants;
 
+import org.gradle.api.GradleException;
 import org.gradle.api.provider.Provider;
 import org.jspecify.annotations.Nullable;
 
+import java.io.BufferedOutputStream;
 import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Objects;
+import java.util.Properties;
 
 public class NFRTMergedMinecraftProvider extends MergedMinecraftProvider {
 	private final ConfigContext configContext;
@@ -39,6 +44,20 @@ public class NFRTMergedMinecraftProvider extends MergedMinecraftProvider {
 		initFiles();
 
 		verifyJavaVersion();
+
+		final NFRTMinecraftLibraryProvider libraryProvider = new NFRTMinecraftLibraryProvider(this, configContext.project());
+
+		Properties artifactManifest = new Properties();
+		libraryProvider.collectArtifactManifest(artifactManifest);
+
+		File tmpDir = getProject().getLayout().getBuildDirectory().dir("tmp/neoformruntime").get().getAsFile();
+		tmpDir.mkdirs();
+		File artifactManifestFile = new File(tmpDir, "nfrt_artifact_manifest.properties");
+		try (var out = new BufferedOutputStream(new FileOutputStream(artifactManifestFile))) {
+			artifactManifest.store(out, "");
+		} catch (IOException e) {
+			throw new GradleException("Failed to write NFRT artifact manifest: " + e, e);
+		}
 
 		ForgeToolValueSource.exec(getProject(), settings -> {
 			settings.getExecClasspath().from(getProject().getConfigurations().getByName(Constants.Configurations.NFRT_TOOL));
@@ -63,13 +82,15 @@ public class NFRTMergedMinecraftProvider extends MergedMinecraftProvider {
 				settings.args("--disable-cache");
 			}
 
+			settings.args("--artifact-manifest", artifactManifestFile.getAbsolutePath());
+			settings.args("--warn-on-artifact-manifest-miss");
+
 			settings.args("--neoforge", "net.neoforged:neoforge:" + neoForgeVersion() + ":userdev");
 			settings.args("--dist", "joined");
 			settings.args("--write-result", "gameJarWithNeoForge:" + this.minecraftMergedJar.toAbsolutePath().toString());
 			settings.args("--write-result", "gameSourcesWithNeoForge:" + this.minecraftMergedSources.toAbsolutePath().toString());
 		});
 
-		final MinecraftLibraryProvider libraryProvider = new MinecraftLibraryProvider(this, configContext.project());
 		libraryProvider.provide();
 	}
 

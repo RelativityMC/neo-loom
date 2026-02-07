@@ -67,11 +67,19 @@ public class MirrorUtil {
 		return Constants.FABRIC_REPOSITORY;
 	}
 
-	public static String getNeoForgeRepository(ExtensionAware aware) {
-		if (aware.getExtensions().getExtraProperties().has("loom_neoforge_repository")) {
-			return String.valueOf(aware.getExtensions().getExtraProperties().get("loom_neoforge_repository"));
+	public static String getNeoForgeReleasesRepository(ExtensionAware aware) {
+		if (aware.getExtensions().getExtraProperties().has("loom_neoforge_releases_repository")) {
+			return String.valueOf(aware.getExtensions().getExtraProperties().get("loom_neoforge_releases_repository"));
 		}
 
-		return Constants.NEOFORGE_REPOSITORY;
+		return Constants.NEOFORGE_RELEASES_REPOSITORY;
+	}
+
+	public static String getNeoForgeMojangMetaRepository(ExtensionAware aware) {
+		if (aware.getExtensions().getExtraProperties().has("loom_neoforge_mojangmeta_repository")) {
+			return String.valueOf(aware.getExtensions().getExtraProperties().get("loom_neoforge_mojangmeta_repository"));
+		}
+
+		return Constants.NEOFORGE_MOJANGMETA_REPOSITORY;
 	}
 }

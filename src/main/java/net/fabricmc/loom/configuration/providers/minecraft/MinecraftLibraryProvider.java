@@ -123,7 +123,7 @@ public class MinecraftLibraryProvider {
 	 * When Gradle is writing dependency verification metadata, we need to resolve all libraries across all platforms,
 	 * to ensure that they are captured.
 	 */
-	private void resolveAllLibraries() {
+	protected void resolveAllLibraries() {
 		project.getLogger().info("Resolving all libraries for dependency verification metadata generation");
 
 		final List<Library> libraries = MinecraftLibraryHelper.getAllLibraries(minecraftProvider.getVersionInfo());
@@ -135,7 +135,7 @@ public class MinecraftLibraryProvider {
 		detachedConfiguration.getFiles();
 	}
 
-	private List<Library> processLibraries(List<Library> libraries) {
+	protected List<Library> processLibraries(List<Library> libraries) {
 		final LibraryContext libraryContext = new LibraryContext(minecraftProvider.getVersionInfo(), getTargetRuntimeJavaVersion());
 		return processorManager.processLibraries(libraries, libraryContext);
 	}
@@ -153,7 +153,7 @@ public class MinecraftLibraryProvider {
 		return JavaVersion.current();
 	}
 
-	private void applyClientLibrary(Library library) {
+	protected void applyClientLibrary(Library library) {
 		switch (library.target()) {
 		case COMPILE -> addLibrary(Constants.Configurations.MINECRAFT_CLIENT_COMPILE_LIBRARIES, library);
 		case RUNTIME -> addLibrary(Constants.Configurations.MINECRAFT_CLIENT_RUNTIME_LIBRARIES, library);
@@ -162,7 +162,7 @@ public class MinecraftLibraryProvider {
 		}
 	}
 
-	private void applyServerLibrary(Library library) {
+	protected void applyServerLibrary(Library library) {
 		switch (library.target()) {
 		case COMPILE -> addLibrary(Constants.Configurations.MINECRAFT_SERVER_COMPILE_LIBRARIES, library);
 		case RUNTIME -> addLibrary(Constants.Configurations.MINECRAFT_SERVER_RUNTIME_LIBRARIES, library);

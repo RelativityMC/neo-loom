@@ -68,8 +68,17 @@ public class LoomRepositoryPlugin implements Plugin<PluginAware> {
 		});
 
 		repositories.maven(repo -> {
-			repo.setName("NeoForge");
-			repo.setUrl(MirrorUtil.getNeoForgeRepository(target));
+			repo.setName("NeoForge Releases");
+			repo.setUrl(MirrorUtil.getNeoForgeReleasesRepository(target));
+		});
+
+		repositories.maven(repo -> {
+			repo.setName("NeoForge Mojang Meta");
+			repo.setUrl(MirrorUtil.getNeoForgeMojangMetaRepository(target));
+			repo.metadataSources(sources -> sources.gradleMetadata());
+			repo.content(content -> {
+				content.includeModule("net.neoforged", "minecraft-dependencies");
+			});
 		});
 
 		MavenArtifactRepository mojangRepo = repositories.maven(repo -> {

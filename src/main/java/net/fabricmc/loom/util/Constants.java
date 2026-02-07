@@ -33,7 +33,8 @@ public class Constants {
 	public static final String VERSION_MANIFESTS = "https://piston-meta.mojang.com/mc/game/version_manifest_v2.json";
 	public static final String EXPERIMENTAL_VERSIONS = "https://maven.fabricmc.net/net/minecraft/experimental_versions.json";
 	public static final String FABRIC_REPOSITORY = "https://maven.fabricmc.net/";
-	public static final String NEOFORGE_REPOSITORY = "https://maven.neoforged.net/releases/";
+	public static final String NEOFORGE_RELEASES_REPOSITORY = "https://maven.neoforged.net/releases/";
+	public static final String NEOFORGE_MOJANGMETA_REPOSITORY = "https://maven.neoforged.net/mojang-meta/";
 
 	public static final int ASM_VERSION = Opcodes.ASM9;
 	public static final String RELEASE_TIME_1_21_11_UNOBFUSCATED_SNAPSHOTS = "2025-11-01T00:00:00+00:00";
