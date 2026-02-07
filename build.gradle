@@ -357,6 +357,8 @@ tasks.register('writeActionsTestMatrix') {
 				testMatrix.add("net.fabricmc.loom.test.integration.${className}")
 			} else if (it.name.endsWith("noRemap")) {
 				testMatrix.add("net.fabricmc.loom.test.integration.noRemap.*")
+			} else if (it.name.endsWith("neoForge")) {
+				testMatrix.add("net.fabricmc.loom.test.integration.neoForge.*")
 			}
 		}
 

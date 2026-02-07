@@ -22,7 +22,7 @@
  * SOFTWARE.
  */
 
-package net.fabricmc.loom.test.integration.noRemap
+package net.fabricmc.loom.test.integration.neoForge
 
 import org.intellij.lang.annotations.Language
 import spock.lang.Specification
@@ -33,16 +33,28 @@ import net.fabricmc.loom.test.util.GradleProjectTestTrait
 import static net.fabricmc.loom.test.LoomTestConstants.PRE_RELEASE_GRADLE
 import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
 
-class SimpleDeobfNeoForgeTest extends Specification implements GradleProjectTestTrait {
+class SimpleRemappedNeoForgeTest extends Specification implements GradleProjectTestTrait {
 	@Unroll
 	def "build"() {
 		setup:
-		def gradle = gradleProject(project: "minimalBaseNoRemap", version: PRE_RELEASE_GRADLE)
+		def gradle = gradleProject(project: "minimalBase", version: PRE_RELEASE_GRADLE)
 		gradle.buildGradle << '''
+				repositories {
+					maven {
+						url = "https://repo.codemc.io/repository/relativitymc/"
+					}
+				}
+
 				dependencies {
 					minecraft 'com.mojang:minecraft:1.21.11_unobfuscated'
 					neoForge 'net.neoforged:neoforge:21.11.38-beta'
+					mappings "org.relativitymc:modern-yarn:1.21.11_unobfuscated+build.2:v2"
                 }
+                
+                loom {
+                	useIntermediateMappings = true
+					intermediaryUrl = 'https://repo.codemc.io/repository/relativitymc/org/relativitymc/intermediary/%1$s/intermediary-%1$s-v2.jar'
+				}
 		'''
 		def sourceFile = new File(gradle.projectDir, "src/main/java/example/Test.java")
 		sourceFile.parentFile.mkdirs()
@@ -64,7 +76,8 @@ class SimpleDeobfNeoForgeTest extends Specification implements GradleProjectTest
 		when:
 		def result = gradle.run(tasks: [
 			"build",
-			"configureClientLaunch"
+			"configureClientLaunch",
+			"--info"
 		])
 
 		then:

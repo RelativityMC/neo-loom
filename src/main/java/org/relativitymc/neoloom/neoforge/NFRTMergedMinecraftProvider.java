@@ -49,7 +49,7 @@ import net.fabricmc.loom.util.Constants;
 import dev.architectury.loom.tool.ForgeToolValueSource;
 import dev.architectury.loom.tool.JavaExecutableFetcher;
 
-public class NFRTMergedMinecraftProvider extends MergedMinecraftProvider {
+public class NFRTMergedMinecraftProvider extends MergedMinecraftProvider implements NFRTMinecraftProvider {
 	private final ConfigContext configContext;
 	private final MinecraftMetadataProvider metadataProvider;
 
