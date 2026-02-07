@@ -64,8 +64,8 @@ public class NFRTMinecraftLibraryProvider extends MinecraftLibraryProvider {
 		this.project = project;
 		this.minecraftProvider = minecraftProvider;
 
-		this.neoForge = project.getDependencyFactory().create("net.neoforged:neoforge:" + minecraftProvider.neoForgeVersion());
-		this.neoForgeNotation = "net.neoforged:neoforge:" + minecraftProvider.neoForgeVersion() + ":userdev";
+		this.neoForge = project.getDependencyFactory().create(minecraftProvider.neoForgeNotation());
+		this.neoForgeNotation = minecraftProvider.neoForgeNotation() + ":userdev";
 
 		this.runTypesConfigDependency = neoForge.copy().capabilities(caps -> caps.requireCapability("net.neoforged:neoforge-moddev-config"));
 		this.modulePathDependency = neoForge.copy().capabilities(caps -> caps.requireCapability("net.neoforged:neoforge-moddev-module-path"))

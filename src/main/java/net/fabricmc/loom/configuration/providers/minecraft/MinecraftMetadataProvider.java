@@ -32,7 +32,10 @@ import java.util.List;
 import java.util.Optional;
 import java.util.function.Function;
 
+import org.gradle.api.GradleException;
 import org.gradle.api.Project;
+import org.gradle.api.artifacts.Dependency;
+import org.gradle.api.artifacts.ExternalModuleDependency;
 import org.gradle.api.provider.Property;
 import org.jspecify.annotations.Nullable;
 
@@ -58,12 +61,12 @@ public final class MinecraftMetadataProvider {
 
 	public static MinecraftMetadataProvider create(ConfigContext configContext) {
 		final String minecraftVersion = resolveMinecraftVersion(configContext.project());
-		final String neoForgeVersion = resolveNeoForgeVersion(configContext.project());
+		final @Nullable ExternalModuleDependency neoForgeDependency = resolveNeoForgeDependency(configContext.project());
 
 		return new MinecraftMetadataProvider(
 				MinecraftMetadataProvider.Options.create(
 						minecraftVersion,
-						neoForgeVersion,
+						neoForgeDependency,
 						configContext.project()
 				),
 				configContext.extension()::download
@@ -75,17 +78,23 @@ public final class MinecraftMetadataProvider {
 		return dependency.getDependency().getVersion();
 	}
 
-	private static @Nullable String resolveNeoForgeVersion(Project project) {
+	private static @Nullable ExternalModuleDependency resolveNeoForgeDependency(Project project) {
 		final Optional<DependencyInfo> dependency = DependencyInfo.createOptional(project, Constants.Configurations.NEOFORGE);
-		return dependency.map(dependencyInfo -> dependencyInfo.getDependency().getVersion()).orElse(null);
+		Dependency dep1 = dependency.map(dependencyInfo -> dependencyInfo.getDependency()).orElse(null);
+
+		if (!(dep1 instanceof ExternalModuleDependency)) {
+			throw new GradleException("neoForge dependency must be a ExternalModuleDependency, found: " + dep1 + " (" + dep1.getClass().getName() + ")");
+		}
+
+		return (ExternalModuleDependency) dep1;
 	}
 
 	public String getMinecraftVersion() {
 		return options.minecraftVersion();
 	}
 
-	public @Nullable String getNeoForgeVersion() {
-		return options.neoForgeVersion();
+	public @Nullable ExternalModuleDependency getNeoForgeDependency() {
+		return options.neoforgeDependency();
 	}
 
 	public MinecraftVersionMeta getVersionMeta() {
@@ -188,24 +197,24 @@ public final class MinecraftMetadataProvider {
 	}
 
 	public record Options(String minecraftVersion,
-					@Nullable String neoForgeVersion,
+					@Nullable ExternalModuleDependency neoforgeDependency,
 					ManifestLocations versionsManifests,
 					@Nullable String customManifestUrl,
 					Path userCache,
 					@Nullable Path neoForgeCache,
 					Path workingDir) {
-		public static Options create(String minecraftVersion, @Nullable String neoForgeVersion, Project project) {
+		public static Options create(String minecraftVersion, @Nullable ExternalModuleDependency neoForgeDependency, Project project) {
 			final LoomGradleExtension extension = LoomGradleExtension.get(project);
 			final Path userCache = extension.getFiles().getUserCache().toPath();
 			final Path workingDir = MinecraftProvider.minecraftWorkingDirectory(project, minecraftVersion).toPath();
-			final Path neoForgeCache = neoForgeVersion != null ? MinecraftProvider.neoForgeWorkingDirectory(project, minecraftVersion, neoForgeVersion).toPath() : null;
+			final Path neoForgeCache = neoForgeDependency != null ? MinecraftProvider.neoForgeWorkingDirectory(project, minecraftVersion, neoForgeDependency).toPath() : null;
 
 			final ManifestLocations manifestLocations = extension.getVersionsManifests();
 			final Property<String> customMetaUrl = extension.getCustomMinecraftMetadata();
 
 			return new Options(
 					minecraftVersion,
-					neoForgeVersion,
+					neoForgeDependency,
 					manifestLocations,
 					customMetaUrl.getOrNull(),
 					userCache,

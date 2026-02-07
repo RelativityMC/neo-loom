@@ -33,6 +33,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.gradle.api.JavaVersion;
 import org.gradle.api.Project;
+import org.gradle.api.artifacts.ExternalModuleDependency;
 import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -299,8 +300,8 @@ public abstract class MinecraftProvider {
 		return workingDir;
 	}
 
-	public static File neoForgeWorkingDirectory(Project project, String minecraftVersion, String neoForgeVersion) {
-		File workingDir = new File(minecraftWorkingDirectory(project, minecraftVersion), neoForgeVersion);
+	public static File neoForgeWorkingDirectory(Project project, String minecraftVersion, ExternalModuleDependency neoForgeVersion) {
+		File workingDir = new File(minecraftWorkingDirectory(project, minecraftVersion), neoForgeVersion.getGroup() + "." + neoForgeVersion.getName() + "_" + neoForgeVersion.getVersion());
 		workingDir.mkdirs();
 		return workingDir;
 	}

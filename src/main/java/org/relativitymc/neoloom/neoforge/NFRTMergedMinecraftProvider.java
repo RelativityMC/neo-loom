@@ -34,7 +34,9 @@ import java.util.Objects;
 import java.util.Properties;
 
 import org.gradle.api.GradleException;
+import org.gradle.api.artifacts.ExternalModuleDependency;
 import org.gradle.api.provider.Provider;
+import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 
 import net.fabricmc.loom.configuration.ConfigContext;
@@ -107,7 +109,7 @@ public class NFRTMergedMinecraftProvider extends MergedMinecraftProvider {
 			settings.args("--artifact-manifest", artifactManifestFile.getAbsolutePath());
 			settings.args("--warn-on-artifact-manifest-miss");
 
-			settings.args("--neoforge", "net.neoforged:neoforge:" + neoForgeVersion() + ":userdev");
+			settings.args("--neoforge", neoForgeNotation() + ":userdev");
 			settings.args("--dist", "joined");
 			settings.args("--write-result", "gameJarWithNeoForge:" + this.minecraftMergedJar.toAbsolutePath().toString());
 			settings.args("--write-result", "gameSourcesWithNeoForge:" + this.minecraftMergedSources.toAbsolutePath().toString());
@@ -155,10 +157,14 @@ public class NFRTMergedMinecraftProvider extends MergedMinecraftProvider {
 
 	@Override
 	public File workingDir() {
-		return neoForgeWorkingDirectory(configContext.project(), minecraftVersion(), neoForgeVersion());
+		return neoForgeWorkingDirectory(configContext.project(), minecraftVersion(), neoForgeDependency());
 	}
 
-	protected String neoForgeVersion() {
-		return Objects.requireNonNull(Objects.requireNonNull(metadataProvider, "Metadata provider not setup").getNeoForgeVersion(), "NeoForge version not setup");
+	protected @NonNull String neoForgeNotation() {
+		return neoForgeDependency().getGroup() + ":" + neoForgeDependency().getName() + ":" + neoForgeDependency().getVersion();
+	}
+
+	protected ExternalModuleDependency neoForgeDependency() {
+		return Objects.requireNonNull(Objects.requireNonNull(metadataProvider, "Metadata provider not setup").getNeoForgeDependency(), "NeoForge version not setup");
 	}
 }
