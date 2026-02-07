@@ -78,7 +78,7 @@ public class NFRTMinecraftLibraryProvider extends MinecraftLibraryProvider {
 		});
 		list.add(compileClasspath);
 
-		Configuration runtimeClasspath = this.project.getConfigurations().detachedConfiguration(this.gameLibrariesDependency);
+		Configuration runtimeClasspath = this.project.getConfigurations().detachedConfiguration(this.neoForge, this.gameLibrariesDependency);
 		runtimeClasspath.setCanBeConsumed(false);
 		runtimeClasspath.setCanBeResolved(true);
 		runtimeClasspath.attributes(attributes -> {
