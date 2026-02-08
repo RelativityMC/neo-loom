@@ -22,7 +22,7 @@
  * SOFTWARE.
  */
 
-package org.relativitymc.neoloom.neoforge;
+@NullMarked
+package org.relativitymc.neoloom.neoforge.mappings;
 
-public interface NFRTMinecraftProvider {
-}
+import org.jspecify.annotations.NullMarked;

@@ -31,13 +31,13 @@ import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.util.List;
 
-import dev.architectury.loom.util.Stopwatch;
+import org.jspecify.annotations.NonNull;
 import org.gradle.api.Project;
 
 import net.fabricmc.loom.LoomGradleExtension;
 import net.fabricmc.loom.configuration.providers.mappings.MappingConfiguration;
 
-import org.jspecify.annotations.NonNull;
+import dev.architectury.loom.util.Stopwatch;
 
 public final class ForgeMigratedMappingConfiguration extends MappingConfiguration {
 	private final List<MappingsMigrator> migrators = List.of(new FieldMappingsMigrator(), new MethodInheritanceMappingsMigrator());

@@ -50,7 +50,7 @@ class SimpleRemappedNeoForgeTest extends Specification implements GradleProjectT
 					neoForge 'net.neoforged:neoforge:26.1.0.0-alpha.9+snapshot-6'
 					mappings "org.relativitymc:modern-yarn:26.1-snapshot-6+build.3:v2"
                 }
-                
+
                 loom {
                 	useIntermediateMappings = true
 					intermediaryUrl = 'https://repo.codemc.io/repository/relativitymc/org/relativitymc/intermediary/%1$s/intermediary-%1$s-v2.jar'

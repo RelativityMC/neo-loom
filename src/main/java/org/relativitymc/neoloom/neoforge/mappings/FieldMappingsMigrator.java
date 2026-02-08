@@ -41,8 +41,6 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
-import dev.architectury.loom.util.Stopwatch;
-import dev.architectury.loom.util.ThreadingUtils;
 import org.gradle.api.Project;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassVisitor;
@@ -50,7 +48,6 @@ import org.objectweb.asm.FieldVisitor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import net.fabricmc.loom.LoomGradleExtension;
 import net.fabricmc.loom.api.mappings.layered.MappingsNamespace;
 import net.fabricmc.loom.configuration.providers.minecraft.MinecraftProvider;
 import net.fabricmc.loom.util.Constants;
@@ -60,6 +57,9 @@ import net.fabricmc.mappingio.format.tiny.Tiny2FileWriter;
 import net.fabricmc.mappingio.tree.MappingTree;
 import net.fabricmc.mappingio.tree.MappingTreeView;
 import net.fabricmc.mappingio.tree.MemoryMappingTree;
+
+import dev.architectury.loom.util.Stopwatch;
+import dev.architectury.loom.util.ThreadingUtils;
 
 public final class FieldMappingsMigrator implements MappingsMigrator {
 	private static final Logger LOGGER = LoggerFactory.getLogger(FieldMappingsMigrator.class);

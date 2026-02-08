@@ -43,8 +43,6 @@ import org.apache.tools.ant.util.StringUtils;
 import org.gradle.api.Project;
 import org.gradle.api.provider.Provider;
 import org.jspecify.annotations.Nullable;
-import org.relativitymc.neoloom.neoforge.NFRTMinecraftProvider;
-import org.relativitymc.neoloom.neoforge.mappings.ForgeMigratedMappingConfiguration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -66,6 +64,9 @@ import net.fabricmc.mappingio.MappingReader;
 import net.fabricmc.mappingio.format.MappingFormat;
 import net.fabricmc.stitch.Command;
 import net.fabricmc.stitch.commands.CommandProposeFieldNames;
+
+import org.relativitymc.neoloom.neoforge.NFRTMinecraftProvider;
+import org.relativitymc.neoloom.neoforge.mappings.ForgeMigratedMappingConfiguration;
 
 public class MappingConfiguration {
 	private static final Logger LOGGER = LoggerFactory.getLogger(MappingConfiguration.class);
@@ -113,6 +114,7 @@ public class MappingConfiguration {
 		final Path workingDir = minecraftProvider.dir(mappingsIdentifier).toPath();
 
 		MappingConfiguration mappingProvider;
+
 		if (extension.getMinecraftProvider() instanceof NFRTMinecraftProvider) {
 			mappingProvider = new ForgeMigratedMappingConfiguration(mappingsIdentifier, workingDir);
 		} else {

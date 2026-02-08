@@ -41,7 +41,6 @@ import java.util.Set;
 
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
-import dev.architectury.loom.util.collection.Multimap;
 import org.gradle.api.Project;
 import org.gradle.api.logging.Logger;
 import org.objectweb.asm.ClassReader;
@@ -59,6 +58,8 @@ import net.fabricmc.mappingio.adapter.MappingSourceNsSwitch;
 import net.fabricmc.mappingio.format.tiny.Tiny2FileWriter;
 import net.fabricmc.mappingio.tree.MappingTree;
 import net.fabricmc.mappingio.tree.MemoryMappingTree;
+
+import dev.architectury.loom.util.collection.Multimap;
 
 /**
  * With some forge patches, methods can inherit methods from a class that is not in the mappings.
@@ -82,9 +83,11 @@ public final class MethodInheritanceMappingsMigrator implements MappingsMigrator
 			Files.deleteIfExists(cacheFile);
 			LoomGradleExtension extension = LoomGradleExtension.get(project);
 			methodsToRemove = new HashSet<>();
+
 			for (Path jar : minecraftProvider.getMinecraftJars()) {
 				methodsToRemove.addAll(prepareCache(project.getLogger(), rawMappings, List.of(jar)));
 			}
+
 			Files.writeString(cacheFile, new Gson().toJson(methodsToRemove.stream().sorted(Comparator.comparing(p -> p.left() + "|" + p.right())).toList()), StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
 		}
 
