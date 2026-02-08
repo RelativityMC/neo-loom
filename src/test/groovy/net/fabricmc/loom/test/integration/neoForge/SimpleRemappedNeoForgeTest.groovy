@@ -48,7 +48,10 @@ class SimpleRemappedNeoForgeTest extends Specification implements GradleProjectT
 				dependencies {
 					minecraft 'com.mojang:minecraft:26.1-snapshot-6'
 					neoForge 'net.neoforged:neoforge:26.1.0.0-alpha.9+snapshot-6'
-					mappings "org.relativitymc:modern-yarn:26.1-snapshot-6+build.3:v2"
+					mappings loom.layered {
+						it.mappings "org.relativitymc:modern-yarn:26.1-snapshot-6+build.3:v2"
+						it.mappings "org.relativitymc:modern-yarn-mappings-patch-neoforge:26.1+build.1"
+					}
                 }
 
                 loom {
@@ -61,13 +64,13 @@ class SimpleRemappedNeoForgeTest extends Specification implements GradleProjectT
 		@Language("JAVA") String src =  """
 		package example;
 
-		import net.minecraft.resources.Identifier;
+		import net.minecraft.util.Identifier;
 
 		import org.spongepowered.asm.mixin.Mixin; // Make sure we applied loaders deps via the installer data
 
 		public class Test {
 			public static void main(String[] args) {
-			    Identifier id = Identifier.fromNamespaceAndPath("loom", "test");
+			    Identifier id = Identifier.of("loom", "test");
 			}
 		}
 		"""
@@ -76,8 +79,7 @@ class SimpleRemappedNeoForgeTest extends Specification implements GradleProjectT
 		when:
 		def result = gradle.run(tasks: [
 			"build",
-			"configureClientLaunch",
-			"--info"
+			"configureClientLaunch"
 		])
 
 		then:
