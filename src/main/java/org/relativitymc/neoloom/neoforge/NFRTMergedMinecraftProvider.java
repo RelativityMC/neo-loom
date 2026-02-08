@@ -100,7 +100,7 @@ public class NFRTMergedMinecraftProvider extends MergedMinecraftProvider impleme
 			settings.args("run");
 			settings.args("--home-dir", new File(getProject().getGradle().getGradleUserHomeDir(), "caches/neoformruntime").getAbsolutePath());
 			settings.args("--work-dir", getProject().getLayout().getBuildDirectory().dir("tmp/neoformruntime").get().getAsFile().getAbsolutePath());
-			settings.args("--java-executable", javaToolchainExecutable.get());
+			settings.args("--java-executable", JavaExecutableFetcher.getJavaToolchainExecutable(getProject(), 21).get()); // TODO remove when neoforge fixes https://github.com/neoforged/NeoForge/issues/2956
 
 			if (getExtension().refreshDeps()) {
 				settings.args("--disable-cache");
