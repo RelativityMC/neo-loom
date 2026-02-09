@@ -59,6 +59,7 @@ import org.gradle.api.tasks.SourceSet;
 import org.gradle.jvm.JvmLibrary;
 import org.gradle.language.base.artifact.SourcesArtifact;
 import org.jspecify.annotations.Nullable;
+import org.relativitymc.neoloom.neoforge.meta.ModPlatform;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -164,7 +165,7 @@ public class ModConfigurationRemapper {
 			 */
 			final Configuration clientRemappedConfig = clientConfigsToRemap.get(sourceConfig);
 			List<ArtifactRef> artifactRefs = resolveArtifacts(project, sourceConfig);
-			Map<ArtifactRef, ArtifactMetadata> metadataMap = getMetadata(artifactRefs, metaCache, extension.getDefaultMixinRemapTypeEnum().get());
+			Map<ArtifactRef, ArtifactMetadata> metadataMap = getMetadata(artifactRefs, metaCache, extension.getDefaultMixinRemapTypeEnum().get(), extension.getMinecraftProvider().getModPlatform());
 			final List<ModDependency> modDependencies = new ArrayList<>();
 
 			for (ArtifactRef artifact : artifactRefs) {
@@ -232,13 +233,13 @@ public class ModConfigurationRemapper {
 		});
 	}
 
-	private static Map<ArtifactRef, ArtifactMetadata> getMetadata(List<ArtifactRef> artifacts, AsyncCache<ArtifactMetadata> cache, ArtifactMetadata.MixinRemapType defaultMixinRemapType) {
+	private static Map<ArtifactRef, ArtifactMetadata> getMetadata(List<ArtifactRef> artifacts, AsyncCache<ArtifactMetadata> cache, ArtifactMetadata.MixinRemapType defaultMixinRemapType, ModPlatform modPlatform) {
 		var futures = new HashMap<ArtifactRef, CompletableFuture<ArtifactMetadata>>();
 
 		for (ArtifactRef artifact : artifacts) {
 			CompletableFuture<ArtifactMetadata> future = cache.get(artifact, () -> {
 				try {
-					return ArtifactMetadata.create(artifact, LoomGradlePlugin.LOOM_VERSION, defaultMixinRemapType);
+					return ArtifactMetadata.create(artifact, LoomGradlePlugin.LOOM_VERSION, defaultMixinRemapType, modPlatform);
 				} catch (IOException e) {
 					throw ExceptionUtil.createDescriptiveWrapper(UncheckedIOException::new, "Failed to read metadata from " + artifact.path(), e);
 				}

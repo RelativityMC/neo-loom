@@ -70,6 +70,7 @@ public abstract class RemapTaskConfiguration implements Runnable {
 		Configuration includeConfiguration = getProject().getConfigurations().getByName(Constants.Configurations.INCLUDE_INTERNAL);
 		TaskProvider<NestableJarGenerationTask> processIncludeJarsTask = getTasks().register(Constants.Task.PROCESS_INCLUDE_JARS, NestableJarGenerationTask.class, task -> {
 			task.from(includeConfiguration);
+			task.getModPlatform().set(extension.getMinecraftProvider().getModPlatform());
 			task.getOutputDirectory().set(getProject().getLayout().getBuildDirectory().dir(task.getName()));
 		});
 
@@ -93,6 +94,8 @@ public abstract class RemapTaskConfiguration implements Runnable {
 			task.getInputFile().convention(jarTask.flatMap(AbstractArchiveTask::getArchiveFile));
 			task.dependsOn(getTasks().named(JavaPlugin.JAR_TASK_NAME));
 			task.getIncludesClientOnlyClasses().set(getProject().provider(extension::areEnvironmentSourceSetsSplit));
+
+			task.getModPlatform().set(getProject().provider(() -> extension.getMinecraftProvider().getModPlatform()));
 		};
 
 		// must not be lazy to ensure that the prepare tasks get setup for other projects to depend on.

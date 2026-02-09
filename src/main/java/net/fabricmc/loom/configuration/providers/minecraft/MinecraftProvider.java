@@ -51,6 +51,8 @@ import net.fabricmc.loom.util.download.GradleDownloadProgressListener;
 import net.fabricmc.loom.util.gradle.GradleUtils;
 import net.fabricmc.loom.util.gradle.ProgressGroup;
 
+import org.relativitymc.neoloom.neoforge.meta.ModPlatform;
+
 public abstract class MinecraftProvider {
 	private static final Logger LOGGER = LoggerFactory.getLogger(MinecraftProvider.class);
 
@@ -280,6 +282,10 @@ public abstract class MinecraftProvider {
 	public abstract List<Path> getMinecraftJars();
 
 	public abstract MappingsNamespace getOfficialNamespace();
+
+	public ModPlatform getModPlatform() {
+		return ModPlatform.FABRIC;
+	}
 
 	protected Project getProject() {
 		return configContext.project();

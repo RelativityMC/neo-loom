@@ -35,13 +35,15 @@ import net.fabricmc.loom.configuration.mods.dependency.ModDependency;
 import net.fabricmc.loom.util.Constants;
 import net.fabricmc.tinyremapper.TinyRemapper;
 
+import org.relativitymc.neoloom.neoforge.meta.ModPlatform;
+
 public record AccessWidenerAnalyzeVisitorProvider(ClassTweaker accessWidener) implements TinyRemapper.AnalyzeVisitorProvider {
-	static AccessWidenerAnalyzeVisitorProvider createFromMods(String namespace, List<ModDependency> mods) throws IOException {
+	static AccessWidenerAnalyzeVisitorProvider createFromMods(String namespace, List<ModDependency> mods, ModPlatform modPlatform) throws IOException {
 		ClassTweaker accessWidener = ClassTweaker.newInstance();
 		accessWidener.visitHeader(namespace);
 
 		for (ModDependency mod : mods) {
-			final var accessWidenerData = AccessWidenerUtils.readAccessWidenerData(mod.getInputFile());
+			final var accessWidenerData = AccessWidenerUtils.readAccessWidenerData(mod.getInputFile(), modPlatform);
 
 			if (accessWidenerData == null) {
 				continue;

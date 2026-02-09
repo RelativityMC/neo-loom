@@ -48,6 +48,7 @@ import net.fabricmc.loom.util.Constants;
 
 import dev.architectury.loom.tool.ForgeToolValueSource;
 import dev.architectury.loom.tool.JavaExecutableFetcher;
+import org.relativitymc.neoloom.neoforge.meta.ModPlatform;
 
 public class NFRTMergedMinecraftProvider extends MergedMinecraftProvider implements NFRTMinecraftProvider {
 	private final ConfigContext configContext;
@@ -158,6 +159,11 @@ public class NFRTMergedMinecraftProvider extends MergedMinecraftProvider impleme
 	@Override
 	public File workingDir() {
 		return neoForgeWorkingDirectory(configContext.project(), minecraftVersion(), neoForgeDependency());
+	}
+
+	@Override
+	public ModPlatform getModPlatform() {
+		return ModPlatform.NEOFORGE;
 	}
 
 	protected @NonNull String neoForgeNotation() {

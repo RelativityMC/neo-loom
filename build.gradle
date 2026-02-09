@@ -136,6 +136,9 @@ dependencies {
 	// Kapt integration
 	compileOnly libs.kotlin.gradle.plugin
 
+	// Forge mods.toml parsing
+	implementation libs.night.config.toml
+
 	// Testing
 	testImplementation(gradleTestKit())
 	testImplementation(testLibs.spock) {

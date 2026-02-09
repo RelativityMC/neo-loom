@@ -43,8 +43,14 @@ import net.fabricmc.loom.util.Constants;
 import net.fabricmc.loom.util.FileSystemUtil;
 import net.fabricmc.loom.util.fmj.FabricModJsonFactory;
 
+import org.relativitymc.neoloom.neoforge.meta.ModPlatform;
+
 public record ArtifactMetadata(boolean isFabricMod, RemapRequirements remapRequirements, @Nullable InstallerData installerData, MixinRemapType mixinRemapType, List<String> knownIdyBsms) {
 	public static ArtifactMetadata create(ArtifactRef artifact, String currentLoomVersion, MixinRemapType defaultMixinRemapType) throws IOException {
+		return create(artifact, currentLoomVersion, defaultMixinRemapType, ModPlatform.FABRIC);
+	}
+
+	public static ArtifactMetadata create(ArtifactRef artifact, String currentLoomVersion, MixinRemapType defaultMixinRemapType, ModPlatform modPlatform) throws IOException {
 		boolean isFabricMod;
 		RemapRequirements remapRequirements = RemapRequirements.DEFAULT;
 		InstallerData installerData = null;
@@ -52,7 +58,7 @@ public record ArtifactMetadata(boolean isFabricMod, RemapRequirements remapRequi
 		List<String> knownIndyBsms = new ArrayList<>();
 
 		try (FileSystemUtil.Delegate fs = FileSystemUtil.getJarFileSystem(artifact.path())) {
-			isFabricMod = FabricModJsonFactory.containsMod(fs);
+			isFabricMod = FabricModJsonFactory.containsMod(fs, modPlatform);
 			final Path manifestPath = fs.getPath(Constants.Manifest.PATH);
 
 			if (Files.exists(manifestPath)) {

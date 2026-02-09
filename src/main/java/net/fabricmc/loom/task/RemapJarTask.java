@@ -48,6 +48,7 @@ import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.TaskProvider;
 import org.jetbrains.annotations.ApiStatus;
 import org.jspecify.annotations.Nullable;
+import org.relativitymc.neoloom.neoforge.meta.ModPlatform;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -95,6 +96,9 @@ public abstract class RemapJarTask extends AbstractRemapJarTask {
 	public abstract Property<TinyRemapperService.Options> getTinyRemapperServiceOptions();
 	@Nested
 	public abstract ListProperty<MixinRefmapService.Options> getMixinRefmapServiceOptions();
+
+	@Input
+	public abstract Property<ModPlatform> getModPlatform();
 
 	@Inject
 	public RemapJarTask() {
@@ -149,6 +153,8 @@ public abstract class RemapJarTask extends AbstractRemapJarTask {
 			}
 
 			params.getOptimizeFmj().set(getOptimizeFabricModJson().get());
+
+			params.getModPlatform().set(getModPlatform());
 		});
 	}
 
@@ -161,6 +167,8 @@ public abstract class RemapJarTask extends AbstractRemapJarTask {
 
 		Property<TinyRemapperService.Options> getTinyRemapperServiceOptions();
 		ListProperty<MixinRefmapService.Options> getMixinRefmapServiceOptions();
+
+		Property<ModPlatform> getModPlatform();
 	}
 
 	public abstract static class RemapAction extends AbstractRemapAction<RemapParams> {
@@ -286,7 +294,7 @@ public abstract class RemapJarTask extends AbstractRemapJarTask {
 				return;
 			}
 
-			JarNester.nestJars(nestedJars.getFiles(), outputFile.toFile(), LOGGER);
+			JarNester.nestJars(nestedJars.getFiles(), outputFile.toFile(), getParameters().getModPlatform().get(), LOGGER);
 		}
 
 		private void addRefmaps(ServiceFactory serviceFactory) throws IOException {

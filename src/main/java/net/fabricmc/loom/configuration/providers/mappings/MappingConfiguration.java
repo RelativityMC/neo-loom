@@ -115,7 +115,7 @@ public class MappingConfiguration {
 
 		MappingConfiguration mappingProvider;
 
-		if (extension.getMinecraftProvider() instanceof NFRTMinecraftProvider) {
+		if (extension.getMinecraftProvider().getModPlatform().isForgeLike()) {
 			mappingProvider = new ForgeMigratedMappingConfiguration(mappingsIdentifier, workingDir);
 		} else {
 			mappingProvider = new MappingConfiguration(mappingsIdentifier, workingDir);
