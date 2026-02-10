@@ -251,7 +251,7 @@ public abstract class NestableJarGenerationTask extends AbstractLoomTask {
 			}
 		}
 
-		if (modJsonFile == null || FabricModJsonFactory.isModJar(input, getExtension().getMinecraftProvider().getModPlatform())) {
+		if (modJsonFile == null || FabricModJsonFactory.isModJar(input, getModPlatform().get())) {
 			// Input is a mod, nothing needs to be done.
 			return;
 		}
