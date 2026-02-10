@@ -84,6 +84,7 @@ public abstract class NestJarsAction implements Action<Task>, Serializable {
 		workQueue.submit(NestAction.class, p -> {
 			p.getArchiveFile().set(jarTask.getArchiveFile());
 			p.getJars().setFrom(getJars());
+			p.getModPlatform().set(getModPlatform());
 		});
 	}
 

@@ -1,0 +1,23 @@
+plugins {
+	id 'org.relativitymc.neo-loom'
+}
+
+repositories {
+	mavenCentral()
+	maven {
+		url = "https://repo.codemc.io/repository/relativitymc/"
+	}
+}
+
+dependencies {
+	minecraft 'com.mojang:minecraft:1.21.11_unobfuscated'
+	neoForge 'net.neoforged:neoforge:21.11.38-beta'
+
+	include 'org.apache.logging.log4j:log4j-core:2.22.0'
+
+	// Test bom/platform dependencies
+	include platform('net.kyori:adventure-bom:4.14.0')
+
+	// bom provides version
+	include 'net.kyori:adventure-text-serializer-gson'
+}
