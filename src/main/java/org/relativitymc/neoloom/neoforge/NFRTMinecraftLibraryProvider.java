@@ -139,7 +139,7 @@ public class NFRTMinecraftLibraryProvider extends MinecraftLibraryProvider {
 		final LoomGradleExtension extension = LoomGradleExtension.get(project);
 		final MinecraftJarConfiguration jarConfiguration = extension.getMinecraftJarConfiguration().get();
 
-		Configuration configuration = this.project.getConfigurations().detachedConfiguration(this.gameLibrariesDependency, this.neoForge);
+		Configuration configuration = this.project.getConfigurations().detachedConfiguration(this.gameLibrariesDependency); // note: add this.neoForge if final jar doesnt have it
 		configuration.attributes(attributes -> {
 			attributes.attribute(MinecraftDistribution.ATTRIBUTE, project.getObjects().named(MinecraftDistribution.ATTRIBUTE.getType(), MinecraftDistribution.CLIENT));
 			attributes.attribute(OperatingSystem.ATTRIBUTE, project.getObjects().named(OperatingSystem.ATTRIBUTE.getType(), OperatingSystem.getCurrent()));
