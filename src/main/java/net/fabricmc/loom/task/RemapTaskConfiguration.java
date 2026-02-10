@@ -94,8 +94,6 @@ public abstract class RemapTaskConfiguration implements Runnable {
 			task.getInputFile().convention(jarTask.flatMap(AbstractArchiveTask::getArchiveFile));
 			task.dependsOn(getTasks().named(JavaPlugin.JAR_TASK_NAME));
 			task.getIncludesClientOnlyClasses().set(getProject().provider(extension::areEnvironmentSourceSetsSplit));
-
-			task.getModPlatform().set(getProject().provider(() -> extension.getMinecraftProvider().getModPlatform()));
 		};
 
 		// must not be lazy to ensure that the prepare tasks get setup for other projects to depend on.

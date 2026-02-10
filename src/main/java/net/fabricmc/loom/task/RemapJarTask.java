@@ -126,6 +126,8 @@ public abstract class RemapJarTask extends AbstractRemapJarTask {
 
 		getTinyRemapperServiceOptions().set(TinyRemapperService.createOptions(this));
 		getMixinRefmapServiceOptions().set(MixinRefmapService.createOptions(this));
+
+		getModPlatform().set(getProject().provider(() -> extension.getMinecraftProvider().getModPlatform()));
 	}
 
 	@Override
