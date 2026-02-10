@@ -33,13 +33,14 @@ import java.util.stream.Collectors;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import dev.architectury.loom.metadata.JsonBackedModMetadataFile;
-import dev.architectury.loom.metadata.ModMetadataFile;
 import org.gradle.api.Project;
 import org.gradle.api.tasks.SourceSet;
-import org.jetbrains.annotations.Nullable;
+import org.jspecify.annotations.Nullable;
 
 import net.fabricmc.loom.util.gradle.SourceSetHelper;
+
+import dev.architectury.loom.metadata.JsonBackedModMetadataFile;
+import dev.architectury.loom.metadata.ModMetadataFile;
 
 public final class ModMetadataFabricModJson extends FabricModJson {
 	private static final int FABRIC_SCHEMA_VERSION = -1;

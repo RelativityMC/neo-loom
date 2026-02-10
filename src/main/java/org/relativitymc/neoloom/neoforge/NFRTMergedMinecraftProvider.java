@@ -48,6 +48,7 @@ import net.fabricmc.loom.util.Constants;
 
 import dev.architectury.loom.tool.ForgeToolValueSource;
 import dev.architectury.loom.tool.JavaExecutableFetcher;
+
 import org.relativitymc.neoloom.neoforge.meta.ModPlatform;
 
 public class NFRTMergedMinecraftProvider extends MergedMinecraftProvider implements NFRTMinecraftProvider {

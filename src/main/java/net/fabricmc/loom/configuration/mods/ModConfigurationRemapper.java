@@ -59,7 +59,6 @@ import org.gradle.api.tasks.SourceSet;
 import org.gradle.jvm.JvmLibrary;
 import org.gradle.language.base.artifact.SourcesArtifact;
 import org.jspecify.annotations.Nullable;
-import org.relativitymc.neoloom.neoforge.meta.ModPlatform;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -78,6 +77,8 @@ import net.fabricmc.loom.util.ExceptionUtil;
 import net.fabricmc.loom.util.SourceRemapper;
 import net.fabricmc.loom.util.gradle.SourceSetHelper;
 import net.fabricmc.loom.util.service.ServiceFactory;
+
+import org.relativitymc.neoloom.neoforge.meta.ModPlatform;
 
 @SuppressWarnings("UnstableApiUsage")
 public class ModConfigurationRemapper {

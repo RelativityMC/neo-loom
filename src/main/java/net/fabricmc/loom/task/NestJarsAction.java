@@ -30,8 +30,6 @@ import java.util.Set;
 
 import javax.inject.Inject;
 
-import net.fabricmc.loom.LoomGradleExtension;
-
 import org.gradle.api.Action;
 import org.gradle.api.Task;
 import org.gradle.api.file.ConfigurableFileCollection;
@@ -45,11 +43,13 @@ import org.gradle.workers.WorkAction;
 import org.gradle.workers.WorkParameters;
 import org.gradle.workers.WorkQueue;
 import org.gradle.workers.WorkerExecutor;
-import org.relativitymc.neoloom.neoforge.meta.ModPlatform;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import net.fabricmc.loom.LoomGradleExtension;
 import net.fabricmc.loom.build.nesting.JarNester;
+
+import org.relativitymc.neoloom.neoforge.meta.ModPlatform;
 
 /**
  * Configuration-cache-compatible action for nesting jars.

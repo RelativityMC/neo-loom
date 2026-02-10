@@ -65,7 +65,6 @@ import net.fabricmc.mappingio.format.MappingFormat;
 import net.fabricmc.stitch.Command;
 import net.fabricmc.stitch.commands.CommandProposeFieldNames;
 
-import org.relativitymc.neoloom.neoforge.NFRTMinecraftProvider;
 import org.relativitymc.neoloom.neoforge.mappings.ForgeMigratedMappingConfiguration;
 
 public class MappingConfiguration {

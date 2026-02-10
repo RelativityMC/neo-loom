@@ -35,18 +35,17 @@ import java.util.stream.Stream;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-
-import net.fabricmc.loom.LoomGradlePlugin;
-
 import org.gradle.api.UncheckedIOException;
-import org.jetbrains.annotations.Nullable;
-import org.relativitymc.neoloom.neoforge.meta.ModPlatform;
+import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 
+import net.fabricmc.loom.LoomGradlePlugin;
 import net.fabricmc.loom.util.Check;
 import net.fabricmc.loom.util.Pair;
 import net.fabricmc.loom.util.ZipUtils;
 import net.fabricmc.loom.util.fmj.FabricModJsonFactory;
+
+import org.relativitymc.neoloom.neoforge.meta.ModPlatform;
 
 public class JarNester {
 	public static void nestJars(Collection<File> jars, File modJar, ModPlatform platform, Logger logger) {
@@ -111,7 +110,7 @@ public class JarNester {
 		}
 	}
 
-	private static @Nullable NestableJarGenerationTask.Metadata readNestedFile(File file, Logger logger) {
+	private static NestableJarGenerationTask.@Nullable Metadata readNestedFile(File file, Logger logger) {
 		try {
 			return ZipUtils.unpackGsonNullable(file.toPath(), NestableJarGenerationTask.NESTING_METADATA_PATH, NestableJarGenerationTask.Metadata.class);
 		} catch (IOException e) {
@@ -161,5 +160,4 @@ public class JarNester {
 
 		ZipUtils.add(modJar.toPath(), "META-INF/jarjar/metadata.json", LoomGradlePlugin.GSON.toJson(json));
 	}
-
 }

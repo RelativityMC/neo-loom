@@ -48,7 +48,6 @@ import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.TaskProvider;
 import org.jetbrains.annotations.ApiStatus;
 import org.jspecify.annotations.Nullable;
-import org.relativitymc.neoloom.neoforge.meta.ModPlatform;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -73,6 +72,8 @@ import net.fabricmc.loom.util.service.ScopedServiceFactory;
 import net.fabricmc.loom.util.service.ServiceFactory;
 import net.fabricmc.tinyremapper.OutputConsumerPath;
 import net.fabricmc.tinyremapper.TinyRemapper;
+
+import org.relativitymc.neoloom.neoforge.meta.ModPlatform;
 
 public abstract class RemapJarTask extends AbstractRemapJarTask {
 	@InputFiles

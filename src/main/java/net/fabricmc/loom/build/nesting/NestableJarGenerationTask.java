@@ -39,9 +39,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import com.google.gson.JsonObject;
-
-import net.fabricmc.loom.util.ZipUtils;
-
 import org.gradle.api.artifacts.ArtifactView;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
@@ -59,7 +56,6 @@ import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.TaskAction;
 import org.jspecify.annotations.Nullable;
-import org.relativitymc.neoloom.neoforge.meta.ModPlatform;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -68,7 +64,10 @@ import net.fabricmc.loom.task.AbstractLoomTask;
 import net.fabricmc.loom.util.Checksum;
 import net.fabricmc.loom.util.DeletingFileVisitor;
 import net.fabricmc.loom.util.ZipReprocessorUtil;
+import net.fabricmc.loom.util.ZipUtils;
 import net.fabricmc.loom.util.fmj.FabricModJsonFactory;
+
+import org.relativitymc.neoloom.neoforge.meta.ModPlatform;
 
 public abstract class NestableJarGenerationTask extends AbstractLoomTask {
 	private static final Logger LOGGER = LoggerFactory.getLogger(NestableJarGenerationTask.class);

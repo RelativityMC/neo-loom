@@ -37,13 +37,10 @@ import java.util.Optional;
 
 import com.google.gson.JsonObject;
 import com.google.gson.JsonSyntaxException;
-import dev.architectury.loom.metadata.ModMetadataFile;
-import dev.architectury.loom.metadata.ModMetadataFiles;
 import org.gradle.api.Project;
 import org.gradle.api.tasks.SourceSet;
 import org.jspecify.annotations.Nullable;
 import org.jetbrains.annotations.VisibleForTesting;
-import org.relativitymc.neoloom.neoforge.meta.ModPlatform;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -51,6 +48,11 @@ import net.fabricmc.loom.LoomGradlePlugin;
 import net.fabricmc.loom.util.FileSystemUtil;
 import net.fabricmc.loom.util.ZipUtils;
 import net.fabricmc.loom.util.gradle.SourceSetHelper;
+
+import dev.architectury.loom.metadata.ModMetadataFile;
+import dev.architectury.loom.metadata.ModMetadataFiles;
+
+import org.relativitymc.neoloom.neoforge.meta.ModPlatform;
 
 public final class FabricModJsonFactory {
 	public static final String FABRIC_MOD_JSON = "fabric.mod.json";
