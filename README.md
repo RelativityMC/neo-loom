@@ -1,6 +1,6 @@
 # Neo Loom
 
-A fork of Fabric Loom that supports the NeoForge modding toolchain. 
+A fork of Fabric Loom that supports the NeoForge modding toolchain. Heavily based on Architectury Loom. 
 
 ## Currently implemented
 - 1.21+ No-Remap setup
