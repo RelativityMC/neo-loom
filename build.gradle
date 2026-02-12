@@ -27,11 +27,7 @@ def baseVersion = '1.15'
 
 def ENV = System.getenv()
 if (ENV.BUILD_NUMBER) {
-	if (ENV.EXPERIMENTAL) {
-		version = baseVersion + '.0-alpha.' + ENV.BUILD_NUMBER
-	} else {
-		version = baseVersion + '.' + ENV.BUILD_NUMBER
-	}
+	version = baseVersion + '.' + ENV.BUILD_NUMBER
 } else {
 	version = baseVersion + '.local'
 }
@@ -293,7 +289,7 @@ import org.w3c.dom.Node
 
 publishing {
 	publications {
-		if (!ENV.EXPERIMENTAL) {
+		if (true) {
 			// Also publish a snapshot so people can use the latest version if they wish
 			snapshot(MavenPublication) { publication ->
 				groupId = project.group
@@ -328,12 +324,12 @@ publishing {
 		}
 	}
 	repositories {
-		maven {
-			if (ENV.MAVEN_URL) {
-				url ENV.MAVEN_URL
+		if (ENV.MAVEN_URL) {
+			maven {
+				url = ENV.MAVEN_URL
 				credentials {
-					username ENV.MAVEN_USERNAME
-					password ENV.MAVEN_PASSWORD
+					username = ENV.MAVEN_CRED_USR
+					password = ENV.MAVEN_CRED_PSW
 				}
 			}
 		}
