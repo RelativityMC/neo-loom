@@ -1,3 +1,20 @@
+# Neo Loom
+
+A fork of Fabric Loom that supports the NeoForge modding toolchain. 
+
+## Currently implemented
+- 1.21+ No-Remap setup
+- 26.1+ Remap setup
+- Jar-in-Jar
+- ClassTweaker / AccessWidener -> AccessTransformer conversion
+
+## Current to-dos
+- Devlaunch
+- JUnit
+- Production launch tasks
+- Forge support
+- split-sources, client-only, server-only setups for (Neo)Forge
+
 # Fabric Loom
 
 A [Gradle](https://gradle.org/) plugin to setup a deobfuscated development environment for Minecraft mods. Primarily used in the Fabric toolchain.
