@@ -141,23 +141,23 @@ public class NFRTMinecraftLibraryProvider extends MinecraftLibraryProvider {
 
 		// TODO transform FML
 
-		resolveGameLibraries(Library.Target.COMPILE, MinecraftDistribution.CLIENT);
-		resolveGameLibraries(Library.Target.COMPILE, MinecraftDistribution.SERVER);
-		resolveGameLibraries(Library.Target.RUNTIME, MinecraftDistribution.CLIENT);
-		resolveGameLibraries(Library.Target.RUNTIME, MinecraftDistribution.SERVER);
+		resolveGameLibraries(Library.Target.COMPILE, MinecraftDistribution.CLIENT, this.gameLibrariesDependency); // note: add this.neoForge if final jar doesnt have it
+		resolveGameLibraries(Library.Target.COMPILE, MinecraftDistribution.SERVER, this.gameLibrariesDependency);
+		resolveGameLibraries(Library.Target.RUNTIME, MinecraftDistribution.CLIENT, this.gameLibrariesDependency, this.modulePathDependency);
+		resolveGameLibraries(Library.Target.RUNTIME, MinecraftDistribution.SERVER, this.gameLibrariesDependency, this.modulePathDependency);
 
 		if (extension.isCollectingDependencyVerificationMetadata()) {
 			resolveAllLibraries();
 		}
 	}
 
-	private void resolveGameLibraries(Library.Target target, String distribution) {
+	private void resolveGameLibraries(Library.Target target, String distribution, ModuleDependency... dependencies) {
 		String usage = switch (target) {
-			case RUNTIME -> Usage.JAVA_RUNTIME;
-			case COMPILE -> Usage.JAVA_API;
-			default -> throw new UnsupportedOperationException();
+		case RUNTIME -> Usage.JAVA_RUNTIME;
+		case COMPILE -> Usage.JAVA_API;
+		default -> throw new UnsupportedOperationException();
 		};
-		Configuration configuration = this.project.getConfigurations().detachedConfiguration(this.gameLibrariesDependency); // note: add this.neoForge if final jar doesnt have it
+		Configuration configuration = this.project.getConfigurations().detachedConfiguration(dependencies);
 		configuration.attributes(attributes -> {
 			attributes.attribute(Usage.USAGE_ATTRIBUTE, project.getObjects().named(Usage.USAGE_ATTRIBUTE.getType(), usage));
 			attributes.attribute(MinecraftDistribution.ATTRIBUTE, project.getObjects().named(MinecraftDistribution.ATTRIBUTE.getType(), distribution));
@@ -171,6 +171,7 @@ public class NFRTMinecraftLibraryProvider extends MinecraftLibraryProvider {
 				})
 				.toList();
 		List<Library> processed = this.processLibraries(list);
+
 		if (distribution.equals(MinecraftDistribution.CLIENT)) {
 			processed.forEach(this::applyClientLibrary);
 		} else if (distribution.equals(MinecraftDistribution.SERVER)) {

@@ -41,6 +41,8 @@ public class Constants {
 	public static final String RELEASE_TIME_1_3 = "2012-07-25T22:00:00+00:00";
 	public static final String RELEASE_TIME_BETA_1_0 = "2010-12-19T22:00:00+00:00";
 
+	public static final String RELEASE_TIME_26_1_SNAPSHOT = "2025-12-16T12:42:29+00:00";
+
 	private Constants() {
 	}
 
