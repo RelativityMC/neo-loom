@@ -28,6 +28,7 @@ import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Objects;
@@ -72,50 +73,52 @@ public class NFRTMergedMinecraftProvider extends MergedMinecraftProvider impleme
 
 		final NFRTMinecraftLibraryProvider libraryProvider = new NFRTMinecraftLibraryProvider(this, configContext.project());
 
-		Properties artifactManifest = new Properties();
-		libraryProvider.collectArtifactManifest(artifactManifest);
+		if (!Files.exists(minecraftMergedJar) || getExtension().refreshDeps()) {
+			Properties artifactManifest = new Properties();
+			libraryProvider.collectArtifactManifest(artifactManifest);
 
-		File tmpDir = getProject().getLayout().getBuildDirectory().dir("tmp/neoformruntime").get().getAsFile();
-		tmpDir.mkdirs();
-		File artifactManifestFile = new File(tmpDir, "nfrt_artifact_manifest.properties");
+			File tmpDir = getProject().getLayout().getBuildDirectory().dir("tmp/neoformruntime").get().getAsFile();
+			tmpDir.mkdirs();
+			File artifactManifestFile = new File(tmpDir, "nfrt_artifact_manifest.properties");
 
-		try (var out = new BufferedOutputStream(new FileOutputStream(artifactManifestFile))) {
-			artifactManifest.store(out, "");
-		} catch (IOException e) {
-			throw new GradleException("Failed to write NFRT artifact manifest: " + e, e);
+			try (var out = new BufferedOutputStream(new FileOutputStream(artifactManifestFile))) {
+				artifactManifest.store(out, "");
+			} catch (IOException e) {
+				throw new GradleException("Failed to write NFRT artifact manifest: " + e, e);
+			}
+
+			ForgeToolValueSource.exec(getProject(), settings -> {
+				settings.getExecClasspath().from(getProject().getConfigurations().getByName(Constants.Configurations.NFRT_TOOL));
+				settings.getMainClass().set("net.neoforged.neoform.runtime.cli.Main");
+				MinecraftVersionMeta.JavaVersion javaVersion = this.metadataProvider.getVersionMeta().javaVersion();
+				Provider<String> javaToolchainExecutable;
+
+				if (javaVersion != null) {
+					javaToolchainExecutable = JavaExecutableFetcher.getJavaToolchainExecutable(getProject(), javaVersion.majorVersion());
+				} else {
+					javaToolchainExecutable = JavaExecutableFetcher.getJavaToolchainExecutable(getProject());
+				}
+
+				settings.getExecutable().set(javaToolchainExecutable);
+
+				settings.args("run");
+				settings.args("--home-dir", new File(getProject().getGradle().getGradleUserHomeDir(), "caches/neoformruntime").getAbsolutePath());
+				settings.args("--work-dir", getProject().getLayout().getBuildDirectory().dir("tmp/neoformruntime").get().getAsFile().getAbsolutePath());
+				settings.args("--java-executable", JavaExecutableFetcher.getJavaToolchainExecutable(getProject(), 21).get()); // TODO remove when neoforge fixes https://github.com/neoforged/NeoForge/issues/2956
+
+				// if (getExtension().refreshDeps()) {
+				// 	settings.args("--disable-cache");
+				// }
+
+				settings.args("--artifact-manifest", artifactManifestFile.getAbsolutePath());
+				settings.args("--warn-on-artifact-manifest-miss");
+
+				settings.args("--neoforge", neoForgeNotation() + ":userdev");
+				settings.args("--dist", "joined");
+				settings.args("--write-result", "gameJarWithNeoForge:" + this.minecraftMergedJar.toAbsolutePath().toString());
+				settings.args("--write-result", "gameSourcesWithNeoForge:" + this.minecraftMergedSources.toAbsolutePath().toString());
+			});
 		}
-
-		ForgeToolValueSource.exec(getProject(), settings -> {
-			settings.getExecClasspath().from(getProject().getConfigurations().getByName(Constants.Configurations.NFRT_TOOL));
-			settings.getMainClass().set("net.neoforged.neoform.runtime.cli.Main");
-			MinecraftVersionMeta.JavaVersion javaVersion = this.metadataProvider.getVersionMeta().javaVersion();
-			Provider<String> javaToolchainExecutable;
-
-			if (javaVersion != null) {
-				javaToolchainExecutable = JavaExecutableFetcher.getJavaToolchainExecutable(getProject(), javaVersion.majorVersion());
-			} else {
-				javaToolchainExecutable = JavaExecutableFetcher.getJavaToolchainExecutable(getProject());
-			}
-
-			settings.getExecutable().set(javaToolchainExecutable);
-
-			settings.args("run");
-			settings.args("--home-dir", new File(getProject().getGradle().getGradleUserHomeDir(), "caches/neoformruntime").getAbsolutePath());
-			settings.args("--work-dir", getProject().getLayout().getBuildDirectory().dir("tmp/neoformruntime").get().getAsFile().getAbsolutePath());
-			settings.args("--java-executable", JavaExecutableFetcher.getJavaToolchainExecutable(getProject(), 21).get()); // TODO remove when neoforge fixes https://github.com/neoforged/NeoForge/issues/2956
-
-			if (getExtension().refreshDeps()) {
-				settings.args("--disable-cache");
-			}
-
-			settings.args("--artifact-manifest", artifactManifestFile.getAbsolutePath());
-			settings.args("--warn-on-artifact-manifest-miss");
-
-			settings.args("--neoforge", neoForgeNotation() + ":userdev");
-			settings.args("--dist", "joined");
-			settings.args("--write-result", "gameJarWithNeoForge:" + this.minecraftMergedJar.toAbsolutePath().toString());
-			settings.args("--write-result", "gameSourcesWithNeoForge:" + this.minecraftMergedSources.toAbsolutePath().toString());
-		});
 
 		libraryProvider.provide();
 	}
