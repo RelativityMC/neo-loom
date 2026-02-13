@@ -154,7 +154,7 @@ public class NFRTMergedMinecraftProvider extends MergedMinecraftProvider impleme
 
 	@Override
 	public @Nullable BundleMetadata getServerBundleMetadata() {
-		throw new UnsupportedOperationException("handled by NFRT");
+		return null; // stub
 	}
 
 	@Override
