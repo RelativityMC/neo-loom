@@ -299,6 +299,10 @@ public abstract class MinecraftProvider {
 		return getExtension().refreshDeps();
 	}
 
+	public String getJarPrefix() {
+		return "";
+	}
+
 	public static File minecraftWorkingDirectory(Project project, String version) {
 		LoomGradleExtension extension = LoomGradleExtension.get(project);
 		File workingDir = new File(extension.getFiles().getUserCache(), version);
@@ -307,8 +311,12 @@ public abstract class MinecraftProvider {
 	}
 
 	public static File neoForgeWorkingDirectory(Project project, String minecraftVersion, ExternalModuleDependency neoForgeVersion) {
-		File workingDir = new File(minecraftWorkingDirectory(project, minecraftVersion), neoForgeVersion.getGroup() + "." + neoForgeVersion.getName() + "_" + neoForgeVersion.getVersion());
+		File workingDir = new File(minecraftWorkingDirectory(project, minecraftVersion), mangleNeoForgeVersion(neoForgeVersion));
 		workingDir.mkdirs();
 		return workingDir;
+	}
+
+	public static String mangleNeoForgeVersion(ExternalModuleDependency neoForgeVersion) {
+		return neoForgeVersion.getGroup() + "." + neoForgeVersion.getName() + "_" + neoForgeVersion.getVersion();
 	}
 }

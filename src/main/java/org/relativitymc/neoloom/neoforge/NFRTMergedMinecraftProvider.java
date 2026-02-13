@@ -170,6 +170,11 @@ public class NFRTMergedMinecraftProvider extends MergedMinecraftProvider impleme
 		return ModPlatform.NEOFORGE;
 	}
 
+	@Override
+	public String getJarPrefix() {
+		return "nfrt-" + mangleNeoForgeVersion(neoForgeDependency()) + "-";
+	}
+
 	protected @NonNull String neoForgeNotation() {
 		return neoForgeDependency().getGroup() + ":" + neoForgeDependency().getName() + ":" + neoForgeDependency().getVersion();
 	}
