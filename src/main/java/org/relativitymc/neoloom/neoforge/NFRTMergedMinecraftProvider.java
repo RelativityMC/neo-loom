@@ -58,6 +58,7 @@ public class NFRTMergedMinecraftProvider extends MergedMinecraftProvider impleme
 
 	private Path minecraftMergedJar;
 	private Path minecraftMergedSources;
+	private Path minecraftClientResources;
 
 	public NFRTMergedMinecraftProvider(MinecraftMetadataProvider metadataProvider, ConfigContext configContext) {
 		super(metadataProvider, configContext);
@@ -73,7 +74,7 @@ public class NFRTMergedMinecraftProvider extends MergedMinecraftProvider impleme
 
 		final NFRTMinecraftLibraryProvider libraryProvider = new NFRTMinecraftLibraryProvider(this, configContext.project());
 
-		if (!Files.exists(minecraftMergedJar) || getExtension().refreshDeps()) {
+		if (!Files.exists(minecraftMergedJar) || !Files.exists(minecraftMergedSources) || !Files.exists(minecraftClientResources) || getExtension().refreshDeps()) {
 			Properties artifactManifest = new Properties();
 			libraryProvider.collectArtifactManifest(artifactManifest);
 
@@ -117,6 +118,7 @@ public class NFRTMergedMinecraftProvider extends MergedMinecraftProvider impleme
 				settings.args("--dist", "joined");
 				settings.args("--write-result", "gameJarWithNeoForge:" + this.minecraftMergedJar.toAbsolutePath().toString());
 				settings.args("--write-result", "gameSourcesWithNeoForge:" + this.minecraftMergedSources.toAbsolutePath().toString());
+				settings.args("--write-result", "clientResources:" + this.minecraftClientResources.toAbsolutePath().toString());
 			});
 		}
 
@@ -128,6 +130,7 @@ public class NFRTMergedMinecraftProvider extends MergedMinecraftProvider impleme
 		// no super call
 		this.minecraftMergedJar = path("minecraft-merged.jar");
 		this.minecraftMergedSources = path("minecraft-merged-sources.jar");
+		this.minecraftClientResources = path("minecraft-merged-client-resources.jar");
 	}
 
 	@Override

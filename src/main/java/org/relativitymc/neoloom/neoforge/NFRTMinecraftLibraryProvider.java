@@ -139,28 +139,44 @@ public class NFRTMinecraftLibraryProvider extends MinecraftLibraryProvider {
 		final LoomGradleExtension extension = LoomGradleExtension.get(project);
 		final MinecraftJarConfiguration jarConfiguration = extension.getMinecraftJarConfiguration().get();
 
-		Configuration configuration = this.project.getConfigurations().detachedConfiguration(this.gameLibrariesDependency); // note: add this.neoForge if final jar doesnt have it
-		configuration.attributes(attributes -> {
-			attributes.attribute(MinecraftDistribution.ATTRIBUTE, project.getObjects().named(MinecraftDistribution.ATTRIBUTE.getType(), MinecraftDistribution.CLIENT));
-			attributes.attribute(OperatingSystem.ATTRIBUTE, project.getObjects().named(OperatingSystem.ATTRIBUTE.getType(), OperatingSystem.getCurrent()));
-		});
-		ResolvedConfiguration resolvedConfiguration = configuration.getResolvedConfiguration();
+		// TODO transform FML
 
-		for (ResolvedArtifact artifact : resolvedConfiguration.getResolvedArtifacts()) {
-			final ModuleVersionIdentifier id = artifact.getModuleVersion().getId();
-
-			// TODO transform FML
-
-			this.applyDependencyBoth(new Library(id.getGroup(), id.getName(), id.getVersion(), artifact.getClassifier(), Library.Target.COMPILE));
-		}
+		resolveGameLibraries(Library.Target.COMPILE, MinecraftDistribution.CLIENT);
+		resolveGameLibraries(Library.Target.COMPILE, MinecraftDistribution.SERVER);
+		resolveGameLibraries(Library.Target.RUNTIME, MinecraftDistribution.CLIENT);
+		resolveGameLibraries(Library.Target.RUNTIME, MinecraftDistribution.SERVER);
 
 		if (extension.isCollectingDependencyVerificationMetadata()) {
 			resolveAllLibraries();
 		}
 	}
 
-	private void applyDependencyBoth(Library library) {
-		this.applyClientLibrary(library);
-		this.applyServerLibrary(library);
+	private void resolveGameLibraries(Library.Target target, String distribution) {
+		String usage = switch (target) {
+			case RUNTIME -> Usage.JAVA_RUNTIME;
+			case COMPILE -> Usage.JAVA_API;
+			default -> throw new UnsupportedOperationException();
+		};
+		Configuration configuration = this.project.getConfigurations().detachedConfiguration(this.gameLibrariesDependency); // note: add this.neoForge if final jar doesnt have it
+		configuration.attributes(attributes -> {
+			attributes.attribute(Usage.USAGE_ATTRIBUTE, project.getObjects().named(Usage.USAGE_ATTRIBUTE.getType(), usage));
+			attributes.attribute(MinecraftDistribution.ATTRIBUTE, project.getObjects().named(MinecraftDistribution.ATTRIBUTE.getType(), distribution));
+			attributes.attribute(OperatingSystem.ATTRIBUTE, project.getObjects().named(OperatingSystem.ATTRIBUTE.getType(), OperatingSystem.getCurrent()));
+		});
+		ResolvedConfiguration resolvedConfiguration = configuration.getResolvedConfiguration();
+		List<Library> list = resolvedConfiguration.getResolvedArtifacts().stream()
+				.map(artifact -> {
+					final ModuleVersionIdentifier id = artifact.getModuleVersion().getId();
+					return new Library(id.getGroup(), id.getName(), id.getVersion(), artifact.getClassifier(), Library.Target.COMPILE);
+				})
+				.toList();
+		List<Library> processed = this.processLibraries(list);
+		if (distribution.equals(MinecraftDistribution.CLIENT)) {
+			processed.forEach(this::applyClientLibrary);
+		} else if (distribution.equals(MinecraftDistribution.SERVER)) {
+			processed.forEach(this::applyServerLibrary);
+		} else {
+			throw new UnsupportedOperationException();
+		}
 	}
 }
