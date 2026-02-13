@@ -69,9 +69,10 @@ public abstract class NestJarsAction implements Action<Task>, Serializable {
 	public static void addToTask(Jar task, FileCollection jars) {
 		NestJarsAction nestJarsAction = task.getProject().getObjects().newInstance(NestJarsAction.class);
 		nestJarsAction.getJars().from(jars);
-		nestJarsAction.getModPlatform().set(LoomGradleExtension.get(task.getProject()).getMinecraftProvider().getModPlatform());
+		LoomGradleExtension extension = LoomGradleExtension.get(task.getProject());
+		nestJarsAction.getModPlatform().set(task.getProject().provider(() -> extension.getMinecraftProvider().getModPlatform()));
 		task.getInputs().files(nestJarsAction.getJars()); // I don't think @InputFiles works, so to be sure add the jars to the task input anyway.
-		task.getInputs().property("modPlatform", nestJarsAction.getModPlatform().get());
+		task.getInputs().property("modPlatform", nestJarsAction.getModPlatform());
 		task.doLast(nestJarsAction);
 	}
 
