@@ -60,7 +60,9 @@ public abstract class ProcessedNamedMinecraftProvider<M extends MinecraftProvide
 
 	@Override
 	public List<MinecraftJar> provide(ProvideContext context) throws Exception {
-		final List<MinecraftJar> parentMinecraftJars = parentMinecraftProvider.getMinecraftJars();
+		final List<MinecraftJar> parentMinecraftJars = parentMinecraftProvider.getRemappedJars().stream()
+				.map(RemappedJars::outputJar)
+				.toList();
 		final Map<MinecraftJar, MinecraftJar> minecraftJarOutputMap = parentMinecraftJars.stream()
 				.collect(Collectors.toMap(Function.identity(), this::getProcessedJar));
 		final List<MinecraftJar> minecraftJars = List.copyOf(minecraftJarOutputMap.values());
@@ -85,7 +87,8 @@ public abstract class ProcessedNamedMinecraftProvider<M extends MinecraftProvide
 
 	@Override
 	public List<? extends OutputJar> getOutputJars() {
-		return parentMinecraftProvider.getMinecraftJars().stream()
+		return parentMinecraftProvider.getRemappedJars().stream()
+				.map(RemappedJars::outputJar)
 				.map(this::getProcessedJar)
 				.map(SimpleOutputJar::new)
 				.toList();
