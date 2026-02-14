@@ -39,6 +39,8 @@ import net.fabricmc.loom.configuration.providers.minecraft.SingleJarMinecraftPro
 import net.fabricmc.loom.configuration.providers.minecraft.SplitMinecraftProvider;
 import net.fabricmc.tinyremapper.TinyRemapper;
 
+import org.relativitymc.neoloom.neoforge.NFRTMergedMinecraftProvider;
+
 public abstract class NamedMinecraftProvider<M extends MinecraftProvider> extends AbstractMappedMinecraftProvider<M> {
 	public NamedMinecraftProvider(Project project, M minecraftProvider) {
 		super(project, minecraftProvider);
@@ -194,6 +196,36 @@ public abstract class NamedMinecraftProvider<M extends MinecraftProvider> extend
 		@Override
 		public SingleJarEnvType env() {
 			return env;
+		}
+	}
+
+	public static final class NeoForgeMergedImpl extends NamedMinecraftProvider<NFRTMergedMinecraftProvider> implements NeoForgeMerged {
+		public NeoForgeMergedImpl(Project project, NFRTMergedMinecraftProvider minecraftProvider) {
+			super(project, minecraftProvider);
+		}
+
+		@Override
+		public List<RemappedJars> getRemappedJars() {
+			if (minecraftProvider.isMergedNeoForgeJar()) {
+				return List.of(
+						new RemappedJars(minecraftProvider.getMergedJar(), getMergedJar(), minecraftProvider.getOfficialNamespace()),
+						new RemappedJars(minecraftProvider.getGameResourcesJar(), getGameResourcesJar(), minecraftProvider.getOfficialNamespace())
+				);
+			} else {
+				return List.of(
+						new RemappedJars(minecraftProvider.getMergedJar(), getMergedJar(), minecraftProvider.getOfficialNamespace(), minecraftProvider.getNeoForgeUniversalJar()),
+						new RemappedJars(minecraftProvider.getNeoForgeUniversalJar(), getNeoForgeUniversalJar(), minecraftProvider.getOfficialNamespace(), minecraftProvider.getMergedJar())
+				);
+			}
+		}
+
+		@Override
+		public List<MinecraftJar.Type> getDependencyTypes() {
+			if (minecraftProvider.isMergedNeoForgeJar()) {
+				return List.of(MinecraftJar.Type.MERGED, MinecraftJar.Type.GAME_RESOURCES);
+			} else {
+				return List.of(MinecraftJar.Type.MERGED, MinecraftJar.Type.NEOFORGE_UNIVERSAL);
+			}
 		}
 	}
 }

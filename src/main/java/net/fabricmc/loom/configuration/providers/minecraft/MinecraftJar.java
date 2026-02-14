@@ -28,7 +28,7 @@ import java.io.File;
 import java.nio.file.Path;
 import java.util.Objects;
 
-public abstract sealed class MinecraftJar permits MinecraftJar.Client, MinecraftJar.ClientOnly, MinecraftJar.Common, MinecraftJar.Merged, MinecraftJar.Server {
+public abstract sealed class MinecraftJar permits MinecraftJar.Client, MinecraftJar.ClientOnly, MinecraftJar.Common, MinecraftJar.FML, MinecraftJar.GameResources, MinecraftJar.Merged, MinecraftJar.NeoForgeUniversal, MinecraftJar.Server {
 	private final Path path;
 	private final boolean merged, client, server;
 	private final Type type;
@@ -128,9 +128,47 @@ public abstract sealed class MinecraftJar permits MinecraftJar.Client, Minecraft
 		}
 	}
 
+	public static final class GameResources extends MinecraftJar {
+		public GameResources(Path path) {
+			super(path, true, true, true, Type.GAME_RESOURCES);
+		}
+
+		@Override
+		public MinecraftJar forPath(Path path) {
+			return new Merged(path);
+		}
+	}
+
+	public static final class NeoForgeUniversal extends MinecraftJar {
+		public NeoForgeUniversal(Path path) {
+			super(path, true, true, true, Type.NEOFORGE_UNIVERSAL);
+		}
+
+		@Override
+		public MinecraftJar forPath(Path path) {
+			return new Merged(path);
+		}
+	}
+
+	public static final class FML extends MinecraftJar {
+		public FML(Path path) {
+			super(path, true, true, true, Type.FML);
+		}
+
+		@Override
+		public MinecraftJar forPath(Path path) {
+			return new Merged(path);
+		}
+	}
+
 	public enum Type {
 		// Merged jar
 		MERGED("merged"),
+
+		// NeoForge stuff
+		GAME_RESOURCES("game-resources"),
+		NEOFORGE_UNIVERSAL("neoforge-universal"),
+		FML("fml"),
 
 		// Regular jars, not merged or split
 		SERVER("server"),

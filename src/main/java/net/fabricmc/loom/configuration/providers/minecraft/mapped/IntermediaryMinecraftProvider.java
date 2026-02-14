@@ -38,7 +38,9 @@ import net.fabricmc.loom.configuration.providers.minecraft.SingleJarMinecraftPro
 import net.fabricmc.loom.configuration.providers.minecraft.SplitMinecraftProvider;
 import net.fabricmc.tinyremapper.TinyRemapper;
 
-public abstract sealed class IntermediaryMinecraftProvider<M extends MinecraftProvider> extends AbstractMappedMinecraftProvider<M> permits IntermediaryMinecraftProvider.MergedImpl, IntermediaryMinecraftProvider.LegacyMergedImpl, IntermediaryMinecraftProvider.SingleJarImpl, IntermediaryMinecraftProvider.SplitImpl {
+import org.relativitymc.neoloom.neoforge.NFRTMergedMinecraftProvider;
+
+public abstract sealed class IntermediaryMinecraftProvider<M extends MinecraftProvider> extends AbstractMappedMinecraftProvider<M> permits IntermediaryMinecraftProvider.LegacyMergedImpl, IntermediaryMinecraftProvider.MergedImpl, IntermediaryMinecraftProvider.NeoForgeMergedImpl, IntermediaryMinecraftProvider.SingleJarImpl, IntermediaryMinecraftProvider.SplitImpl {
 	public IntermediaryMinecraftProvider(Project project, M minecraftProvider) {
 		super(project, minecraftProvider);
 
@@ -172,6 +174,27 @@ public abstract sealed class IntermediaryMinecraftProvider<M extends MinecraftPr
 		@Override
 		public SingleJarEnvType env() {
 			return env;
+		}
+	}
+
+	public static final class NeoForgeMergedImpl extends IntermediaryMinecraftProvider<NFRTMergedMinecraftProvider> implements NeoForgeMerged {
+		public NeoForgeMergedImpl(Project project, NFRTMergedMinecraftProvider minecraftProvider) {
+			super(project, minecraftProvider);
+		}
+
+		@Override
+		public List<RemappedJars> getRemappedJars() {
+			if (minecraftProvider.isMergedNeoForgeJar()) {
+				return List.of(
+						new RemappedJars(minecraftProvider.getMergedJar(), getMergedJar(), minecraftProvider.getOfficialNamespace()),
+						new RemappedJars(minecraftProvider.getGameResourcesJar(), getGameResourcesJar(), minecraftProvider.getOfficialNamespace())
+				);
+			} else {
+				return List.of(
+						new RemappedJars(minecraftProvider.getMergedJar(), getMergedJar(), minecraftProvider.getOfficialNamespace(), minecraftProvider.getNeoForgeUniversalJar()),
+						new RemappedJars(minecraftProvider.getNeoForgeUniversalJar(), getNeoForgeUniversalJar(), minecraftProvider.getOfficialNamespace(), minecraftProvider.getMergedJar())
+				);
+			}
 		}
 	}
 }

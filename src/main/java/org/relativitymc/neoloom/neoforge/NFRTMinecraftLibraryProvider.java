@@ -24,11 +24,16 @@
 
 package org.relativitymc.neoloom.neoforge;
 
+import java.io.File;
+import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import java.util.Set;
 
+import org.gradle.api.GradleException;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ModuleDependency;
@@ -113,6 +118,17 @@ public class NFRTMinecraftLibraryProvider extends MinecraftLibraryProvider {
 		list.add(runtimeClasspath);
 
 		return list;
+	}
+
+	public Path resolveUniversalJar() {
+		Configuration neoforgeDep = this.project.getConfigurations().detachedConfiguration(this.neoForge);
+		Set<File> resolve = neoforgeDep.resolve();
+
+		if (resolve.size() != 1) {
+			throw new GradleException("NeoForge universal jar resolved to multiple jars: " + Arrays.toString(resolve.toArray()));
+		}
+
+		return resolve.iterator().next().toPath();
 	}
 
 	public void collectArtifactManifest(Properties properties) {

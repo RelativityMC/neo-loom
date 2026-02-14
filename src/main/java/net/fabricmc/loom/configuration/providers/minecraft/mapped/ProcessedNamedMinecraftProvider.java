@@ -46,6 +46,8 @@ import net.fabricmc.loom.configuration.providers.minecraft.SingleJarEnvType;
 import net.fabricmc.loom.configuration.providers.minecraft.SingleJarMinecraftProvider;
 import net.fabricmc.loom.configuration.providers.minecraft.SplitMinecraftProvider;
 
+import org.relativitymc.neoloom.neoforge.NFRTMergedMinecraftProvider;
+
 public abstract class ProcessedNamedMinecraftProvider<M extends MinecraftProvider, P extends NamedMinecraftProvider<M>> extends NamedMinecraftProvider<M> {
 	private final P parentMinecraftProvider;
 	private final MinecraftJarProcessorManager jarProcessorManager;
@@ -241,6 +243,17 @@ public abstract class ProcessedNamedMinecraftProvider<M extends MinecraftProvide
 		@Override
 		public SingleJarEnvType env() {
 			return env;
+		}
+	}
+
+	public static final class NeoForgeMergedImpl extends ProcessedNamedMinecraftProvider<NFRTMergedMinecraftProvider, NamedMinecraftProvider.NeoForgeMergedImpl> implements Merged {
+		public NeoForgeMergedImpl(NamedMinecraftProvider.NeoForgeMergedImpl parentMinecraftProvide, MinecraftJarProcessorManager jarProcessorManager) {
+			super(parentMinecraftProvide, jarProcessorManager);
+		}
+
+		@Override
+		public MinecraftJar getMergedJar() {
+			return getProcessedJar(getParentMinecraftProvider().getMergedJar());
 		}
 	}
 }

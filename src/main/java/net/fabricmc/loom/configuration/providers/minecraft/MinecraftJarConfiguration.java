@@ -107,13 +107,13 @@ public record MinecraftJarConfiguration<
 				List.of("client", "server")
 			);
 	public static final MinecraftJarConfiguration<
-			MergedMinecraftProvider,
-			NamedMinecraftProvider.MergedImpl,
+			NFRTMergedMinecraftProvider,
+			NamedMinecraftProvider.NeoForgeMergedImpl,
 			MappedMinecraftProvider> NEOFORGE_MERGED = new MinecraftJarConfiguration<>(
 				NFRTMergedMinecraftProvider::new,
-				IntermediaryMinecraftProvider.MergedImpl::new,
-				NamedMinecraftProvider.MergedImpl::new,
-				ProcessedNamedMinecraftProvider.MergedImpl::new,
+				IntermediaryMinecraftProvider.NeoForgeMergedImpl::new,
+				NamedMinecraftProvider.NeoForgeMergedImpl::new,
+				ProcessedNamedMinecraftProvider.NeoForgeMergedImpl::new,
 				SingleJarDecompileConfiguration::new,
 				List.of("client", "server")
 			);

@@ -83,4 +83,27 @@ public interface MappedMinecraftProvider {
 			return List.of(getEnvOnlyJar());
 		}
 	}
+
+	interface NeoForgeMerged extends ProviderImpl {
+		default MinecraftJar getMergedJar() {
+			return new MinecraftJar.Merged(getJar(MinecraftJar.Type.MERGED));
+		}
+
+		default MinecraftJar getNeoForgeUniversalJar() {
+			return new MinecraftJar.NeoForgeUniversal(getJar(MinecraftJar.Type.NEOFORGE_UNIVERSAL));
+		}
+
+		default MinecraftJar getGameResourcesJar() {
+			return new MinecraftJar.GameResources(getJar(MinecraftJar.Type.GAME_RESOURCES));
+		}
+
+		default MinecraftJar getFMLJar() {
+			return new MinecraftJar.FML(getJar(MinecraftJar.Type.FML));
+		}
+
+		@Override
+		default List<MinecraftJar> getMinecraftJars() {
+			return List.of(getMergedJar());
+		}
+	}
 }
