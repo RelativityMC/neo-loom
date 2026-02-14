@@ -39,6 +39,8 @@ import net.fabricmc.loom.configuration.providers.mappings.MappingConfiguration;
 
 import dev.architectury.loom.util.Stopwatch;
 
+import org.relativitymc.neoloom.neoforge.NFRTMergedMinecraftProvider;
+
 public final class ForgeMigratedMappingConfiguration extends MappingConfiguration {
 	private final List<MappingsMigrator> migrators = List.of(new FieldMappingsMigrator(), new MethodInheritanceMappingsMigrator());
 	private final Path hashPath;
@@ -60,7 +62,7 @@ public final class ForgeMigratedMappingConfiguration extends MappingConfiguratio
 		this.tinyMappings = mappingsWorkingDir().resolve("mappings-migrated.tiny");
 
 		for (MappingsMigrator migrator : this.migrators) {
-			hash = hash * 31 + migrator.setup(project, extension.getMinecraftProvider(), this.mappingsWorkingDir(), this.rawTinyMappings);
+			hash = hash * 31 + migrator.setup(project, (NFRTMergedMinecraftProvider) extension.getMinecraftProvider(), this.mappingsWorkingDir(), this.rawTinyMappings);
 		}
 
 		if (!isOutdated(extension)) {

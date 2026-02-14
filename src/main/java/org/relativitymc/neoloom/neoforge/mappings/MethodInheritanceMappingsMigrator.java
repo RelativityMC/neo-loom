@@ -49,7 +49,6 @@ import org.objectweb.asm.MethodVisitor;
 
 import net.fabricmc.loom.LoomGradleExtension;
 import net.fabricmc.loom.api.mappings.layered.MappingsNamespace;
-import net.fabricmc.loom.configuration.providers.minecraft.MinecraftProvider;
 import net.fabricmc.loom.util.Constants;
 import net.fabricmc.loom.util.FileSystemUtil;
 import net.fabricmc.loom.util.Pair;
@@ -61,6 +60,8 @@ import net.fabricmc.mappingio.tree.MemoryMappingTree;
 
 import dev.architectury.loom.util.collection.Multimap;
 
+import org.relativitymc.neoloom.neoforge.NFRTMergedMinecraftProvider;
+
 /**
  * With some forge patches, methods can inherit methods from a class that is not in the mappings.
  * This migrator will try to detect all the methods that are inherited from a class that is not in the mappings,
@@ -70,7 +71,7 @@ public final class MethodInheritanceMappingsMigrator implements MappingsMigrator
 	private Set<Pair<String, String>> methodsToRemove;
 
 	@Override
-	public long setup(Project project, MinecraftProvider minecraftProvider, Path cache, Path rawMappings) throws IOException {
+	public long setup(Project project, NFRTMergedMinecraftProvider minecraftProvider, Path cache, Path rawMappings) throws IOException {
 		Path cacheFile = cache.resolve("method-inheritance-migrator.json");
 
 		if (!minecraftProvider.refreshDeps() && Files.exists(cacheFile)) {
@@ -84,9 +85,10 @@ public final class MethodInheritanceMappingsMigrator implements MappingsMigrator
 			LoomGradleExtension extension = LoomGradleExtension.get(project);
 			methodsToRemove = new HashSet<>();
 
-			for (Path jar : minecraftProvider.getMinecraftJars()) {
-				methodsToRemove.addAll(prepareCache(project.getLogger(), rawMappings, List.of(jar)));
-			}
+			// for (Path jar : minecraftProvider.getMinecraftJars()) {
+			// 	methodsToRemove.addAll(prepareCache(project.getLogger(), rawMappings, List.of(jar)));
+			// }
+			methodsToRemove.addAll(prepareCache(project.getLogger(), rawMappings, minecraftProvider.getFullClasspath()));
 
 			Files.writeString(cacheFile, new Gson().toJson(methodsToRemove.stream().sorted(Comparator.comparing(p -> p.left() + "|" + p.right())).toList()), StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
 		}

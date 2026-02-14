@@ -186,6 +186,14 @@ public class NFRTMergedMinecraftProvider extends MinecraftProvider implements NF
 		return List.of(this.minecraftMergedJar);
 	}
 
+	public List<Path> getFullClasspath() {
+		if (this.mergedNeoForgeJar) {
+			return List.of(this.minecraftMergedJar);
+		} else {
+			return List.of(this.minecraftMergedJar, getNeoForgeUniversalJar());
+		}
+	}
+
 	@Override
 	public File getMinecraftClientJar() {
 		throw new UnsupportedOperationException("handled by NFRT");

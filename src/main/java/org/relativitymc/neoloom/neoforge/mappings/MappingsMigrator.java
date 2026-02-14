@@ -30,10 +30,10 @@ import java.util.List;
 
 import org.gradle.api.Project;
 
-import net.fabricmc.loom.configuration.providers.minecraft.MinecraftProvider;
+import org.relativitymc.neoloom.neoforge.NFRTMergedMinecraftProvider;
 
 public interface MappingsMigrator {
-	long setup(Project project, MinecraftProvider minecraftProvider, Path cache, Path rawMappings) throws IOException;
+	long setup(Project project, NFRTMergedMinecraftProvider minecraftProvider, Path cache, Path rawMappings) throws IOException;
 
 	void migrate(Project project, List<MappingsEntry> entries) throws IOException;
 

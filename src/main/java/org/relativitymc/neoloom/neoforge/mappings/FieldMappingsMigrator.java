@@ -49,7 +49,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import net.fabricmc.loom.api.mappings.layered.MappingsNamespace;
-import net.fabricmc.loom.configuration.providers.minecraft.MinecraftProvider;
 import net.fabricmc.loom.util.Constants;
 import net.fabricmc.loom.util.FileSystemUtil;
 import net.fabricmc.mappingio.MappingReader;
@@ -61,6 +60,8 @@ import net.fabricmc.mappingio.tree.MemoryMappingTree;
 import dev.architectury.loom.util.Stopwatch;
 import dev.architectury.loom.util.ThreadingUtils;
 
+import org.relativitymc.neoloom.neoforge.NFRTMergedMinecraftProvider;
+
 public final class FieldMappingsMigrator implements MappingsMigrator {
 	private static final Logger LOGGER = LoggerFactory.getLogger(FieldMappingsMigrator.class);
 
@@ -68,7 +69,7 @@ public final class FieldMappingsMigrator implements MappingsMigrator {
 	public Path migratedFieldsCache;
 
 	@Override
-	public long setup(Project project, MinecraftProvider minecraftProvider, Path cache, Path rawMappings) throws IOException {
+	public long setup(Project project, NFRTMergedMinecraftProvider minecraftProvider, Path cache, Path rawMappings) throws IOException {
 		migratedFieldsCache = cache.resolve("migrated-fields.json");
 		migratedFields.clear();
 
