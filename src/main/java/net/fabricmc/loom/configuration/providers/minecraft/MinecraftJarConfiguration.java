@@ -33,6 +33,7 @@ import net.fabricmc.loom.configuration.ConfigContext;
 import net.fabricmc.loom.configuration.decompile.DecompileConfiguration;
 import net.fabricmc.loom.configuration.decompile.SingleJarDecompileConfiguration;
 import net.fabricmc.loom.configuration.decompile.SplitDecompileConfiguration;
+import net.fabricmc.loom.configuration.decompile.MultiJarDecompileConfiguration;
 import net.fabricmc.loom.configuration.processors.MinecraftJarProcessorManager;
 import net.fabricmc.loom.configuration.providers.minecraft.mapped.IntermediaryMinecraftProvider;
 import net.fabricmc.loom.configuration.providers.minecraft.mapped.MappedMinecraftProvider;
@@ -114,7 +115,7 @@ public record MinecraftJarConfiguration<
 				IntermediaryMinecraftProvider.NeoForgeMergedImpl::new,
 				NamedMinecraftProvider.NeoForgeMergedImpl::new,
 				ProcessedNamedMinecraftProvider.NeoForgeMergedImpl::new,
-				SingleJarDecompileConfiguration::new,
+				MultiJarDecompileConfiguration::new,
 				List.of("client", "server")
 			);
 
