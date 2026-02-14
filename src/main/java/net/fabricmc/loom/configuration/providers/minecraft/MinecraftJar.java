@@ -135,7 +135,7 @@ public abstract sealed class MinecraftJar permits MinecraftJar.Client, Minecraft
 
 		@Override
 		public MinecraftJar forPath(Path path) {
-			return new Merged(path);
+			return new GameResources(path);
 		}
 	}
 
@@ -146,7 +146,7 @@ public abstract sealed class MinecraftJar permits MinecraftJar.Client, Minecraft
 
 		@Override
 		public MinecraftJar forPath(Path path) {
-			return new Merged(path);
+			return new NeoForgeUniversal(path);
 		}
 	}
 
@@ -157,7 +157,7 @@ public abstract sealed class MinecraftJar permits MinecraftJar.Client, Minecraft
 
 		@Override
 		public MinecraftJar forPath(Path path) {
-			return new Merged(path);
+			return new FML(path);
 		}
 	}
 
