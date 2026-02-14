@@ -100,10 +100,5 @@ public interface MappedMinecraftProvider {
 		default MinecraftJar getFMLJar() {
 			return new MinecraftJar.FML(getJar(MinecraftJar.Type.FML));
 		}
-
-		@Override
-		default List<MinecraftJar> getMinecraftJars() {
-			return List.of(getMergedJar());
-		}
 	}
 }

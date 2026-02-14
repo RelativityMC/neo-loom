@@ -196,5 +196,14 @@ public abstract sealed class IntermediaryMinecraftProvider<M extends MinecraftPr
 				);
 			}
 		}
+
+		@Override
+		public List<MinecraftJar> getMinecraftJars() {
+			if (minecraftProvider.isMergedNeoForgeJar()) {
+				return List.of(getMergedJar(), getGameResourcesJar());
+			} else {
+				return List.of(getMergedJar(), getNeoForgeUniversalJar());
+			}
+		}
 	}
 }

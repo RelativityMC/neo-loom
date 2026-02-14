@@ -227,5 +227,14 @@ public abstract class NamedMinecraftProvider<M extends MinecraftProvider> extend
 				return List.of(MinecraftJar.Type.MERGED, MinecraftJar.Type.NEOFORGE_UNIVERSAL);
 			}
 		}
+
+		@Override
+		public List<MinecraftJar> getMinecraftJars() {
+			if (minecraftProvider.isMergedNeoForgeJar()) {
+				return List.of(getMergedJar(), getGameResourcesJar());
+			} else {
+				return List.of(getMergedJar(), getNeoForgeUniversalJar());
+			}
+		}
 	}
 }
