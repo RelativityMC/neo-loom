@@ -218,7 +218,7 @@ public abstract class GenerateSourcesTask extends AbstractLoomTask {
 		getMinecraftCompileLibraries().from(getProject().getConfigurations().getByName(Constants.Configurations.MINECRAFT_COMPILE_LIBRARIES));
 		getDecompileCacheFile().set(getExtension().getFiles().getDecompileCache(CACHE_VERSION));
 
-		getUseCache().convention(true);
+		getUseCache().convention(false); // TODO fix neoforge yarn
 		getResetCache().convention(getExtension().refreshDeps());
 
 		if (!LoomGradleExtension.get(getProject()).disableObfuscation()) {
