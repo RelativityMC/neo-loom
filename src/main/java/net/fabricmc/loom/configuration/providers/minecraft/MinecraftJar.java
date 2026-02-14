@@ -166,8 +166,8 @@ public abstract sealed class MinecraftJar permits MinecraftJar.Client, Minecraft
 		MERGED("merged"),
 
 		// NeoForge stuff
-		GAME_RESOURCES("game-resources"),
-		NEOFORGE_UNIVERSAL("neoforge-universal"),
+		GAME_RESOURCES("gameResources"),
+		NEOFORGE_UNIVERSAL("neoforgeUniversal"),
 		FML("fml"),
 
 		// Regular jars, not merged or split
