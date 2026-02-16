@@ -159,4 +159,8 @@ public class ClasspathGroupService extends Service<ClasspathGroupService.Options
 	public boolean hasGroups() {
 		return getOptions().getClasspathGroups().isPresent() && !getOptions().getClasspathGroups().get().isEmpty();
 	}
+
+	public List<ClasspathGroup> getClasspathGroups() {
+		return getOptions().getClasspathGroups().get();
+	}
 }

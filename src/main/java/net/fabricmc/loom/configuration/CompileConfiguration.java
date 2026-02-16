@@ -45,6 +45,7 @@ import org.gradle.api.Task;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.plugins.JavaPlugin;
+import org.gradle.api.plugins.JavaPluginExtension;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.AbstractCopyTask;
 import org.gradle.api.tasks.SourceSet;
@@ -146,6 +147,14 @@ public abstract class CompileConfiguration implements Runnable {
 
 			configureDecompileTasks(configContext);
 			configureTestTask();
+
+			if (extension.getMinecraftProvider().getModPlatform().isForgeLike()) {
+				// Create default mod from main source set
+				extension.mods(mods -> {
+					final SourceSet main = getProject().getExtensions().getByType(JavaPluginExtension.class).getSourceSets().getByName(SourceSet.MAIN_SOURCE_SET_NAME);
+					mods.create("main").sourceSet(main);
+				});
+			}
 		});
 
 		finalizedBy("eclipse", "genEclipseRuns");

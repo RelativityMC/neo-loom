@@ -46,10 +46,10 @@ class SimpleRemappedNeoForgeTest extends Specification implements GradleProjectT
 				}
 
 				dependencies {
-					minecraft 'com.mojang:minecraft:1.21.11_unobfuscated'
-					neoForge 'net.neoforged:neoforge:21.11.38-beta'
+					minecraft 'com.mojang:minecraft:26.1-snapshot-6'
+					neoForge 'net.neoforged:neoforge:26.1.0.0-alpha.10+snapshot-6'
 					mappings loom.layered {
-						it.mappings "org.relativitymc:modern-yarn:1.21.11_unobfuscated+build.2:v2"
+						it.mappings "org.relativitymc:modern-yarn:26.1-snapshot-6+build.4:v2"
 						it.mappings "org.relativitymc:modern-yarn-mappings-patch-neoforge:26.1+build.1"
 					}
                 }

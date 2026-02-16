@@ -1,7 +1,7 @@
 /*
  * This file is part of fabric-loom, licensed under the MIT License (MIT).
  *
- * Copyright (c) 2025 FabricMC
+ * Copyright (c) 2026 FabricMC
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,25 +22,7 @@
  * SOFTWARE.
  */
 
-package net.fabricmc.loom.configuration.classpathgroups;
+@NullMarked
+package dev.architectury.loom.forge;
 
-import java.io.File;
-import java.io.Serializable;
-import java.util.List;
-import java.util.Set;
-
-import net.fabricmc.loom.api.ModSettings;
-
-public record ClasspathGroup(List<String> paths, List<ExternalClasspathGroup> externalGroups, String name) implements Serializable {
-	public static List<ClasspathGroup> fromModSettings(Set<ModSettings> modSettings) {
-		return modSettings.stream().map(s -> new ClasspathGroup(getPaths(s), s.getExternalGroups().get(), s.getName())).toList();
-	}
-
-	private static List<String> getPaths(ModSettings modSettings) {
-		return modSettings.getModFiles()
-				.getFiles()
-				.stream()
-				.map(File::getAbsolutePath)
-				.toList();
-	}
-}
+import org.jspecify.annotations.NullMarked;

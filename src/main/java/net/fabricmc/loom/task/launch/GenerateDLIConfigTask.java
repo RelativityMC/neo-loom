@@ -51,11 +51,14 @@ import org.gradle.api.tasks.TaskAction;
 import net.fabricmc.loom.LoomGradleExtension;
 import net.fabricmc.loom.LoomGradlePlugin;
 import net.fabricmc.loom.api.mappings.layered.MappingsNamespace;
+import net.fabricmc.loom.configuration.classpathgroups.ClasspathGroup;
 import net.fabricmc.loom.configuration.providers.minecraft.MinecraftVersionMeta;
 import net.fabricmc.loom.configuration.providers.minecraft.mapped.MappedMinecraftProvider;
 import net.fabricmc.loom.task.AbstractLoomTask;
 import net.fabricmc.loom.task.service.ClasspathGroupService;
 import net.fabricmc.loom.util.service.ScopedServiceFactory;
+
+import dev.architectury.loom.util.collection.Multimap;
 
 public abstract class GenerateDLIConfigTask extends AbstractLoomTask {
 	@Input
@@ -171,6 +174,22 @@ public abstract class GenerateDLIConfigTask extends AbstractLoomTask {
 
 			if (classpathGroupService.hasGroups()) {
 				launchConfig.property("fabric.classPathGroups", classpathGroupService.getClasspathGroupsPropertyValue());
+			}
+
+			// setup fml mod classes
+			{
+				Multimap<String, String> modClasses = Multimap.setMultimap();
+
+				for (ClasspathGroup group : classpathGroupService.getClasspathGroups()) {
+					for (File file : classpathGroupService.getClasspath(group)) {
+						modClasses.put(group.name(), file.getAbsolutePath());
+					}
+				}
+
+				String value = modClasses.streamEntries()
+						.map(entry -> entry.left() + "%%" + entry.right())
+						.collect(Collectors.joining(File.pathSeparator));
+				launchConfig.property("fml.modFolders", value);
 			}
 		}
 
