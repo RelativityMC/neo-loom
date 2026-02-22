@@ -54,6 +54,11 @@ import org.relativitymc.neoloom.neoforge.meta.MinecraftDistribution;
 import org.relativitymc.neoloom.neoforge.meta.OperatingSystem;
 
 public class NFRTMinecraftLibraryProvider extends MinecraftLibraryProvider {
+	private static final String FML_LOADER_GROUP = "net.minecraftforge";
+	private static final String FML_LOADER_NAME = "fmlloader";
+	private static final String FANCYML_LOADER_GROUP = "net.neoforged.fancymodloader";
+	private static final String FANCYML_LOADER_NAME = "loader";
+
 	private final Project project;
 	private final MinecraftProvider minecraftProvider;
 
@@ -131,6 +136,33 @@ public class NFRTMinecraftLibraryProvider extends MinecraftLibraryProvider {
 		return resolve.iterator().next().toPath();
 	}
 
+	public Path resolveFMLJar() {
+		Configuration gameLib = this.project.getConfigurations().detachedConfiguration(this.gameLibrariesDependency);
+		gameLib.attributes(attributes -> {
+			attributes.attribute(MinecraftDistribution.ATTRIBUTE, project.getObjects().named(MinecraftDistribution.ATTRIBUTE.getType(), MinecraftDistribution.CLIENT));
+			attributes.attribute(OperatingSystem.ATTRIBUTE, project.getObjects().named(OperatingSystem.ATTRIBUTE.getType(), OperatingSystem.getCurrent()));
+		});
+		for (ResolvedArtifact artifact : gameLib.getResolvedConfiguration().getResolvedArtifacts()) {
+			ModuleVersionIdentifier id = artifact.getModuleVersion().getId();
+
+			if (isFML(id)) {
+				return artifact.getFile().toPath();
+			}
+		}
+		throw new GradleException("No FML in neoforge dependencies");
+	}
+
+	private static boolean isFML(ModuleVersionIdentifier id) {
+		String group = id.getGroup();
+		String name = id.getName();
+		return isFML(group, name);
+	}
+
+	private static boolean isFML(String group, String name) {
+		return (FML_LOADER_GROUP.equals(group) && FML_LOADER_NAME.equals(name))
+				|| (FANCYML_LOADER_GROUP.equals(group) && FANCYML_LOADER_NAME.equals(name));
+	}
+
 	public void collectArtifactManifest(Properties properties) {
 		for (Configuration configuration : this.getNFRTDeps()) {
 			for (ResolvedArtifact artifact : configuration.getResolvedConfiguration().getResolvedArtifacts()) {
@@ -185,6 +217,7 @@ public class NFRTMinecraftLibraryProvider extends MinecraftLibraryProvider {
 					final ModuleVersionIdentifier id = artifact.getModuleVersion().getId();
 					return new Library(id.getGroup(), id.getName(), id.getVersion(), artifact.getClassifier(), Library.Target.COMPILE);
 				})
+				.filter(library -> !isFML(library.group(), library.name()))
 				.toList();
 		List<Library> processed = this.processLibraries(list);
 

@@ -65,6 +65,7 @@ public class NFRTMergedMinecraftProvider extends MinecraftProvider implements NF
 	private Path minecraftGameResources; // on merged versions
 	@Nullable
 	private Path neoForgeUniversalJar; // on split versions
+	private Path fmlJar;
 
 	public NFRTMergedMinecraftProvider(MinecraftMetadataProvider metadataProvider, ConfigContext configContext) {
 		super(metadataProvider, configContext);
@@ -158,6 +159,8 @@ public class NFRTMergedMinecraftProvider extends MinecraftProvider implements NF
 		} else {
 			this.neoForgeUniversalJar = this.libraryProvider.resolveUniversalJar();
 		}
+
+		this.fmlJar = this.libraryProvider.resolveFMLJar();
 	}
 
 	@Override
@@ -179,6 +182,10 @@ public class NFRTMergedMinecraftProvider extends MinecraftProvider implements NF
 
 	public Path getNeoForgeUniversalJar() {
 		return Objects.requireNonNull(this.neoForgeUniversalJar, "NeoForge universal jar not configured");
+	}
+
+	public Path getFMLJar() {
+		return Objects.requireNonNull(this.fmlJar, "FML jar not configured");
 	}
 
 	@Override

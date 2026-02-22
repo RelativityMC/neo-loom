@@ -187,12 +187,14 @@ public abstract sealed class IntermediaryMinecraftProvider<M extends MinecraftPr
 			if (minecraftProvider.isMergedNeoForgeJar()) {
 				return List.of(
 						new RemappedJars(minecraftProvider.getMergedJar(), getMergedJar(), minecraftProvider.getOfficialNamespace()),
-						new RemappedJars(minecraftProvider.getGameResourcesJar(), getGameResourcesJar(), minecraftProvider.getOfficialNamespace())
+						new RemappedJars(minecraftProvider.getGameResourcesJar(), getGameResourcesJar(), minecraftProvider.getOfficialNamespace()),
+						new RemappedJars(minecraftProvider.getFMLJar(), getFMLJar(), minecraftProvider.getOfficialNamespace(), minecraftProvider.getMergedJar())
 				);
 			} else {
 				return List.of(
 						new RemappedJars(minecraftProvider.getMergedJar(), getMergedJar(), minecraftProvider.getOfficialNamespace(), minecraftProvider.getNeoForgeUniversalJar()),
-						new RemappedJars(minecraftProvider.getNeoForgeUniversalJar(), getNeoForgeUniversalJar(), minecraftProvider.getOfficialNamespace(), minecraftProvider.getMergedJar())
+						new RemappedJars(minecraftProvider.getNeoForgeUniversalJar(), getNeoForgeUniversalJar(), minecraftProvider.getOfficialNamespace(), minecraftProvider.getMergedJar()),
+						new RemappedJars(minecraftProvider.getFMLJar(), getFMLJar(), minecraftProvider.getOfficialNamespace(), minecraftProvider.getMergedJar(), minecraftProvider.getNeoForgeUniversalJar())
 				);
 			}
 		}

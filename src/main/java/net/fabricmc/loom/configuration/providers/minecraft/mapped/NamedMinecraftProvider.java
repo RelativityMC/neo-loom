@@ -209,12 +209,14 @@ public abstract class NamedMinecraftProvider<M extends MinecraftProvider> extend
 			if (minecraftProvider.isMergedNeoForgeJar()) {
 				return List.of(
 						new RemappedJars(minecraftProvider.getMergedJar(), getMergedJar(), minecraftProvider.getOfficialNamespace()),
-						new RemappedJars(minecraftProvider.getGameResourcesJar(), getGameResourcesJar(), minecraftProvider.getOfficialNamespace())
+						new RemappedJars(minecraftProvider.getGameResourcesJar(), getGameResourcesJar(), minecraftProvider.getOfficialNamespace()),
+						new RemappedJars(minecraftProvider.getFMLJar(), getFMLJar(), minecraftProvider.getOfficialNamespace(), minecraftProvider.getMergedJar())
 				);
 			} else {
 				return List.of(
 						new RemappedJars(minecraftProvider.getMergedJar(), getMergedJar(), minecraftProvider.getOfficialNamespace(), minecraftProvider.getNeoForgeUniversalJar()),
-						new RemappedJars(minecraftProvider.getNeoForgeUniversalJar(), getNeoForgeUniversalJar(), minecraftProvider.getOfficialNamespace(), minecraftProvider.getMergedJar())
+						new RemappedJars(minecraftProvider.getNeoForgeUniversalJar(), getNeoForgeUniversalJar(), minecraftProvider.getOfficialNamespace(), minecraftProvider.getMergedJar()),
+						new RemappedJars(minecraftProvider.getFMLJar(), getFMLJar(), minecraftProvider.getOfficialNamespace(), minecraftProvider.getMergedJar(), minecraftProvider.getNeoForgeUniversalJar())
 				);
 			}
 		}
@@ -222,9 +224,9 @@ public abstract class NamedMinecraftProvider<M extends MinecraftProvider> extend
 		@Override
 		public List<MinecraftJar.Type> getDependencyTypes() {
 			if (minecraftProvider.isMergedNeoForgeJar()) {
-				return List.of(MinecraftJar.Type.MERGED, MinecraftJar.Type.GAME_RESOURCES);
+				return List.of(MinecraftJar.Type.MERGED, MinecraftJar.Type.GAME_RESOURCES, MinecraftJar.Type.FML);
 			} else {
-				return List.of(MinecraftJar.Type.MERGED, MinecraftJar.Type.NEOFORGE_UNIVERSAL);
+				return List.of(MinecraftJar.Type.MERGED, MinecraftJar.Type.NEOFORGE_UNIVERSAL, MinecraftJar.Type.FML);
 			}
 		}
 
