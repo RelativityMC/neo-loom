@@ -142,6 +142,7 @@ public class NFRTMinecraftLibraryProvider extends MinecraftLibraryProvider {
 			attributes.attribute(MinecraftDistribution.ATTRIBUTE, project.getObjects().named(MinecraftDistribution.ATTRIBUTE.getType(), MinecraftDistribution.CLIENT));
 			attributes.attribute(OperatingSystem.ATTRIBUTE, project.getObjects().named(OperatingSystem.ATTRIBUTE.getType(), OperatingSystem.getCurrent()));
 		});
+
 		for (ResolvedArtifact artifact : gameLib.getResolvedConfiguration().getResolvedArtifacts()) {
 			ModuleVersionIdentifier id = artifact.getModuleVersion().getId();
 
@@ -149,6 +150,7 @@ public class NFRTMinecraftLibraryProvider extends MinecraftLibraryProvider {
 				return artifact.getFile().toPath();
 			}
 		}
+
 		throw new GradleException("No FML in neoforge dependencies");
 	}
 

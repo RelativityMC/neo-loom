@@ -39,6 +39,7 @@ import net.fabricmc.loom.configuration.providers.minecraft.SplitMinecraftProvide
 import net.fabricmc.tinyremapper.TinyRemapper;
 
 import org.relativitymc.neoloom.neoforge.NFRTMergedMinecraftProvider;
+import org.relativitymc.neoloom.neoforge.remap.FMLRemap;
 
 public abstract sealed class IntermediaryMinecraftProvider<M extends MinecraftProvider> extends AbstractMappedMinecraftProvider<M> permits IntermediaryMinecraftProvider.LegacyMergedImpl, IntermediaryMinecraftProvider.MergedImpl, IntermediaryMinecraftProvider.NeoForgeMergedImpl, IntermediaryMinecraftProvider.SingleJarImpl, IntermediaryMinecraftProvider.SplitImpl {
 	public IntermediaryMinecraftProvider(Project project, M minecraftProvider) {
@@ -206,6 +207,12 @@ public abstract sealed class IntermediaryMinecraftProvider<M extends MinecraftPr
 			} else {
 				return List.of(getMergedJar(), getNeoForgeUniversalJar());
 			}
+		}
+
+		@Override
+		protected void configureRemapper(RemappedJars remappedJars, TinyRemapper.Builder tinyRemapperBuilder) {
+			super.configureRemapper(remappedJars, tinyRemapperBuilder);
+			FMLRemap.configureRemapper(tinyRemapperBuilder);
 		}
 	}
 }

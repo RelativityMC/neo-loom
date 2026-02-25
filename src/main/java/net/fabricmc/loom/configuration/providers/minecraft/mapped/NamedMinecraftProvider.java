@@ -26,6 +26,8 @@ package net.fabricmc.loom.configuration.providers.minecraft.mapped;
 
 import java.util.List;
 
+import net.fabricmc.tinyremapper.extension.mixin.MixinExtension;
+
 import org.gradle.api.Project;
 
 import net.fabricmc.loom.api.mappings.layered.MappingsNamespace;
@@ -40,6 +42,7 @@ import net.fabricmc.loom.configuration.providers.minecraft.SplitMinecraftProvide
 import net.fabricmc.tinyremapper.TinyRemapper;
 
 import org.relativitymc.neoloom.neoforge.NFRTMergedMinecraftProvider;
+import org.relativitymc.neoloom.neoforge.remap.FMLRemap;
 
 public abstract class NamedMinecraftProvider<M extends MinecraftProvider> extends AbstractMappedMinecraftProvider<M> {
 	public NamedMinecraftProvider(Project project, M minecraftProvider) {
@@ -236,6 +239,19 @@ public abstract class NamedMinecraftProvider<M extends MinecraftProvider> extend
 				return List.of(getMergedJar(), getGameResourcesJar());
 			} else {
 				return List.of(getMergedJar(), getNeoForgeUniversalJar());
+			}
+		}
+
+		@Override
+		protected void configureRemapper(RemappedJars remappedJars, TinyRemapper.Builder tinyRemapperBuilder) {
+			super.configureRemapper(remappedJars, tinyRemapperBuilder);
+
+			if (remappedJars.outputJar().getType() == MinecraftJar.Type.FML) {
+				FMLRemap.configureRemapper(tinyRemapperBuilder);
+			}
+
+			if (remappedJars.outputJar().getType() == MinecraftJar.Type.NEOFORGE_UNIVERSAL) {
+				tinyRemapperBuilder.extension(new MixinExtension()); // Remap mixins in neoforge
 			}
 		}
 	}
