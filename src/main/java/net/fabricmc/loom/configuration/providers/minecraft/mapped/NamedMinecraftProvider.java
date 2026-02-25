@@ -236,9 +236,9 @@ public abstract class NamedMinecraftProvider<M extends MinecraftProvider> extend
 		@Override
 		public List<MinecraftJar> getMinecraftJars() {
 			if (minecraftProvider.isMergedNeoForgeJar()) {
-				return List.of(getMergedJar(), getGameResourcesJar());
+				return List.of(getMergedJar(), getGameResourcesJar(), getFMLJar());
 			} else {
-				return List.of(getMergedJar(), getNeoForgeUniversalJar());
+				return List.of(getMergedJar(), getNeoForgeUniversalJar(), getFMLJar());
 			}
 		}
 
