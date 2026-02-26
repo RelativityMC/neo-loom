@@ -42,7 +42,7 @@ import dev.architectury.loom.util.Stopwatch;
 import org.relativitymc.neoloom.neoforge.NFRTMergedMinecraftProvider;
 
 public final class ForgeMigratedMappingConfiguration extends MappingConfiguration {
-	private final List<MappingsMigrator> migrators = List.of(new FieldMappingsMigrator(), new MethodInheritanceMappingsMigrator());
+	private final List<MappingsMigrator> migrators = List.of(new FieldMappingsMigrator(), new MethodInheritanceMappingsMigrator(), new NewInnerClassMappingsMigrator());
 	private final Path hashPath;
 	private final Path rawTinyMappings;
 	private long hash = 1;
