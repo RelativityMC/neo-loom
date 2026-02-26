@@ -43,21 +43,20 @@ import java.util.stream.Collectors;
 
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
-
-import net.fabricmc.mappingio.MappedElementKind;
-
 import org.gradle.api.Project;
 import org.gradle.api.logging.Logger;
-import org.relativitymc.neoloom.neoforge.NFRTMergedMinecraftProvider;
 
 import net.fabricmc.loom.LoomGradleExtension;
 import net.fabricmc.loom.api.mappings.layered.MappingsNamespace;
 import net.fabricmc.loom.util.FileSystemUtil;
+import net.fabricmc.mappingio.MappedElementKind;
 import net.fabricmc.mappingio.MappingReader;
 import net.fabricmc.mappingio.adapter.MappingSourceNsSwitch;
 import net.fabricmc.mappingio.format.tiny.Tiny2FileWriter;
 import net.fabricmc.mappingio.tree.MappingTree;
 import net.fabricmc.mappingio.tree.MemoryMappingTree;
+
+import org.relativitymc.neoloom.neoforge.NFRTMergedMinecraftProvider;
 
 /**
  * With some forge patches, new inner classes can be introduced.
@@ -108,6 +107,7 @@ public final class NewInnerClassMappingsMigrator implements MappingsMigrator {
 						int nsIdx = i - 1;
 						mappings.visitDstName(MappedElementKind.CLASS, nsIdx, dstName);
 					}
+
 					mappings.visitElementContent(MappedElementKind.CLASS);
 				}
 			}
@@ -224,7 +224,7 @@ public final class NewInnerClassMappingsMigrator implements MappingsMigrator {
 	}
 
 	/**
-	 * This includes all namespaces, src namespaces at index 0
+	 * This includes all namespaces, src namespaces at index 0.
 	 */
 	public record NewMappings(String[] namespaces, List<String[]> newNames) {
 		public NewMappings deepCopy() {

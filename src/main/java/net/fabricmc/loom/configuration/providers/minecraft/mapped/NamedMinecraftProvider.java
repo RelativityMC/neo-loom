@@ -26,10 +26,9 @@ package net.fabricmc.loom.configuration.providers.minecraft.mapped;
 
 import java.util.List;
 
-import net.fabricmc.tinyremapper.extension.mixin.MixinExtension;
-
 import org.gradle.api.Project;
 
+import net.fabricmc.tinyremapper.extension.mixin.MixinExtension;
 import net.fabricmc.loom.api.mappings.layered.MappingsNamespace;
 import net.fabricmc.loom.configuration.providers.minecraft.LegacyMergedMinecraftProvider;
 import net.fabricmc.loom.configuration.providers.minecraft.MergedMinecraftProvider;
