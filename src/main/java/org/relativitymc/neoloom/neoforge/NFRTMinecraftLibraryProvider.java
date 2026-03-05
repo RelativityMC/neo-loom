@@ -33,8 +33,6 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 
-import net.fabricmc.loom.util.LoomVersions;
-
 import org.gradle.api.GradleException;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
@@ -46,6 +44,7 @@ import org.gradle.api.attributes.Category;
 import org.gradle.api.attributes.DocsType;
 import org.gradle.api.attributes.Usage;
 
+import net.fabricmc.loom.util.LoomVersions;
 import net.fabricmc.loom.LoomGradleExtension;
 import net.fabricmc.loom.configuration.providers.minecraft.MinecraftJarConfiguration;
 import net.fabricmc.loom.configuration.providers.minecraft.MinecraftLibraryProvider;
