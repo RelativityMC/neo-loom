@@ -33,6 +33,8 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 
+import net.fabricmc.loom.util.LoomVersions;
+
 import org.gradle.api.GradleException;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
@@ -69,6 +71,8 @@ public class NFRTMinecraftLibraryProvider extends MinecraftLibraryProvider {
 	private final ModuleDependency modulePathDependency;
 	private final ModuleDependency gameLibrariesDependency;
 
+	private final ModuleDependency unprotectDependency;
+
 	public NFRTMinecraftLibraryProvider(NFRTMergedMinecraftProvider minecraftProvider, Project project) {
 		super(minecraftProvider, project);
 		this.project = project;
@@ -81,6 +85,8 @@ public class NFRTMinecraftLibraryProvider extends MinecraftLibraryProvider {
 		this.modulePathDependency = neoForge.copy().capabilities(caps -> caps.requireCapability("net.neoforged:neoforge-moddev-module-path"))
 				.exclude(Map.of("group", "org.jetbrains", "module", "annotations"));
 		this.gameLibrariesDependency = neoForge.copy().capabilities(c -> c.requireCapability("net.neoforged:neoforge-dependencies"));
+
+		this.unprotectDependency = project.getDependencyFactory().create(LoomVersions.UNPROTECT_FANCYMODLOADER10.mavenNotation());
 	}
 
 	public List<Configuration> getNFRTDeps() {
@@ -189,12 +195,10 @@ public class NFRTMinecraftLibraryProvider extends MinecraftLibraryProvider {
 		final LoomGradleExtension extension = LoomGradleExtension.get(project);
 		final MinecraftJarConfiguration jarConfiguration = extension.getMinecraftJarConfiguration().get();
 
-		// TODO transform FML
-
 		resolveGameLibraries(Library.Target.COMPILE, MinecraftDistribution.CLIENT, this.gameLibrariesDependency); // note: add this.neoForge if final jar doesnt have it
 		resolveGameLibraries(Library.Target.COMPILE, MinecraftDistribution.SERVER, this.gameLibrariesDependency);
-		resolveGameLibraries(Library.Target.RUNTIME, MinecraftDistribution.CLIENT, this.gameLibrariesDependency, this.modulePathDependency);
-		resolveGameLibraries(Library.Target.RUNTIME, MinecraftDistribution.SERVER, this.gameLibrariesDependency, this.modulePathDependency);
+		resolveGameLibraries(Library.Target.RUNTIME, MinecraftDistribution.CLIENT, this.gameLibrariesDependency, this.modulePathDependency, this.unprotectDependency);
+		resolveGameLibraries(Library.Target.RUNTIME, MinecraftDistribution.SERVER, this.gameLibrariesDependency, this.modulePathDependency, this.unprotectDependency);
 
 		if (extension.isCollectingDependencyVerificationMetadata()) {
 			resolveAllLibraries();

@@ -67,6 +67,14 @@ public class LoomRepositoryPlugin implements Plugin<PluginAware> {
 			repo.setUrl(MirrorUtil.getFabricRepository(target));
 		});
 
+		repositories.maven(repo -> {
+			repo.setName("Architectury");
+			repo.setUrl(MirrorUtil.getArchitecturyRepository(target));
+			repo.content(content -> {
+				content.includeGroup("io.github.juuxel");
+			});
+		});
+
 		MavenArtifactRepository mojangRepo = repositories.maven(repo -> {
 			repo.setName("Mojang");
 			repo.setUrl(MirrorUtil.getLibrariesBase(target));
