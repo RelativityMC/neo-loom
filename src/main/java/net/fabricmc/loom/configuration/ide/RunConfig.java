@@ -61,6 +61,9 @@ import net.fabricmc.loom.util.Constants;
 import net.fabricmc.loom.util.gradle.GradleUtils;
 import net.fabricmc.loom.util.gradle.SourceSetReference;
 
+import org.relativitymc.neoloom.neoforge.NFRTMinecraftProvider;
+import org.relativitymc.neoloom.neoforge.launch.ForgeLaunchConfigs;
+
 public class RunConfig {
 	public String configName;
 	public String eclipseProjectName;
@@ -147,6 +150,12 @@ public class RunConfig {
 		runConfig.sourceSet = sourceSet;
 		runConfig.environment = environment;
 
+		if (!settings.isDisableForgeRunTemplates() && extension.getMinecraftProvider() instanceof NFRTMinecraftProvider provider) {
+			ForgeLaunchConfigs.Config launchConfig = provider.getLaunchConfig();
+			ForgeLaunchConfigs.LaunchTarget launchTarget = ForgeLaunchConfigs.LaunchTarget.fromId(environment);
+			runConfig.vmArgs.addAll(launchConfig.collectExtraVmArgs(launchTarget));
+		}
+
 		// Custom parameters
 		runConfig.programArgs.addAll(settings.getProgramArgs());
 		runConfig.vmArgs.addAll(settings.getVmArgs());
@@ -225,7 +234,15 @@ public class RunConfig {
 		return sb.toString();
 	}
 
-	static String getMainClass(String side, LoomGradleExtension extension, String defaultMainClass) {
+	static String getMainClass(String side, LoomGradleExtension extension, String defaultMainClass, boolean disableForgeRunTemplates) {
+		if (extension.getMinecraftProvider() instanceof NFRTMinecraftProvider provider) {
+			if (disableForgeRunTemplates) {
+				return defaultMainClass;
+			}
+
+			return provider.getLaunchConfig().mainClass().get(ForgeLaunchConfigs.LaunchTarget.fromId(side));
+		}
+
 		InstallerData installerData = extension.getInstallerData();
 
 		if (installerData == null) {

@@ -7,9 +7,9 @@ A fork of Fabric Loom that supports the NeoForge modding toolchain. Heavily base
 - 26.1+ Remap setup
 - Jar-in-Jar
 - ClassTweaker / AccessWidener -> AccessTransformer conversion
+- Devlaunch
 
 ## Current to-dos
-- Devlaunch
 - JUnit
 - Production launch tasks
 - Forge support

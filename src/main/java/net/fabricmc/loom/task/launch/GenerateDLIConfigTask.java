@@ -40,6 +40,7 @@ import java.util.stream.Collectors;
 import org.gradle.api.Project;
 import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.logging.configuration.ConsoleOutput;
+import org.gradle.api.provider.MapProperty;
 import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.InputFile;
@@ -59,6 +60,9 @@ import net.fabricmc.loom.task.service.ClasspathGroupService;
 import net.fabricmc.loom.util.service.ScopedServiceFactory;
 
 import dev.architectury.loom.util.collection.Multimap;
+
+import org.relativitymc.neoloom.neoforge.NFRTMinecraftProvider;
+import org.relativitymc.neoloom.neoforge.launch.ForgeLaunchConfigs;
 
 public abstract class GenerateDLIConfigTask extends AbstractLoomTask {
 	@Input
@@ -99,6 +103,10 @@ public abstract class GenerateDLIConfigTask extends AbstractLoomTask {
 	@Input
 	protected abstract Property<String> getDefaultMixinRemapType();
 
+	@Input
+	@Optional
+	protected abstract MapProperty<ForgeLaunchConfigs.LaunchTarget, List<String>> getForgeLaunchProgramArgs();
+
 	@InputFile
 	@Optional
 	public abstract RegularFileProperty getRemapClasspathFile();
@@ -129,6 +137,14 @@ public abstract class GenerateDLIConfigTask extends AbstractLoomTask {
 		getDevLauncherConfig().set(getExtension().getFiles().getDevLauncherConfig());
 		getProductionNamespace().set(getExtension().getProductionNamespaceEnum().map(MappingsNamespace::toString));
 		getDefaultMixinRemapType().set(getExtension().getDefaultMixinRemapTypeEnum().map(remapType -> remapType.toString().toLowerCase(Locale.ROOT)));
+
+		if (getExtension().getMinecraftProvider() instanceof NFRTMinecraftProvider provider) {
+			ForgeLaunchConfigs.Config launchConfig = provider.getLaunchConfig();
+
+			for (ForgeLaunchConfigs.LaunchTarget launchTarget : ForgeLaunchConfigs.LaunchTarget.values()) {
+				getForgeLaunchProgramArgs().put(launchTarget, launchConfig.collectExtraProgramArgs(launchTarget, getExtension()));
+			}
+		}
 	}
 
 	@TaskAction
@@ -151,6 +167,16 @@ public abstract class GenerateDLIConfigTask extends AbstractLoomTask {
 				.argument("client", versionInfo.assetIndex().fabricId(getMinecraftVersion().get()))
 				.argument("client", "--assetsDir")
 				.argument("client", assetsDirectory.getAbsolutePath());
+
+		if (getForgeLaunchProgramArgs().isPresent()) {
+			for (Map.Entry<ForgeLaunchConfigs.LaunchTarget, List<String>> entry : getForgeLaunchProgramArgs().get().entrySet()) {
+				String id = entry.getKey().getId();
+
+				for (String arg : entry.getValue()) {
+					launchConfig.argument(id, arg);
+				}
+			}
+		}
 
 		if (getRemapClasspathFile().isPresent()) {
 			launchConfig.property("fabric.remapClasspathFile", getRemapClasspathFile().get().getAsFile().getAbsolutePath());

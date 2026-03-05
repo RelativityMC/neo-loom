@@ -22,10 +22,7 @@
  * SOFTWARE.
  */
 
-package org.relativitymc.neoloom.neoforge;
+@NullMarked
+package org.relativitymc.neoloom.neoforge.launch;
 
-import org.relativitymc.neoloom.neoforge.launch.ForgeLaunchConfigs;
-
-public interface NFRTMinecraftProvider {
-	ForgeLaunchConfigs.Config getLaunchConfig();
-}
+import org.jspecify.annotations.NullMarked;
