@@ -29,9 +29,7 @@ pluginManagement {
 			name = 'RelativityMC'
 			url = 'https://repo.codemc.io/repository/relativitymc/'
 		}
-		mavenCentral()
 		gradlePluginPortal()
-		mavenLocal()
 	}
 }
 ```
