@@ -152,7 +152,7 @@ public abstract class CompileConfiguration implements Runnable {
 				// Create default mod from main source set
 				extension.mods(mods -> {
 					final SourceSet main = getProject().getExtensions().getByType(JavaPluginExtension.class).getSourceSets().getByName(SourceSet.MAIN_SOURCE_SET_NAME);
-					mods.create("main").sourceSet(main);
+					mods.maybeCreate("main").sourceSet(main);
 				});
 			}
 		});
