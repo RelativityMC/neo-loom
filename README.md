@@ -2,6 +2,8 @@
 
 A fork of Fabric Loom that supports the NeoForge modding toolchain. Heavily based on Architectury Loom. 
 
+Feel free to reach out on [our Discord server](https://discord.relativitymc.org/).
+
 ## Currently implemented
 - 1.21+ No-Remap setup
 - 26.1+ Remap setup
@@ -37,7 +39,7 @@ pluginManagement {
 In your buildscript, using [Modern Yarn](https://github.com/RelativityMC/yarn):  
 ```gradle
 plugins {
-    id 'net.fabricmc.fabric-loom-remap' version '1.15-SNAPSHOT'
+    id 'org.relativitymc.neo-loom-remap' version '1.15-SNAPSHOT'
 }
 
 repositories {
@@ -68,7 +70,7 @@ loom {
 In your buildscript, without any mappings:  
 ```gradle
 plugins {
-    id 'net.fabricmc.fabric-loom' version '1.15-SNAPSHOT'
+    id 'org.relativitymc.neo-loom' version '1.15-SNAPSHOT'
 }
 
 dependencies {
@@ -76,6 +78,8 @@ dependencies {
 	neoForge "net.neoforged:neoforge:${project.neoforge_version}"
 }
 ```
+
+# Original README below
 
 # Fabric Loom
 
