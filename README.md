@@ -79,6 +79,26 @@ dependencies {
 }
 ```
 
+Full forge run configs:
+```
+loom {
+	runs {
+		serverData {
+			server()
+			environment("serverData")
+		}
+		clientData {
+			client()
+			environment("clientData")
+		}
+        gameTestServer {
+			server()
+			environment("gameTestServer")
+		}
+	}
+}
+```
+
 # Original README below
 
 # Fabric Loom
