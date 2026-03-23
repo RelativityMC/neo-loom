@@ -589,5 +589,10 @@ public abstract class LoomGradleExtensionApiImpl implements LoomGradleExtensionA
 		public void nestJars(TaskProvider<? extends Jar> jarTask, FileCollection jars) {
 			throw new RuntimeException("Yeah... something is really wrong");
 		}
+
+		@Override
+		public void convertAw2At(TaskProvider<? extends Jar> jarTask, List<String> atAccessWideners) {
+			throw new RuntimeException("Yeah... something is really wrong");
+		}
 	}
 }

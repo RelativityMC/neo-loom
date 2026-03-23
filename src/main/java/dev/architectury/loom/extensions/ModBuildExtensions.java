@@ -73,7 +73,7 @@ public final class ModBuildExtensions {
 		}
 	}
 
-	public static void convertAwToAt(ServiceFactory serviceFactory, Set<String> atAccessWideners, Path outputFile, Provider<MappingsService.Options> options) throws IOException {
+	public static void convertAwToAt(Set<String> atAccessWideners, Path outputFile, @Nullable ServiceFactory serviceFactory, @Nullable Provider<MappingsService.Options> options) throws IOException {
 		if (atAccessWideners.isEmpty()) {
 			return;
 		}
@@ -102,8 +102,10 @@ public final class ModBuildExtensions {
 				Files.delete(awPath);
 			}
 
-			MappingsService service = serviceFactory.get(options);
-			at = at.remap(service.getMemoryMappingTree(), service.getFrom(), service.getTo());
+			if (serviceFactory != null && options != null) {
+				MappingsService service = serviceFactory.get(options);
+				at = at.remap(service.getMemoryMappingTree(), service.getFrom(), service.getTo());
+			}
 
 			try (Writer writer = new LfWriter(Files.newBufferedWriter(atPath))) {
 				AccessTransformFormats.FML.write(writer, at);

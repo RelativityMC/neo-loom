@@ -326,4 +326,25 @@ public interface LoomGradleExtensionAPI {
 	 */
 	@ApiStatus.Experimental
 	void nestJars(TaskProvider<? extends Jar> jarTask, FileCollection jars);
+
+	/**
+	 * Converts AWs into ATs inside the specified jar task.
+	 *
+	 * <p>Note that this should only be set for the final jar, because it will fail if
+	 * there is a pre-existing accesstransformer.cfg file in the jar.
+	 *
+	 * <p>Example usage:
+	 * {@snippet lang=groovy :
+	 * loom {
+	 *     convertAw2At(tasks.jar, ["modid.accesswidener", "modid.extras.accesswidener"])
+	 *     convertAw2At(tasks.remapJar, ["modid.accesswidener", "modid.extras.accesswidener"])
+	 * }
+	 * }
+	 *
+	 * @param jarTask the jar task to nest jars into (can be jar or remapJar)
+	 * @param atAccessWideners the path to AWs inside the jar file
+	 * @since 1.15
+	 */
+	@ApiStatus.Experimental
+	void convertAw2At(TaskProvider<? extends Jar> jarTask, List<String> atAccessWideners);
 }

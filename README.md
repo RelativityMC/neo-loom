@@ -77,6 +77,8 @@ dependencies {
     minecraft "com.mojang:minecraft:${project.minecraft_version}"
 	neoForge "net.neoforged:neoforge:${project.neoforge_version}"
 }
+
+loom.convertAw2At(tasks.named("jar"), ["modid.accesswidener"])
 ```
 
 Full forge run configs:

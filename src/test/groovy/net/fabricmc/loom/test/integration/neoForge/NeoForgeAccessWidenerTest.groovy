@@ -46,6 +46,19 @@ class NeoForgeAccessWidenerTest extends Specification implements GradleProjectTe
 		version << STANDARD_TEST_VERSIONS
 	}
 
+	@Unroll
+	def "neoforge accesswidener noRemap (gradle #version)"() {
+		setup:
+		def gradle = gradleProject(project: "accesswidenerNeoForgeNoRemap", version: version)
+		when:
+		def result = gradle.run(task: "build")
+		then:
+		result.task(":build").outcome == SUCCESS
+		gradle.getOutputZipEntry("fabric-example-mod-1.0.0.jar", "META-INF/accesstransformer.cfg") == expected().replaceAll('\r', '')
+		where:
+		version << STANDARD_TEST_VERSIONS
+	}
+
 	String expected() {
 		new File("src/test/resources/accesswidener/expectedAT.cfg").text
 	}

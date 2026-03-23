@@ -60,6 +60,7 @@ import net.fabricmc.loom.configuration.providers.minecraft.MinecraftProvider;
 import net.fabricmc.loom.configuration.providers.minecraft.library.LibraryProcessorManager;
 import net.fabricmc.loom.configuration.providers.minecraft.mapped.IntermediaryMinecraftProvider;
 import net.fabricmc.loom.configuration.providers.minecraft.mapped.NamedMinecraftProvider;
+import net.fabricmc.loom.task.Aw2AtAction;
 import net.fabricmc.loom.task.NestJarsAction;
 import net.fabricmc.loom.task.RemapJarTask;
 import net.fabricmc.loom.util.Constants;
@@ -365,6 +366,19 @@ public abstract class LoomGradleExtensionImpl extends LoomGradleExtensionApiImpl
 			} else {
 				// For regular Jar tasks (non-remap mode), add a NestJarsAction with the FileCollection
 				NestJarsAction.addToTask(task, jars);
+			}
+		});
+	}
+
+	@Override
+	public void convertAw2At(TaskProvider<? extends Jar> jarTask, List<String> atAccessWideners) {
+		jarTask.configure(task -> {
+			if (task instanceof RemapJarTask remapJarTask) {
+				// For RemapJarTask, add to the atAccwssWideners property
+				remapJarTask.getAtAccessWideners().addAll(atAccessWideners);
+			} else {
+				// For regular Jar tasks (non-remap mode), add an Aw2AtAction
+				Aw2AtAction.addToTask(task, atAccessWideners);
 			}
 		});
 	}

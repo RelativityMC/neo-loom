@@ -1,0 +1,35 @@
+plugins {
+	id 'org.relativitymc.neo-loom'
+}
+
+version = project.mod_version
+group = project.maven_group
+
+repositories {
+	// Add repositories to retrieve artifacts from in here.
+	// You should only use this when depending on other mods because
+	// Loom adds the essential maven repositories to download Minecraft and libraries from automatically.
+	// See https://docs.gradle.org/current/userguide/declaring_repositories.html
+	// for more information about repositories.
+}
+
+loom {
+	accessWidenerPath = file("src/main/resources/modid.accesswidener")
+}
+
+dependencies {
+	minecraft 'com.mojang:minecraft:1.21.11_unobfuscated'
+	neoForge 'net.neoforged:neoforge:21.11.38-beta'
+}
+
+base {
+	archivesName = project.archives_base_name
+}
+
+tasks.withType(JavaCompile).configureEach {
+	it.options.encoding = "UTF-8"
+
+	it.options.release = 21
+}
+
+loom.convertAw2At(tasks.named("jar"), ["modid.accesswidener"])

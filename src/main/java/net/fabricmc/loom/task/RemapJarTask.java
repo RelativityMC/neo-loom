@@ -235,7 +235,7 @@ public abstract class RemapJarTask extends AbstractRemapJarTask {
 					final Provider<MappingsService.Options> mappingsServiceOptions = getParameters().getTinyRemapperServiceOptions()
 							.flatMap(TinyRemapperService.Options::getMappings)
 							.map(mappingsOptions -> mappingsOptions.get(0));
-					ModBuildExtensions.convertAwToAt(serviceFactory, getParameters().getAtAccessWideners().get(), outputFile, mappingsServiceOptions);
+					ModBuildExtensions.convertAwToAt(getParameters().getAtAccessWideners().get(), outputFile, serviceFactory, mappingsServiceOptions);
 				}
 
 				modifyJarManifest();
