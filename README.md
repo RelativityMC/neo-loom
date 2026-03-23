@@ -91,7 +91,7 @@ loom {
 			client()
 			environment("clientData")
 		}
-        gameTestServer {
+		gameTestServer {
 			server()
 			environment("gameTestServer")
 		}
