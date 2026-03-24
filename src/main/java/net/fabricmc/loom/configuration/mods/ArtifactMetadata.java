@@ -56,7 +56,7 @@ public record ArtifactMetadata(boolean isFabricMod, RemapRequirements remapRequi
 		InstallerData installerData = null;
 		MixinRemapType refmapRemapType = defaultMixinRemapType;
 		List<String> knownIndyBsms = new ArrayList<>();
-		
+
 		// Force-remap all mods on Forge-like platforms
 		if (modPlatform.isForgeLike()) {
 			remapRequirements = RemapRequirements.OPT_IN;
