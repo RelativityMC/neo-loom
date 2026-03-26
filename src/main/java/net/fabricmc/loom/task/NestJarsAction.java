@@ -35,6 +35,8 @@ import org.gradle.api.Task;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.RegularFileProperty;
+import org.gradle.api.provider.Property;
+import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.InputFiles;
 import org.gradle.jvm.tasks.Jar;
 import org.gradle.workers.WorkAction;
@@ -44,7 +46,10 @@ import org.gradle.workers.WorkerExecutor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import net.fabricmc.loom.LoomGradleExtension;
 import net.fabricmc.loom.build.nesting.JarNester;
+
+import org.relativitymc.neoloom.neoforge.meta.ModPlatform;
 
 /**
  * Configuration-cache-compatible action for nesting jars.
@@ -55,13 +60,19 @@ public abstract class NestJarsAction implements Action<Task>, Serializable {
 	@InputFiles
 	public abstract ConfigurableFileCollection getJars();
 
+	@Input
+	public abstract Property<ModPlatform> getModPlatform();
+
 	@Inject
 	protected abstract WorkerExecutor getWorkerExecutor();
 
 	public static void addToTask(Jar task, FileCollection jars) {
 		NestJarsAction nestJarsAction = task.getProject().getObjects().newInstance(NestJarsAction.class);
 		nestJarsAction.getJars().from(jars);
+		LoomGradleExtension extension = LoomGradleExtension.get(task.getProject());
+		nestJarsAction.getModPlatform().set(task.getProject().provider(() -> extension.getMinecraftProvider().getModPlatform()));
 		task.getInputs().files(nestJarsAction.getJars()); // I don't think @InputFiles works, so to be sure add the jars to the task input anyway.
+		task.getInputs().property("modPlatform", nestJarsAction.getModPlatform());
 		task.doLast(nestJarsAction);
 	}
 
@@ -74,12 +85,15 @@ public abstract class NestJarsAction implements Action<Task>, Serializable {
 		workQueue.submit(NestAction.class, p -> {
 			p.getArchiveFile().set(jarTask.getArchiveFile());
 			p.getJars().setFrom(getJars());
+			p.getModPlatform().set(getModPlatform());
 		});
 	}
 
 	public interface NestJarsParameters extends WorkParameters {
 		RegularFileProperty getArchiveFile();
 		ConfigurableFileCollection getJars();
+
+		Property<ModPlatform> getModPlatform();
 	}
 
 	public abstract static class NestAction implements WorkAction<NestJarsParameters> {
@@ -92,7 +106,7 @@ public abstract class NestJarsAction implements Action<Task>, Serializable {
 
 			// Nest all collected jars
 			if (!jars.isEmpty()) {
-				JarNester.nestJars(jars, jarFile, LOGGER);
+				JarNester.nestJars(jars, jarFile, getParameters().getModPlatform().get(), LOGGER);
 				LOGGER.info("Nested {} jar(s) into {}", jars.size(), jarFile.getName());
 			}
 		}

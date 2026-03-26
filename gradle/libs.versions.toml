@@ -4,7 +4,7 @@ asm = "9.9"
 gson = "2.10.1"
 
 stitch = "0.6.2"
-tiny-remapper = "0.12.3"
+tiny-remapper = "0.13.0"
 clazz-tweaker = "0.1.1"
 mapping-io = "0.8.0"
 lorenz-tiny = "4.0.2"
@@ -18,6 +18,9 @@ spotless = "8.0.0"
 test-retry = "1.6.2"
 checkstyle = "12.1.1"
 codenarc = "3.6.0"
+
+# Neo Loom
+night-config = "3.6.6"
 
 [libraries]
 # Loom compile libraries
@@ -43,6 +46,9 @@ fabric-unpick-utils = { module = "net.fabricmc.unpick:unpick-format-utils", vers
 # Misc
 kotlin-gradle-plugin = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref = "kotlin" }
 kotlin-metadata = { module = "org.jetbrains.kotlin:kotlin-metadata-jvm", version.ref = "kotlin" }
+
+# Neo Loom
+night-config-toml = { module = "com.electronwill.night-config:toml", version.ref = "night-config" }
 
 [plugins]
 kotlin = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }

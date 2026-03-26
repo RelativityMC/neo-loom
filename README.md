@@ -1,3 +1,108 @@
+# Neo Loom
+
+A fork of Fabric Loom that supports the NeoForge modding toolchain. Heavily based on Architectury Loom. 
+
+Feel free to reach out on [our Discord server](https://discord.relativitymc.org/).
+
+## Currently implemented
+- 1.21+ No-Remap setup
+- 26.1+ Remap setup
+- Jar-in-Jar
+- ClassTweaker / AccessWidener -> AccessTransformer conversion
+- Devlaunch
+
+## Current to-dos
+- JUnit
+- Production launch tasks
+- Forge support
+- split-sources, client-only, server-only setups for (Neo)Forge
+
+## Using Neo Loom
+
+Add this to `settings.gradle`:  
+```gradle
+pluginManagement {
+	repositories {
+		maven {
+			name = 'Fabric'
+			url = 'https://maven.fabricmc.net/'
+		}
+		maven {
+			name = 'RelativityMC'
+			url = 'https://repo.codemc.io/repository/relativitymc/'
+		}
+		gradlePluginPortal()
+	}
+}
+```
+
+In your buildscript, using [Modern Yarn](https://github.com/RelativityMC/yarn):  
+```gradle
+plugins {
+    id 'org.relativitymc.neo-loom-remap' version '1.15-SNAPSHOT'
+}
+
+repositories {
+    maven {
+        url = "https://repo.codemc.io/repository/relativitymc/"
+    }
+}
+
+dependencies {
+    minecraft "com.mojang:minecraft:${project.minecraft_version}"
+	neoForge "net.neoforged:neoforge:${project.neoforge_version}"
+    mappings loom.layered {
+		it.mappings "org.relativitymc:modern-yarn:${project.yarn_mappings}:v2"
+		it.mappings "org.relativitymc:modern-yarn-mappings-patch-neoforge:26.1+build.1"
+	}
+}
+
+remapJar {
+    atAccessWideners.add("modid.accesswidener")
+}
+
+loom {
+    useIntermediateMappings = true
+    intermediaryUrl = 'https://repo.codemc.io/repository/relativitymc/org/relativitymc/intermediary/%1$s/intermediary-%1$s-v2.jar'
+}
+```
+
+In your buildscript, without any mappings:  
+```gradle
+plugins {
+    id 'org.relativitymc.neo-loom' version '1.15-SNAPSHOT'
+}
+
+dependencies {
+    minecraft "com.mojang:minecraft:${project.minecraft_version}"
+	neoForge "net.neoforged:neoforge:${project.neoforge_version}"
+}
+
+loom.convertAw2At(tasks.named("jar"), ["modid.accesswidener"])
+```
+
+Full forge run configs:
+```
+loom {
+	runs {
+		serverData {
+			server()
+			environment("serverData")
+		}
+		clientData {
+			client()
+			environment("clientData")
+		}
+		gameTestServer {
+			server()
+			environment("gameTestServer")
+		}
+	}
+}
+```
+
+# Original README below
+
 # Fabric Loom
 
 A [Gradle](https://gradle.org/) plugin to setup a deobfuscated development environment for Minecraft mods. Primarily used in the Fabric toolchain.

@@ -149,9 +149,9 @@ public class ModProcessor {
 
 		TinyRemapper.Builder builder = TinyRemapper.newRemapper(TinyRemapperLoggerAdapter.INSTANCE)
 				.withKnownIndyBsm(knownIndyBsms)
-				.withMappings(TinyRemapperHelper.create(mappingConfiguration.getMappingsService(project, serviceFactory).getMappingTree(), productionNamespace.toString(), toM, false))
+				.withMappings(TinyRemapperHelper.create(mappingConfiguration.getMappingsService(project, serviceFactory).getMappingTree(), productionNamespace.toString(), toM, true))
 				.renameInvalidLocals(false)
-				.extraAnalyzeVisitor(AccessWidenerAnalyzeVisitorProvider.createFromMods(productionNamespace.toString(), remapList));
+				.extraAnalyzeVisitor(AccessWidenerAnalyzeVisitorProvider.createFromMods(productionNamespace.toString(), remapList, extension.getMinecraftProvider().getModPlatform()));
 
 		final KotlinClasspathService kotlinClasspathService = serviceFactory.getOrNull(KotlinClasspathService.createOptions(project));
 		KotlinRemapperClassloader kotlinRemapperClassloader = null;
@@ -217,7 +217,7 @@ public class ModProcessor {
 					outputConsumer.addNonClassFiles(dependency.getInputFile(), NonClassCopyMode.FIX_META_INF, remapper);
 					outputConsumerMap.put(dependency, outputConsumer);
 
-					final AccessWidenerUtils.AccessWidenerData accessWidenerData = AccessWidenerUtils.readAccessWidenerData(dependency.getInputFile());
+					final AccessWidenerUtils.AccessWidenerData accessWidenerData = AccessWidenerUtils.readAccessWidenerData(dependency.getInputFile(), extension.getMinecraftProvider().getModPlatform());
 
 					if (accessWidenerData != null) {
 						LOGGER.debug("Remapping access widener in {}", dependency.getInputFile());

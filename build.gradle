@@ -22,16 +22,12 @@ tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).all {
 	}
 }
 
-group = 'net.fabricmc'
+group = 'org.relativitymc'
 def baseVersion = '1.16'
 
 def ENV = System.getenv()
 if (ENV.BUILD_NUMBER) {
-	if (ENV.EXPERIMENTAL) {
-		version = baseVersion + '.0-alpha.' + ENV.BUILD_NUMBER
-	} else {
-		version = baseVersion + '.' + ENV.BUILD_NUMBER
-	}
+	version = baseVersion + '.' + ENV.BUILD_NUMBER
 } else {
 	version = baseVersion + '.local'
 }
@@ -136,6 +132,9 @@ dependencies {
 	// Kapt integration
 	compileOnly libs.kotlin.gradle.plugin
 
+	// Forge mods.toml parsing
+	implementation libs.night.config.toml
+
 	// Testing
 	testImplementation(gradleTestKit())
 	testImplementation(testLibs.spock) {
@@ -191,6 +190,7 @@ spotless {
 	java {
 		licenseHeaderFile(rootProject.file("HEADER")).yearSeparator("-")
 		targetExclude("**/loom/util/DownloadUtil.java")
+		targetExclude("**/dev/architectury/at/**")
 	}
 
 	groovy {
@@ -225,24 +225,23 @@ codenarc {
 gradlePlugin {
 	plugins {
 		fabricLoom {
-			id = 'net.fabricmc.fabric-loom'
+			id = 'org.relativitymc.neo-loom'
 			implementationClass = 'net.fabricmc.loom.LoomNoRemapGradlePlugin'
 		}
 		fabricLoomRemap {
-			id = 'net.fabricmc.fabric-loom-remap'
+			id = 'org.relativitymc.neo-loom-remap'
 			implementationClass = 'net.fabricmc.loom.LoomRemapGradlePlugin'
 		}
 		fabricLoomLegacy {
-			// Legacy plugin id, remove in 2.0. Use `net.fabricmc.fabric-loom-remap`
-			id = 'fabric-loom'
+			id = 'org.relativitymc.neo-loom-legacy'
 			implementationClass = 'net.fabricmc.loom.LoomGradlePlugin'
 		}
 		fabricLoomCompanion {
-			id = 'net.fabricmc.fabric-loom-companion'
+			id = 'org.relativitymc.neo-loom-companion'
 			implementationClass = 'net.fabricmc.loom.LoomCompanionGradlePlugin'
 		}
 		fabricLoomRepositories {
-			id = 'net.fabricmc.fabric-loom-repositories'
+			id = 'org.relativitymc.neo-loom-repositories'
 			implementationClass = 'net.fabricmc.loom.LoomRepositoryPlugin'
 		}
 	}
@@ -290,7 +289,7 @@ import org.w3c.dom.Node
 
 publishing {
 	publications {
-		if (!ENV.EXPERIMENTAL) {
+		if (true) {
 			// Also publish a snapshot so people can use the latest version if they wish
 			snapshot(MavenPublication) { publication ->
 				groupId = project.group
@@ -314,9 +313,9 @@ publishing {
 						Node dependencies = root.appendChild(document.createElement('dependencies'))
 						Node dependency = dependencies.appendChild(document.createElement('dependency'))
 						Node groupId = dependency.appendChild(document.createElement('groupId'))
-						groupId.setTextContent('net.fabricmc')
+						groupId.setTextContent('org.relativitymc')
 						Node artifactId = dependency.appendChild(document.createElement('artifactId'))
-						artifactId.setTextContent('fabric-loom')
+						artifactId.setTextContent('neo-loom')
 						Node version = dependency.appendChild(document.createElement('version'))
 						version.setTextContent(project.version)
 					})
@@ -325,12 +324,12 @@ publishing {
 		}
 	}
 	repositories {
-		maven {
-			if (ENV.MAVEN_URL) {
-				url ENV.MAVEN_URL
+		if (ENV.MAVEN_URL) {
+			maven {
+				url = ENV.MAVEN_URL
 				credentials {
-					username ENV.MAVEN_USERNAME
-					password ENV.MAVEN_PASSWORD
+					username = ENV.MAVEN_CRED_USR
+					password = ENV.MAVEN_CRED_PSW
 				}
 			}
 		}
@@ -358,6 +357,8 @@ tasks.register('writeActionsTestMatrix') {
 				testMatrix.add("net.fabricmc.loom.test.integration.${className}")
 			} else if (it.name.endsWith("noRemap")) {
 				testMatrix.add("net.fabricmc.loom.test.integration.noRemap.*")
+			} else if (it.name.endsWith("neoForge")) {
+				testMatrix.add("net.fabricmc.loom.test.integration.neoForge.*")
 			}
 		}
 

@@ -41,6 +41,7 @@ import org.gradle.api.plugins.JavaPlugin;
 import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
+import org.gradle.api.provider.SetProperty;
 import org.gradle.api.tasks.CacheableTask;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.InputFiles;
@@ -63,6 +64,7 @@ import net.fabricmc.loom.build.nesting.NestableJarGenerationTask;
 import net.fabricmc.loom.configuration.accesswidener.AccessWidenerFile;
 import net.fabricmc.loom.configuration.mods.ArtifactMetadata;
 import net.fabricmc.loom.task.service.ClientEntriesService;
+import net.fabricmc.loom.task.service.MappingsService;
 import net.fabricmc.loom.task.service.MixinRefmapService;
 import net.fabricmc.loom.task.service.TinyRemapperService;
 import net.fabricmc.loom.util.Constants;
@@ -75,6 +77,10 @@ import net.fabricmc.loom.util.service.ScopedServiceFactory;
 import net.fabricmc.loom.util.service.ServiceFactory;
 import net.fabricmc.tinyremapper.OutputConsumerPath;
 import net.fabricmc.tinyremapper.TinyRemapper;
+
+import dev.architectury.loom.extensions.ModBuildExtensions;
+
+import org.relativitymc.neoloom.neoforge.meta.ModPlatform;
 
 @CacheableTask
 public abstract class RemapJarTask extends AbstractRemapJarTask {
@@ -93,6 +99,17 @@ public abstract class RemapJarTask extends AbstractRemapJarTask {
 	@Input
 	public abstract Property<Boolean> getOptimizeFabricModJson();
 
+	/**
+	 * Gets the jar paths to the access wideners that will be converted to ATs for Forge runtime.
+	 * If you specify multiple files, they will be merged into one.
+	 *
+	 * <p>The specified files will be converted and removed from the final jar.
+	 *
+	 * @return the property containing access widener paths in the final jar
+	 */
+	@Input
+	public abstract SetProperty<String> getAtAccessWideners();
+
 	@Input
 	@ApiStatus.Internal
 	public abstract Property<Boolean> getUseMixinAP();
@@ -100,6 +117,9 @@ public abstract class RemapJarTask extends AbstractRemapJarTask {
 	public abstract Property<TinyRemapperService.Options> getTinyRemapperServiceOptions();
 	@Nested
 	public abstract ListProperty<MixinRefmapService.Options> getMixinRefmapServiceOptions();
+
+	@Input
+	public abstract Property<ModPlatform> getModPlatform();
 
 	@Inject
 	public RemapJarTask() {
@@ -126,6 +146,8 @@ public abstract class RemapJarTask extends AbstractRemapJarTask {
 
 		getTinyRemapperServiceOptions().set(TinyRemapperService.createOptions(this));
 		getMixinRefmapServiceOptions().set(MixinRefmapService.createOptions(this));
+
+		getModPlatform().set(getProject().provider(() -> extension.getMinecraftProvider().getModPlatform()));
 	}
 
 	@Override
@@ -153,7 +175,11 @@ public abstract class RemapJarTask extends AbstractRemapJarTask {
 				params.getManifestAttributes().put(Constants.Manifest.MIXIN_REMAP_TYPE, refmapRemapType.manifestValue());
 			}
 
+			params.getAtAccessWideners().set(getAtAccessWideners());
+
 			params.getOptimizeFmj().set(getOptimizeFabricModJson().get());
+
+			params.getModPlatform().set(getModPlatform());
 		});
 	}
 
@@ -161,11 +187,15 @@ public abstract class RemapJarTask extends AbstractRemapJarTask {
 		ConfigurableFileCollection getNestedJars();
 		ConfigurableFileCollection getRemapClasspath();
 
+		SetProperty<String> getAtAccessWideners();
+
 		Property<Boolean> getUseMixinExtension();
 		Property<Boolean> getOptimizeFmj();
 
 		Property<TinyRemapperService.Options> getTinyRemapperServiceOptions();
 		ListProperty<MixinRefmapService.Options> getMixinRefmapServiceOptions();
+
+		Property<ModPlatform> getModPlatform();
 	}
 
 	public abstract static class RemapAction extends AbstractRemapAction<RemapParams> {
@@ -205,6 +235,14 @@ public abstract class RemapJarTask extends AbstractRemapJarTask {
 				remapAccessWidener();
 				addRefmaps(serviceFactory);
 				addNestedJars();
+
+				if (getParameters().getAtAccessWideners().isPresent()) {
+					final Provider<MappingsService.Options> mappingsServiceOptions = getParameters().getTinyRemapperServiceOptions()
+							.flatMap(TinyRemapperService.Options::getMappings)
+							.map(mappingsOptions -> mappingsOptions.get(0));
+					ModBuildExtensions.convertAwToAt(getParameters().getAtAccessWideners().get(), outputFile, serviceFactory, mappingsServiceOptions);
+				}
+
 				modifyJarManifest();
 				rewriteJar();
 
@@ -291,7 +329,7 @@ public abstract class RemapJarTask extends AbstractRemapJarTask {
 				return;
 			}
 
-			JarNester.nestJars(nestedJars.getFiles(), outputFile.toFile(), LOGGER);
+			JarNester.nestJars(nestedJars.getFiles(), outputFile.toFile(), getParameters().getModPlatform().get(), LOGGER);
 		}
 
 		private void addRefmaps(ServiceFactory serviceFactory) throws IOException {

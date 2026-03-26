@@ -131,6 +131,8 @@ public abstract class RunConfigSettings implements Named {
 
 	private final Map<String, Object> environmentVariables = new HashMap<>();
 
+	private boolean disableForgeRunTemplates;
+
 	private final Project project;
 	private final LoomGradleExtension extension;
 
@@ -141,10 +143,11 @@ public abstract class RunConfigSettings implements Named {
 		this.appendProjectPathToConfigName = project.getObjects().property(Boolean.class).convention(true);
 		this.extension = LoomGradleExtension.get(project);
 		this.ideConfigGenerated = GradleUtils.isRootProject(project);
+		this.disableForgeRunTemplates = false;
 		this.mainClass = project.getObjects().property(String.class).convention(project.provider(() -> {
 			Objects.requireNonNull(environment, "Run config " + name + " must specify environment");
 			Objects.requireNonNull(defaultMainClass, "Run config " + name + " must specify default main class");
-			return RunConfig.getMainClass(environment, extension, defaultMainClass);
+			return RunConfig.getMainClass(environment, extension, defaultMainClass, disableForgeRunTemplates);
 		}));
 		this.devLaunchMainClass = project.getObjects().property(String.class).convention("net.fabricmc.devlaunchinjector.Main");
 
@@ -303,6 +306,14 @@ public abstract class RunConfigSettings implements Named {
 		this.ideConfigGenerated = ideConfigGenerated;
 	}
 
+	public void disableForgeRunTemplates(boolean disableForgeRunTemplates) {
+		setDisableForgeRunTemplates(disableForgeRunTemplates);
+	}
+
+	public void disableForgeRunTemplates() {
+		setDisableForgeRunTemplates(true);
+	}
+
 	public Map<String, Object> getEnvironmentVariables() {
 		return environmentVariables;
 	}
@@ -363,6 +374,7 @@ public abstract class RunConfigSettings implements Named {
 		defaultMainClass = parent.defaultMainClass;
 		source = parent.source;
 		ideConfigGenerated = parent.ideConfigGenerated;
+		disableForgeRunTemplates = parent.disableForgeRunTemplates;
 		getIdeConfigFolder().set(parent.getIdeConfigFolder());
 	}
 
@@ -380,6 +392,14 @@ public abstract class RunConfigSettings implements Named {
 
 	public void setIdeConfigGenerated(boolean ideConfigGenerated) {
 		this.ideConfigGenerated = ideConfigGenerated;
+	}
+
+	public boolean isDisableForgeRunTemplates() {
+		return disableForgeRunTemplates;
+	}
+
+	public void setDisableForgeRunTemplates(boolean disableForgeRunTemplates) {
+		this.disableForgeRunTemplates = disableForgeRunTemplates;
 	}
 
 	/**

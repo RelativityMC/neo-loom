@@ -176,7 +176,9 @@ public abstract class LoomGradleExtensionApiImpl implements LoomGradleExtensionA
 
 					// if no configuration is selected by the user, attempt to select one
 					// based on the mc version and which sides are present for it
-					if (!metadataProvider.getVersionMeta().hasServer()) {
+					if (metadataProvider.getNeoForgeDependency() != null) {
+						return MinecraftJarConfiguration.NEOFORGE_MERGED;
+					} else if (!metadataProvider.getVersionMeta().hasServer()) {
 						return MinecraftJarConfiguration.CLIENT_ONLY;
 					} else if (!metadataProvider.getVersionMeta().hasClient()) {
 						return MinecraftJarConfiguration.SERVER_ONLY;
@@ -585,6 +587,11 @@ public abstract class LoomGradleExtensionApiImpl implements LoomGradleExtensionA
 
 		@Override
 		public void nestJars(TaskProvider<? extends Jar> jarTask, FileCollection jars) {
+			throw new RuntimeException("Yeah... something is really wrong");
+		}
+
+		@Override
+		public void convertAw2At(TaskProvider<? extends Jar> jarTask, List<String> atAccessWideners) {
 			throw new RuntimeException("Yeah... something is really wrong");
 		}
 	}

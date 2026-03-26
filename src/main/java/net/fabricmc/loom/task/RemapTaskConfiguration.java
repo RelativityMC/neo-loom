@@ -70,6 +70,7 @@ public abstract class RemapTaskConfiguration implements Runnable {
 		Configuration includeConfiguration = getProject().getConfigurations().getByName(Constants.Configurations.INCLUDE_INTERNAL);
 		TaskProvider<NestableJarGenerationTask> processIncludeJarsTask = getTasks().register(Constants.Task.PROCESS_INCLUDE_JARS, NestableJarGenerationTask.class, task -> {
 			task.from(includeConfiguration);
+			task.getModPlatform().set(extension.getMinecraftProvider().getModPlatform());
 			task.getOutputDirectory().set(getProject().getLayout().getBuildDirectory().dir(task.getName()));
 		});
 
