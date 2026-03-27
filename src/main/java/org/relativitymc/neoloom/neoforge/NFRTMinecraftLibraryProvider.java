@@ -171,6 +171,7 @@ public class NFRTMinecraftLibraryProvider extends MinecraftLibraryProvider {
 				jsonObject.get("functions").getAsJsonObject().entrySet().stream()
 						.flatMap(entry -> {
 							JsonObject mcpFunction = entry.getValue().getAsJsonObject();
+
 							if (mcpFunction.has("version")) {
 								return Stream.of(mcpFunction.get("version").getAsString());
 							} else if (mcpFunction.has("classpath")) {
