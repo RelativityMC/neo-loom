@@ -41,7 +41,7 @@ class SimpleDeobfNeoForgeTest extends Specification implements GradleProjectTest
 		gradle.buildGradle << '''
 				dependencies {
 					minecraft 'com.mojang:minecraft:1.21.11_unobfuscated'
-					neoForge 'net.neoforged:neoforge:21.11.38-beta'
+					forgeUserdev 'net.neoforged:neoforge:21.11.38-beta:userdev'
                 }
 		'''
 		def sourceFile = new File(gradle.projectDir, "src/main/java/example/Test.java")

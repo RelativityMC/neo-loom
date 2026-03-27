@@ -19,7 +19,7 @@ loom {
 
 dependencies {
 	minecraft 'com.mojang:minecraft:1.21.11_unobfuscated'
-	neoForge 'net.neoforged:neoforge:21.11.38-beta'
+	forgeUserdev 'net.neoforged:neoforge:21.11.38-beta:userdev'
 }
 
 base {
