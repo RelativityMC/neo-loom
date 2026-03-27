@@ -34,7 +34,9 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Properties;
 import java.util.Set;
+import java.util.stream.Stream;
 
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import org.gradle.api.GradleException;
 import org.gradle.api.Project;
@@ -164,7 +166,17 @@ public class NFRTMinecraftLibraryProvider extends MinecraftLibraryProvider {
 
 		list.addAll(
 				jsonObject.get("functions").getAsJsonObject().entrySet().stream()
-						.map(entry -> entry.getValue().getAsJsonObject().get("version").getAsString())
+						.flatMap(entry -> {
+							JsonObject mcpFunction = entry.getValue().getAsJsonObject();
+							if (mcpFunction.has("version")) {
+								return Stream.of(mcpFunction.get("version").getAsString());
+							} else if (mcpFunction.has("classpath")) {
+								return mcpFunction.get("classpath").getAsJsonArray().asList().stream()
+										.map(JsonElement::getAsString);
+							} else {
+								throw new UnsupportedOperationException("Neither version nor classpath is found in mcp function: " + mcpFunction);
+							}
+						})
 						.toList()
 		);
 		list.addAll(
