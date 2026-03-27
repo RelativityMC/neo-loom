@@ -94,7 +94,7 @@ public abstract class LoomConfigurations implements Runnable {
 		registerNonTransitive(Constants.Configurations.LOADER_DEPENDENCIES, Role.RESOLVABLE);
 
 		registerNonTransitive(Constants.Configurations.MINECRAFT, Role.NONE);
-		registerNonTransitive(Constants.Configurations.NEOFORGE, Role.NONE);
+		registerNonTransitive(Constants.Configurations.FORGE_USERDEV, Role.NONE);
 
 		register(Constants.Configurations.NFRT_TOOL, Role.RESOLVABLE).configure(configuration -> {
 			configuration.defaultDependencies(dependencies -> {

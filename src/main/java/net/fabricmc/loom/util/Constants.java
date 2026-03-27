@@ -57,7 +57,7 @@ public class Constants {
 		public static final String INCLUDE_INTERNAL = "includeInternal";
 		public static final String MINECRAFT = "minecraft";
 
-		public static final String NEOFORGE = "neoForge";
+		public static final String FORGE_USERDEV = "forgeUserdev";
 		public static final String NFRT_TOOL = "neoFormRuntimeTool";
 
 		public static final String MINECRAFT_COMPILE_LIBRARIES = "minecraftLibraries";

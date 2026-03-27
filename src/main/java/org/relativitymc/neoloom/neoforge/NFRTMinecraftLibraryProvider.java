@@ -24,25 +24,31 @@
 
 package org.relativitymc.neoloom.neoforge;
 
+import java.io.ByteArrayInputStream;
 import java.io.File;
+import java.io.IOException;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
+import java.util.Objects;
 import java.util.Properties;
 import java.util.Set;
+
+import com.google.gson.JsonObject;
+
+import net.fabricmc.loom.util.Constants;
+
+import net.fabricmc.loom.util.ZipUtils;
 
 import org.gradle.api.GradleException;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
+import org.gradle.api.artifacts.Dependency;
+import org.gradle.api.artifacts.ExternalModuleDependency;
 import org.gradle.api.artifacts.ModuleDependency;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.ResolvedArtifact;
-import org.gradle.api.artifacts.ResolvedConfiguration;
-import org.gradle.api.attributes.Category;
-import org.gradle.api.attributes.DocsType;
-import org.gradle.api.attributes.Usage;
 
 import net.fabricmc.loom.util.LoomVersions;
 import net.fabricmc.loom.LoomGradleExtension;
@@ -51,8 +57,7 @@ import net.fabricmc.loom.configuration.providers.minecraft.MinecraftLibraryProvi
 import net.fabricmc.loom.configuration.providers.minecraft.MinecraftProvider;
 import net.fabricmc.loom.configuration.providers.minecraft.library.Library;
 
-import org.relativitymc.neoloom.neoforge.meta.MinecraftDistribution;
-import org.relativitymc.neoloom.neoforge.meta.OperatingSystem;
+import org.relativitymc.neoloom.neoforge.meta.UserdevConfiguration;
 
 public class NFRTMinecraftLibraryProvider extends MinecraftLibraryProvider {
 	private static final String FML_LOADER_GROUP = "net.minecraftforge";
@@ -63,75 +68,151 @@ public class NFRTMinecraftLibraryProvider extends MinecraftLibraryProvider {
 	private final Project project;
 	private final MinecraftProvider minecraftProvider;
 
-	private final ModuleDependency neoForge;
-	private final String neoForgeNotation;
+	private final ModuleDependency forgeUserdev;
+	private final UserdevConfiguration userdevConfiguration;
 
-	private final ModuleDependency runTypesConfigDependency;
-	private final ModuleDependency modulePathDependency;
-	private final ModuleDependency gameLibrariesDependency;
-
-	private final ModuleDependency unprotectDependency;
+	private boolean dependencyResolved = false;
 
 	public NFRTMinecraftLibraryProvider(NFRTMergedMinecraftProvider minecraftProvider, Project project) {
 		super(minecraftProvider, project);
 		this.project = project;
 		this.minecraftProvider = minecraftProvider;
 
-		this.neoForge = project.getDependencyFactory().create(minecraftProvider.neoForgeNotation());
-		this.neoForgeNotation = minecraftProvider.neoForgeNotation() + ":userdev";
+		this.forgeUserdev = minecraftProvider.forgeUserdevDependency();
+		this.userdevConfiguration = UserdevConfiguration.fromUserdevJar(project.getConfigurations().detachedConfiguration(minecraftProvider.forgeUserdevDependency()).getSingleFile());
+	}
 
-		this.runTypesConfigDependency = neoForge.copy().capabilities(caps -> caps.requireCapability("net.neoforged:neoforge-moddev-config"));
-		this.modulePathDependency = neoForge.copy().capabilities(caps -> caps.requireCapability("net.neoforged:neoforge-moddev-module-path"))
-				.exclude(Map.of("group", "org.jetbrains", "module", "annotations"));
-		this.gameLibrariesDependency = neoForge.copy().capabilities(c -> c.requireCapability("net.neoforged:neoforge-dependencies"));
+	public void ensureResolved() {
+		if (this.dependencyResolved) return;
 
-		this.unprotectDependency = project.getDependencyFactory().create(LoomVersions.UNPROTECT_FANCYMODLOADER10.mavenNotation());
+		super.provide(); // resolve vanilla libraries
+
+		List<Library> libraries = this.userdevConfiguration.librariesNotations().stream()
+				.map(notation -> Library.fromMaven(notation, Library.Target.COMPILE))
+				.toList();
+		List<Library> processedLibraries = this.processLibraries(libraries);
+
+		Configuration loaderDepsConfig = this.project.getConfigurations().getByName(Constants.Configurations.LOADER_DEPENDENCIES);
+
+		boolean isFancyML = false;
+
+		for (Library library : processedLibraries) {
+			ExternalModuleDependency externalModuleDependency = this.project.getDependencyFactory().create(library.group(), library.name(), library.version(), library.classifier(), null);
+			externalModuleDependency.setTransitive(false);
+
+			this.applyClientLibrary(library);
+			this.applyServerLibrary(library);
+			loaderDepsConfig.getDependencies().add(externalModuleDependency);
+
+			if (FANCYML_LOADER_GROUP.equals(library.group()) && FANCYML_LOADER_NAME.equals(library.name())) {
+				isFancyML = true;
+			}
+		}
+
+		if (!LoomGradleExtension.get(this.project).disableObfuscation()) {
+			Library unprotect = Library.fromMaven(isFancyML ? LoomVersions.UNPROTECT_FANCYMODLOADER10.mavenNotation() : LoomVersions.UNPROTECT_MODLAUNCHER.mavenNotation(), Library.Target.RUNTIME);
+			this.applyClientLibrary(unprotect);
+			this.applyServerLibrary(unprotect);
+		}
+
+		this.dependencyResolved = true;
 	}
 
 	public List<Configuration> getNFRTDeps() {
+		this.ensureResolved();
+
 		List<Configuration> list = new ArrayList<>();
 
-		Configuration modDevBundle = this.project.getConfigurations().detachedConfiguration(
-				this.neoForge.copy().capabilities(caps -> caps.requireCapability("net.neoforged:neoforge-moddev-bundle"))
-		);
-		modDevBundle.setCanBeConsumed(false);
-		modDevBundle.setCanBeResolved(true);
-		list.add(modDevBundle);
+		list.add(this.project.getConfigurations().getByName(Constants.Configurations.MINECRAFT_CLIENT_COMPILE_LIBRARIES));
+		list.add(this.project.getConfigurations().getByName(Constants.Configurations.MINECRAFT_CLIENT_RUNTIME_LIBRARIES));
+		list.add(this.project.getConfigurations().getByName(Constants.Configurations.MINECRAFT_NATIVES));
+		list.add(this.project.getConfigurations().getByName(Constants.Configurations.MINECRAFT_SERVER_COMPILE_LIBRARIES));
+		list.add(this.project.getConfigurations().getByName(Constants.Configurations.MINECRAFT_SERVER_RUNTIME_LIBRARIES));
+		list.add(this.project.getConfigurations().getByName(LoomGradleExtension.get(this.project).disableObfuscation() ? Constants.Configurations.LOCAL_RUNTIME : "modLocalRuntime"));
+		list.add(this.project.getConfigurations().detachedConfiguration(
+				this.forgeUserdev,
+				this.project.getDependencyFactory().create(this.userdevConfiguration.mcpNotation()),
+				this.project.getDependencyFactory().create(this.userdevConfiguration.binPatcherNotation()),
+				this.project.getDependencyFactory().create(this.userdevConfiguration.universalJarNotation()),
+				this.project.getDependencyFactory().create(this.userdevConfiguration.sourcesNotation())
+		));
 
-		Configuration neoforgeDep = this.project.getConfigurations().detachedConfiguration(this.neoForge);
-		neoforgeDep.setCanBeConsumed(false);
-		neoforgeDep.setCanBeResolved(true);
-		neoforgeDep.attributes(attributes -> {
-			attributes.attribute(Category.CATEGORY_ATTRIBUTE, this.project.getObjects().named(Category.CATEGORY_ATTRIBUTE.getType(), Category.DOCUMENTATION));
-			attributes.attribute(DocsType.DOCS_TYPE_ATTRIBUTE, this.project.getObjects().named(DocsType.DOCS_TYPE_ATTRIBUTE.getType(), DocsType.SOURCES));
-		});
-		list.add(neoforgeDep);
+		try {
+			list.add(this.project.getConfigurations().detachedConfiguration(this.resolveMCPDependencies().toArray(Dependency[]::new)));
+		} catch (Throwable t) {
+			this.project.getLogger().warn("Failed to resolve MCP dependencies", t);
+		}
 
-		Configuration compileClasspath = this.project.getConfigurations().detachedConfiguration(this.gameLibrariesDependency);
-		compileClasspath.setCanBeConsumed(false);
-		compileClasspath.setCanBeResolved(true);
-		compileClasspath.attributes(attributes -> {
-			attributes.attribute(Usage.USAGE_ATTRIBUTE, project.getObjects().named(Usage.USAGE_ATTRIBUTE.getType(), Usage.JAVA_API));
-			attributes.attribute(MinecraftDistribution.ATTRIBUTE, project.getObjects().named(MinecraftDistribution.ATTRIBUTE.getType(), MinecraftDistribution.CLIENT));
-			attributes.attribute(OperatingSystem.ATTRIBUTE, project.getObjects().named(OperatingSystem.ATTRIBUTE.getType(), OperatingSystem.getCurrent()));
-		});
-		list.add(compileClasspath);
-
-		Configuration runtimeClasspath = this.project.getConfigurations().detachedConfiguration(this.neoForge, this.gameLibrariesDependency);
-		runtimeClasspath.setCanBeConsumed(false);
-		runtimeClasspath.setCanBeResolved(true);
-		runtimeClasspath.attributes(attributes -> {
-			attributes.attribute(Usage.USAGE_ATTRIBUTE, project.getObjects().named(Usage.USAGE_ATTRIBUTE.getType(), Usage.JAVA_RUNTIME));
-			attributes.attribute(MinecraftDistribution.ATTRIBUTE, project.getObjects().named(MinecraftDistribution.ATTRIBUTE.getType(), MinecraftDistribution.CLIENT));
-			attributes.attribute(OperatingSystem.ATTRIBUTE, project.getObjects().named(OperatingSystem.ATTRIBUTE.getType(), OperatingSystem.getCurrent()));
-		});
-		list.add(runtimeClasspath);
+		try {
+			list.add(this.project.getConfigurations().detachedConfiguration(this.resolveNFRTRuntimeDependencies().toArray(Dependency[]::new)));
+		} catch (Throwable t) {
+			this.project.getLogger().warn("Failed to resolve NFRT runtime dependencies", t);
+		}
 
 		return list;
 	}
 
+	public List<Dependency> resolveMCPDependencies() {
+		File mcpZip = this.project.getConfigurations().detachedConfiguration(this.project.getDependencyFactory().create(this.userdevConfiguration.mcpNotation())).getSingleFile();
+
+		JsonObject jsonObject;
+
+		try {
+			jsonObject = ZipUtils.unpackGson(mcpZip.toPath(), "config.json", JsonObject.class);
+		} catch (IOException e) {
+			throw new RuntimeException(e);
+		}
+
+		List<String> list = new ArrayList<>();
+
+		list.addAll(
+				jsonObject.get("functions").getAsJsonObject().entrySet().stream()
+						.map(entry -> entry.getValue().getAsJsonObject().get("version").getAsString())
+						.toList()
+		);
+		list.addAll(
+				jsonObject.get("libraries").getAsJsonObject().entrySet().stream()
+						.flatMap(entry -> entry.getValue().getAsJsonArray().asList().stream())
+						.map(element -> element.getAsString())
+						.toList()
+		);
+
+		return list.stream()
+				.sorted()
+				.distinct()
+				.map(notation -> (Dependency) this.project.getDependencyFactory().create(notation))
+				.toList();
+	}
+
+	public List<Dependency> resolveNFRTRuntimeDependencies() {
+		for (ResolvedArtifact artifact : this.project.getConfigurations().getByName(Constants.Configurations.NFRT_TOOL).getResolvedConfiguration().getResolvedArtifacts()) {
+			if ("jar".equals(artifact.getExtension()) || "zip".equals(artifact.getExtension())) {
+				Path zipPath = artifact.getFile().toPath();
+
+				if (ZipUtils.contains(zipPath, "tools.properties")) {
+					Properties versions = new Properties();
+
+					try (var in = new ByteArrayInputStream(ZipUtils.unpack(zipPath, "tools.properties"))) {
+						versions.load(in);
+					} catch (IOException e) {
+						this.project.getLogger().warn("Failed to unpack tools.properties from {}", zipPath.toAbsolutePath().toString(), e);
+					}
+
+					return versions.values().stream()
+							.map(o -> (String) o)
+							.sorted()
+							.distinct()
+							.map(notation -> (Dependency) this.project.getDependencyFactory().create(notation))
+							.toList();
+				}
+			}
+		}
+
+		return List.of();
+	}
+
 	public Path resolveUniversalJar() {
-		Configuration neoforgeDep = this.project.getConfigurations().detachedConfiguration(this.neoForge);
+		Configuration neoforgeDep = this.project.getConfigurations().detachedConfiguration(this.project.getDependencyFactory().create(this.userdevConfiguration.universalJarNotation()));
 		Set<File> resolve = neoforgeDep.resolve();
 
 		if (resolve.size() != 1) {
@@ -142,27 +223,20 @@ public class NFRTMinecraftLibraryProvider extends MinecraftLibraryProvider {
 	}
 
 	public Path resolveFMLJar() {
-		Configuration gameLib = this.project.getConfigurations().detachedConfiguration(this.gameLibrariesDependency);
-		gameLib.attributes(attributes -> {
-			attributes.attribute(MinecraftDistribution.ATTRIBUTE, project.getObjects().named(MinecraftDistribution.ATTRIBUTE.getType(), MinecraftDistribution.CLIENT));
-			attributes.attribute(OperatingSystem.ATTRIBUTE, project.getObjects().named(OperatingSystem.ATTRIBUTE.getType(), OperatingSystem.getCurrent()));
-		});
+		for (String libraryNotation : this.userdevConfiguration.librariesNotations()) {
+			ExternalModuleDependency dependency = this.project.getDependencyFactory().create(libraryNotation);
+			if (isFML(Objects.requireNonNull(dependency.getGroup()), dependency.getName())) {
+				for (ResolvedArtifact artifact : this.project.getConfigurations().detachedConfiguration(dependency).getResolvedConfiguration().getResolvedArtifacts()) {
+					ModuleVersionIdentifier id = artifact.getModuleVersion().getId();
 
-		for (ResolvedArtifact artifact : gameLib.getResolvedConfiguration().getResolvedArtifacts()) {
-			ModuleVersionIdentifier id = artifact.getModuleVersion().getId();
-
-			if (isFML(id)) {
-				return artifact.getFile().toPath();
+					if (isFML(id.getGroup(), id.getName())) {
+						return artifact.getFile().toPath();
+					}
+				}
 			}
 		}
 
 		throw new GradleException("No FML in neoforge dependencies");
-	}
-
-	private static boolean isFML(ModuleVersionIdentifier id) {
-		String group = id.getGroup();
-		String name = id.getName();
-		return isFML(group, name);
 	}
 
 	private static boolean isFML(String group, String name) {
@@ -194,44 +268,8 @@ public class NFRTMinecraftLibraryProvider extends MinecraftLibraryProvider {
 		final LoomGradleExtension extension = LoomGradleExtension.get(project);
 		final MinecraftJarConfiguration jarConfiguration = extension.getMinecraftJarConfiguration().get();
 
-		resolveGameLibraries(Library.Target.COMPILE, MinecraftDistribution.CLIENT, this.gameLibrariesDependency); // note: add this.neoForge if final jar doesnt have it
-		resolveGameLibraries(Library.Target.COMPILE, MinecraftDistribution.SERVER, this.gameLibrariesDependency);
-		resolveGameLibraries(Library.Target.RUNTIME, MinecraftDistribution.CLIENT, this.gameLibrariesDependency, this.modulePathDependency, this.unprotectDependency);
-		resolveGameLibraries(Library.Target.RUNTIME, MinecraftDistribution.SERVER, this.gameLibrariesDependency, this.modulePathDependency, this.unprotectDependency);
+		this.ensureResolved();
 
-		if (extension.isCollectingDependencyVerificationMetadata()) {
-			resolveAllLibraries();
-		}
-	}
-
-	private void resolveGameLibraries(Library.Target target, String distribution, ModuleDependency... dependencies) {
-		String usage = switch (target) {
-		case RUNTIME -> Usage.JAVA_RUNTIME;
-		case COMPILE -> Usage.JAVA_API;
-		default -> throw new UnsupportedOperationException();
-		};
-		Configuration configuration = this.project.getConfigurations().detachedConfiguration(dependencies);
-		configuration.attributes(attributes -> {
-			attributes.attribute(Usage.USAGE_ATTRIBUTE, project.getObjects().named(Usage.USAGE_ATTRIBUTE.getType(), usage));
-			attributes.attribute(MinecraftDistribution.ATTRIBUTE, project.getObjects().named(MinecraftDistribution.ATTRIBUTE.getType(), distribution));
-			attributes.attribute(OperatingSystem.ATTRIBUTE, project.getObjects().named(OperatingSystem.ATTRIBUTE.getType(), OperatingSystem.getCurrent()));
-		});
-		ResolvedConfiguration resolvedConfiguration = configuration.getResolvedConfiguration();
-		List<Library> list = resolvedConfiguration.getResolvedArtifacts().stream()
-				.map(artifact -> {
-					final ModuleVersionIdentifier id = artifact.getModuleVersion().getId();
-					return new Library(id.getGroup(), id.getName(), id.getVersion(), artifact.getClassifier(), Library.Target.COMPILE);
-				})
-				.filter(library -> !isFML(library.group(), library.name()))
-				.toList();
-		List<Library> processed = this.processLibraries(list);
-
-		if (distribution.equals(MinecraftDistribution.CLIENT)) {
-			processed.forEach(this::applyClientLibrary);
-		} else if (distribution.equals(MinecraftDistribution.SERVER)) {
-			processed.forEach(this::applyServerLibrary);
-		} else {
-			throw new UnsupportedOperationException();
-		}
+		// resolveAllLibraries done in ensureResolved()
 	}
 }

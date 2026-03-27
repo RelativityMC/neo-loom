@@ -132,7 +132,7 @@ public class ForgeLaunchConfigs {
 				args.add("--fml.mcVersion");
 				args.add(extension.getMinecraftProvider().minecraftVersion());
 				args.add("--fml.neoForgeVersion");
-				ExternalModuleDependency neoForgeDependency = extension.getMetadataProvider().getNeoForgeDependency();
+				ExternalModuleDependency neoForgeDependency = extension.getMetadataProvider().getForgeUserdevDependency();
 				args.add(neoForgeDependency != null ? neoForgeDependency.getVersion() : "unknown");
 				args.add("--fml.neoFormVersion");
 				args.add("loom.stub");

@@ -61,12 +61,12 @@ public final class MinecraftMetadataProvider {
 
 	public static MinecraftMetadataProvider create(ConfigContext configContext) {
 		final String minecraftVersion = resolveMinecraftVersion(configContext.project());
-		final @Nullable ExternalModuleDependency neoForgeDependency = resolveNeoForgeDependency(configContext.project());
+		final @Nullable ExternalModuleDependency forgeUserdevDependency = resolveForgeUserdevDependency(configContext.project());
 
 		return new MinecraftMetadataProvider(
 				MinecraftMetadataProvider.Options.create(
 						minecraftVersion,
-						neoForgeDependency,
+						forgeUserdevDependency,
 						configContext.project()
 				),
 				configContext.extension()::download
@@ -78,8 +78,8 @@ public final class MinecraftMetadataProvider {
 		return dependency.getDependency().getVersion();
 	}
 
-	private static @Nullable ExternalModuleDependency resolveNeoForgeDependency(Project project) {
-		final Optional<DependencyInfo> dependency = DependencyInfo.createOptional(project, Constants.Configurations.NEOFORGE);
+	private static @Nullable ExternalModuleDependency resolveForgeUserdevDependency(Project project) {
+		final Optional<DependencyInfo> dependency = DependencyInfo.createOptional(project, Constants.Configurations.FORGE_USERDEV);
 		Dependency dep1 = dependency.map(dependencyInfo -> dependencyInfo.getDependency()).orElse(null);
 
 		if (dep1 != null && !(dep1 instanceof ExternalModuleDependency)) {
@@ -93,8 +93,8 @@ public final class MinecraftMetadataProvider {
 		return options.minecraftVersion();
 	}
 
-	public @Nullable ExternalModuleDependency getNeoForgeDependency() {
-		return options.neoforgeDependency();
+	public @Nullable ExternalModuleDependency getForgeUserdevDependency() {
+		return options.forgeUserdevDependency();
 	}
 
 	public MinecraftVersionMeta getVersionMeta() {
@@ -199,28 +199,28 @@ public final class MinecraftMetadataProvider {
 	}
 
 	public record Options(String minecraftVersion,
-					@Nullable ExternalModuleDependency neoforgeDependency,
+					@Nullable ExternalModuleDependency forgeUserdevDependency,
 					ManifestLocations versionsManifests,
 					@Nullable String customManifestUrl,
 					Path userCache,
-					@Nullable Path neoForgeCache,
+					@Nullable Path forgeCache,
 					Path workingDir) {
-		public static Options create(String minecraftVersion, @Nullable ExternalModuleDependency neoForgeDependency, Project project) {
+		public static Options create(String minecraftVersion, @Nullable ExternalModuleDependency forgeUserdevDependency, Project project) {
 			final LoomGradleExtension extension = LoomGradleExtension.get(project);
 			final Path userCache = extension.getFiles().getUserCache().toPath();
 			final Path workingDir = MinecraftProvider.minecraftWorkingDirectory(project, minecraftVersion).toPath();
-			final Path neoForgeCache = neoForgeDependency != null ? MinecraftProvider.neoForgeWorkingDirectory(project, minecraftVersion, neoForgeDependency).toPath() : null;
+			final Path forgeCache = forgeUserdevDependency != null ? MinecraftProvider.forgeWorkingDirectory(project, minecraftVersion, forgeUserdevDependency).toPath() : null;
 
 			final ManifestLocations manifestLocations = extension.getVersionsManifests();
 			final Property<String> customMetaUrl = extension.getCustomMinecraftMetadata();
 
 			return new Options(
 					minecraftVersion,
-					neoForgeDependency,
+					forgeUserdevDependency,
 					manifestLocations,
 					customMetaUrl.getOrNull(),
 					userCache,
-					neoForgeCache,
+					forgeCache,
 					workingDir
 			);
 		}

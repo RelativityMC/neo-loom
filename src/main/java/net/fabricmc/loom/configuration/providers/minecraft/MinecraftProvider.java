@@ -310,13 +310,13 @@ public abstract class MinecraftProvider {
 		return workingDir;
 	}
 
-	public static File neoForgeWorkingDirectory(Project project, String minecraftVersion, ExternalModuleDependency neoForgeVersion) {
-		File workingDir = new File(minecraftWorkingDirectory(project, minecraftVersion), mangleNeoForgeVersion(neoForgeVersion));
+	public static File forgeWorkingDirectory(Project project, String minecraftVersion, ExternalModuleDependency neoForgeVersion) {
+		File workingDir = new File(minecraftWorkingDirectory(project, minecraftVersion), mangleForgeVersion(neoForgeVersion));
 		workingDir.mkdirs();
 		return workingDir;
 	}
 
-	public static String mangleNeoForgeVersion(ExternalModuleDependency neoForgeVersion) {
+	public static String mangleForgeVersion(ExternalModuleDependency neoForgeVersion) {
 		return neoForgeVersion.getGroup() + "." + neoForgeVersion.getName() + "_" + neoForgeVersion.getVersion();
 	}
 }

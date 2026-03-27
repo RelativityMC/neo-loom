@@ -224,7 +224,7 @@ public class NFRTMergedMinecraftProvider extends MinecraftProvider implements NF
 
 	@Override
 	public File workingDir() {
-		return neoForgeWorkingDirectory(configContext.project(), minecraftVersion(), neoForgeDependency());
+		return forgeWorkingDirectory(configContext.project(), minecraftVersion(), forgeUserdevDependency());
 	}
 
 	@Override
@@ -234,7 +234,7 @@ public class NFRTMergedMinecraftProvider extends MinecraftProvider implements NF
 
 	@Override
 	public String getJarPrefix() {
-		return "nfrt-" + mangleNeoForgeVersion(neoForgeDependency()) + "-";
+		return "nfrt-" + mangleForgeVersion(forgeUserdevDependency()) + "-";
 	}
 
 	@Override
@@ -247,10 +247,10 @@ public class NFRTMergedMinecraftProvider extends MinecraftProvider implements NF
 	}
 
 	protected @NonNull String neoForgeNotation() {
-		return neoForgeDependency().getGroup() + ":" + neoForgeDependency().getName() + ":" + neoForgeDependency().getVersion();
+		return forgeUserdevDependency().getGroup() + ":" + forgeUserdevDependency().getName() + ":" + forgeUserdevDependency().getVersion();
 	}
 
-	protected ExternalModuleDependency neoForgeDependency() {
-		return Objects.requireNonNull(Objects.requireNonNull(metadataProvider, "Metadata provider not setup").getNeoForgeDependency(), "NeoForge version not setup");
+	protected ExternalModuleDependency forgeUserdevDependency() {
+		return Objects.requireNonNull(Objects.requireNonNull(metadataProvider, "Metadata provider not setup").getForgeUserdevDependency(), "NeoForge version not setup");
 	}
 }
