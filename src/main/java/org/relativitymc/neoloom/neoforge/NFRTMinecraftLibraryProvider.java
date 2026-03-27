@@ -69,6 +69,7 @@ public class NFRTMinecraftLibraryProvider extends MinecraftLibraryProvider {
 
 	private final ModuleDependency forgeUserdev;
 	private final ForgeUserdevConfiguration forgeUserdevConfiguration;
+	private final boolean isFancyML;
 
 	private boolean dependencyResolved = false;
 
@@ -79,6 +80,10 @@ public class NFRTMinecraftLibraryProvider extends MinecraftLibraryProvider {
 
 		this.forgeUserdev = minecraftProvider.forgeUserdevDependency();
 		this.forgeUserdevConfiguration = ForgeUserdevConfiguration.fromUserdevJar(project.getConfigurations().detachedConfiguration(minecraftProvider.forgeUserdevDependency()).getSingleFile());
+
+		this.isFancyML = this.forgeUserdevConfiguration.librariesNotations().stream()
+				.map(notation -> Library.fromMaven(notation, Library.Target.COMPILE))
+				.anyMatch(library -> FANCYML_LOADER_GROUP.equals(library.group()) && FANCYML_LOADER_NAME.equals(library.name()));
 	}
 
 	public void ensureResolved() {
@@ -93,23 +98,21 @@ public class NFRTMinecraftLibraryProvider extends MinecraftLibraryProvider {
 
 		Configuration loaderDepsConfig = this.project.getConfigurations().getByName(Constants.Configurations.LOADER_DEPENDENCIES);
 
-		boolean isFancyML = false;
-
 		for (Library library : processedLibraries) {
 			ExternalModuleDependency externalModuleDependency = this.project.getDependencyFactory().create(library.group(), library.name(), library.version(), library.classifier(), null);
 			externalModuleDependency.setTransitive(false);
 
+			if (isFML(library.group(), library.name())) {
+				continue; // FML applied as minecraft jar
+			}
+
 			this.applyClientLibrary(library);
 			this.applyServerLibrary(library);
 			loaderDepsConfig.getDependencies().add(externalModuleDependency);
-
-			if (FANCYML_LOADER_GROUP.equals(library.group()) && FANCYML_LOADER_NAME.equals(library.name())) {
-				isFancyML = true;
-			}
 		}
 
 		if (!LoomGradleExtension.get(this.project).disableObfuscation()) {
-			Library unprotect = Library.fromMaven(isFancyML ? LoomVersions.UNPROTECT_FANCYMODLOADER10.mavenNotation() : LoomVersions.UNPROTECT_MODLAUNCHER.mavenNotation(), Library.Target.RUNTIME);
+			Library unprotect = Library.fromMaven(this.isFancyML ? LoomVersions.UNPROTECT_FANCYMODLOADER10.mavenNotation() : LoomVersions.UNPROTECT_MODLAUNCHER.mavenNotation(), Library.Target.RUNTIME);
 			this.applyClientLibrary(unprotect);
 			this.applyServerLibrary(unprotect);
 		}
@@ -285,5 +288,9 @@ public class NFRTMinecraftLibraryProvider extends MinecraftLibraryProvider {
 
 	public ForgeUserdevConfiguration getForgeUserdevConfiguration() {
 		return this.forgeUserdevConfiguration;
+	}
+
+	public boolean isFancyML() {
+		return this.isFancyML;
 	}
 }

@@ -74,7 +74,7 @@ public class NFRTMergedMinecraftProvider extends MinecraftProvider implements NF
 		this.metadataProvider = metadataProvider;
 		this.libraryProvider = new NFRTMinecraftLibraryProvider(this, configContext.project());
 
-		this.mergedNeoForgeJar = !this.metadataProvider.getVersionMeta().isVersionOrNewer(Constants.RELEASE_TIME_26_1_SNAPSHOT);
+		this.mergedNeoForgeJar = !this.metadataProvider.getVersionMeta().isVersionOrNewer(Constants.RELEASE_TIME_26_1_SNAPSHOT) || !this.libraryProvider.isFancyML();
 	}
 
 	@Override
