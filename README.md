@@ -39,7 +39,7 @@ pluginManagement {
 In your buildscript, using [Modern Yarn](https://github.com/RelativityMC/yarn):  
 ```gradle
 plugins {
-    id 'org.relativitymc.neo-loom-remap' version '1.15-SNAPSHOT'
+    id 'org.relativitymc.neo-loom-remap' version '1.16-SNAPSHOT'
 }
 
 repositories {
@@ -50,7 +50,7 @@ repositories {
 
 dependencies {
     minecraft "com.mojang:minecraft:${project.minecraft_version}"
-	neoForge "net.neoforged:neoforge:${project.neoforge_version}"
+	forgeUserdev "net.neoforged:neoforge:${project.neoforge_version}:userdev"
     mappings loom.layered {
 		it.mappings "org.relativitymc:modern-yarn:${project.yarn_mappings}:v2"
 		it.mappings "org.relativitymc:modern-yarn-mappings-patch-neoforge:26.1+build.1"
@@ -70,36 +70,56 @@ loom {
 In your buildscript, without any mappings:  
 ```gradle
 plugins {
-    id 'org.relativitymc.neo-loom' version '1.15-SNAPSHOT'
+    id 'org.relativitymc.neo-loom' version '1.16-SNAPSHOT'
 }
 
 dependencies {
     minecraft "com.mojang:minecraft:${project.minecraft_version}"
-	neoForge "net.neoforged:neoforge:${project.neoforge_version}"
+	forgeUserdev "net.neoforged:neoforge:${project.neoforge_version}:userdev"
 }
 
 loom.convertAw2At(tasks.named("jar"), ["modid.accesswidener"])
 ```
 
-Full forge run configs:
+Full NeoForge run configs:
 ```
 loom {
 	runs {
 		serverData {
-			server()
 			environment("serverData")
 		}
 		clientData {
-			client()
 			environment("clientData")
 		}
 		gameTestServer {
-			server()
 			environment("gameTestServer")
 		}
 	}
 }
 ```
+
+Full MinecraftForge run configs:
+```
+loom {
+	runs {
+		data {
+			environment("data")
+		}
+		clientData {
+			environment("clientData")
+		}
+		gameTestServer {
+			environment("gameTestServer")
+		}
+	}
+}
+```
+
+## Migration
+
+### From Neo Loom 1.15
+- `neoForge` dependency have been replaced with `forgeUserdev`
+- `client()` and `server()` is no longer required in run config settings for forge configs
 
 # Original README below
 
