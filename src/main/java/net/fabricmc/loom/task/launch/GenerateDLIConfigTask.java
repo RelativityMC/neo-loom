@@ -65,7 +65,7 @@ import net.fabricmc.loom.util.service.ScopedServiceFactory;
 import dev.architectury.loom.util.collection.Multimap;
 
 import org.relativitymc.neoloom.neoforge.NFRTMinecraftProvider;
-import org.relativitymc.neoloom.neoforge.launch.ForgeLaunchConfigs;
+import org.relativitymc.neoloom.neoforge.meta.ForgeUserdevConfiguration;
 
 @DisableCachingByDefault
 public abstract class GenerateDLIConfigTask extends AbstractLoomTask {
@@ -109,7 +109,7 @@ public abstract class GenerateDLIConfigTask extends AbstractLoomTask {
 
 	@Input
 	@Optional
-	protected abstract MapProperty<ForgeLaunchConfigs.LaunchTarget, List<String>> getForgeLaunchProgramArgs();
+	protected abstract MapProperty<String, List<String>> getForgeLaunchProgramArgs();
 
 	@InputFile
 	@PathSensitive(PathSensitivity.ABSOLUTE)
@@ -144,10 +144,8 @@ public abstract class GenerateDLIConfigTask extends AbstractLoomTask {
 		getDefaultMixinRemapType().set(getExtension().getDefaultMixinRemapTypeEnum().map(remapType -> remapType.toString().toLowerCase(Locale.ROOT)));
 
 		if (getExtension().getMinecraftProvider() instanceof NFRTMinecraftProvider provider) {
-			ForgeLaunchConfigs.Config launchConfig = provider.getLaunchConfig();
-
-			for (ForgeLaunchConfigs.LaunchTarget launchTarget : ForgeLaunchConfigs.LaunchTarget.values()) {
-				getForgeLaunchProgramArgs().put(launchTarget, launchConfig.collectExtraProgramArgs(launchTarget, getExtension()));
+			for (Map.Entry<String, ForgeUserdevConfiguration.LaunchConfiguration> entry : provider.getForgeUserdevConfiguration().launchConfigurations().entrySet()) {
+				getForgeLaunchProgramArgs().put(entry.getKey(), entry.getValue().programArgs());
 			}
 		}
 	}
@@ -166,18 +164,25 @@ public abstract class GenerateDLIConfigTask extends AbstractLoomTask {
 				.property("log4j.configurationFile", getLog4jConfigPaths().get())
 				.property("log4j2.formatMsgNoLookups", "true")
 				.property("fabric.defaultModDistributionNamespace", getProductionNamespace().get())
-				.property("fabric.defaultMixinRemapType", getDefaultMixinRemapType().get())
+				.property("fabric.defaultMixinRemapType", getDefaultMixinRemapType().get());
 
-				.argument("client", "--assetIndex")
-				.argument("client", versionInfo.assetIndex().fabricId(getMinecraftVersion().get()))
-				.argument("client", "--assetsDir")
-				.argument("client", assetsDirectory.getAbsolutePath());
-
-		if (getForgeLaunchProgramArgs().isPresent()) {
-			for (Map.Entry<ForgeLaunchConfigs.LaunchTarget, List<String>> entry : getForgeLaunchProgramArgs().get().entrySet()) {
-				String id = entry.getKey().getId();
+		if (!getForgeLaunchProgramArgs().isPresent()) {
+			launchConfig
+					.argument("client", "--assetIndex")
+					.argument("client", versionInfo.assetIndex().fabricId(getMinecraftVersion().get()))
+					.argument("client", "--assetsDir")
+					.argument("client", assetsDirectory.getAbsolutePath());
+		} else {
+			for (Map.Entry<String, List<String>> entry : getForgeLaunchProgramArgs().get().entrySet()) {
+				String id = entry.getKey();
 
 				for (String arg : entry.getValue()) {
+					if ("{asset_index}".equals(arg)) {
+						arg = versionInfo.assetIndex().fabricId(getMinecraftVersion().get());
+					} else if ("{assets_root}".equals(arg)) {
+						arg = assetsDirectory.getAbsolutePath();
+					}
+
 					launchConfig.argument(id, arg);
 				}
 			}

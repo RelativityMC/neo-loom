@@ -24,8 +24,16 @@
 
 package org.relativitymc.neoloom.neoforge;
 
-import org.relativitymc.neoloom.neoforge.launch.ForgeLaunchConfigs;
+import org.relativitymc.neoloom.neoforge.meta.ForgeUserdevConfiguration;
+
+import java.util.Objects;
 
 public interface NFRTMinecraftProvider {
-	ForgeLaunchConfigs.Config getLaunchConfig();
+	ForgeUserdevConfiguration getForgeUserdevConfiguration();
+
+	default ForgeUserdevConfiguration.LaunchConfiguration getLaunchConfigurationOrThrow(String environment) {
+		ForgeUserdevConfiguration forgeUserdevConfiguration = this.getForgeUserdevConfiguration();
+		ForgeUserdevConfiguration.LaunchConfiguration launchConfiguration = Objects.requireNonNull(forgeUserdevConfiguration.launchConfigurations().get(environment), () -> "Invalid environment for forge template: " + environment);
+		return launchConfiguration;
+	}
 }

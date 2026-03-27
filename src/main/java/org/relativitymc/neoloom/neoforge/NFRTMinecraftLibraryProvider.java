@@ -57,7 +57,7 @@ import net.fabricmc.loom.configuration.providers.minecraft.MinecraftLibraryProvi
 import net.fabricmc.loom.configuration.providers.minecraft.MinecraftProvider;
 import net.fabricmc.loom.configuration.providers.minecraft.library.Library;
 
-import org.relativitymc.neoloom.neoforge.meta.UserdevConfiguration;
+import org.relativitymc.neoloom.neoforge.meta.ForgeUserdevConfiguration;
 
 public class NFRTMinecraftLibraryProvider extends MinecraftLibraryProvider {
 	private static final String FML_LOADER_GROUP = "net.minecraftforge";
@@ -69,7 +69,7 @@ public class NFRTMinecraftLibraryProvider extends MinecraftLibraryProvider {
 	private final MinecraftProvider minecraftProvider;
 
 	private final ModuleDependency forgeUserdev;
-	private final UserdevConfiguration userdevConfiguration;
+	private final ForgeUserdevConfiguration forgeUserdevConfiguration;
 
 	private boolean dependencyResolved = false;
 
@@ -79,7 +79,7 @@ public class NFRTMinecraftLibraryProvider extends MinecraftLibraryProvider {
 		this.minecraftProvider = minecraftProvider;
 
 		this.forgeUserdev = minecraftProvider.forgeUserdevDependency();
-		this.userdevConfiguration = UserdevConfiguration.fromUserdevJar(project.getConfigurations().detachedConfiguration(minecraftProvider.forgeUserdevDependency()).getSingleFile());
+		this.forgeUserdevConfiguration = ForgeUserdevConfiguration.fromUserdevJar(project.getConfigurations().detachedConfiguration(minecraftProvider.forgeUserdevDependency()).getSingleFile());
 	}
 
 	public void ensureResolved() {
@@ -87,7 +87,7 @@ public class NFRTMinecraftLibraryProvider extends MinecraftLibraryProvider {
 
 		super.provide(); // resolve vanilla libraries
 
-		List<Library> libraries = this.userdevConfiguration.librariesNotations().stream()
+		List<Library> libraries = this.forgeUserdevConfiguration.librariesNotations().stream()
 				.map(notation -> Library.fromMaven(notation, Library.Target.COMPILE))
 				.toList();
 		List<Library> processedLibraries = this.processLibraries(libraries);
@@ -131,10 +131,10 @@ public class NFRTMinecraftLibraryProvider extends MinecraftLibraryProvider {
 		list.add(this.project.getConfigurations().getByName(LoomGradleExtension.get(this.project).disableObfuscation() ? Constants.Configurations.LOCAL_RUNTIME : "modLocalRuntime"));
 		list.add(this.project.getConfigurations().detachedConfiguration(
 				this.forgeUserdev,
-				this.project.getDependencyFactory().create(this.userdevConfiguration.mcpNotation()),
-				this.project.getDependencyFactory().create(this.userdevConfiguration.binPatcherNotation()),
-				this.project.getDependencyFactory().create(this.userdevConfiguration.universalJarNotation()),
-				this.project.getDependencyFactory().create(this.userdevConfiguration.sourcesNotation())
+				this.project.getDependencyFactory().create(this.forgeUserdevConfiguration.mcpNotation()),
+				this.project.getDependencyFactory().create(this.forgeUserdevConfiguration.binPatcherNotation()),
+				this.project.getDependencyFactory().create(this.forgeUserdevConfiguration.universalJarNotation()),
+				this.project.getDependencyFactory().create(this.forgeUserdevConfiguration.sourcesNotation())
 		));
 
 		try {
@@ -153,7 +153,7 @@ public class NFRTMinecraftLibraryProvider extends MinecraftLibraryProvider {
 	}
 
 	public List<Dependency> resolveMCPDependencies() {
-		File mcpZip = this.project.getConfigurations().detachedConfiguration(this.project.getDependencyFactory().create(this.userdevConfiguration.mcpNotation())).getSingleFile();
+		File mcpZip = this.project.getConfigurations().detachedConfiguration(this.project.getDependencyFactory().create(this.forgeUserdevConfiguration.mcpNotation())).getSingleFile();
 
 		JsonObject jsonObject;
 
@@ -212,7 +212,7 @@ public class NFRTMinecraftLibraryProvider extends MinecraftLibraryProvider {
 	}
 
 	public Path resolveUniversalJar() {
-		Configuration neoforgeDep = this.project.getConfigurations().detachedConfiguration(this.project.getDependencyFactory().create(this.userdevConfiguration.universalJarNotation()));
+		Configuration neoforgeDep = this.project.getConfigurations().detachedConfiguration(this.project.getDependencyFactory().create(this.forgeUserdevConfiguration.universalJarNotation()));
 		Set<File> resolve = neoforgeDep.resolve();
 
 		if (resolve.size() != 1) {
@@ -223,7 +223,7 @@ public class NFRTMinecraftLibraryProvider extends MinecraftLibraryProvider {
 	}
 
 	public Path resolveFMLJar() {
-		for (String libraryNotation : this.userdevConfiguration.librariesNotations()) {
+		for (String libraryNotation : this.forgeUserdevConfiguration.librariesNotations()) {
 			ExternalModuleDependency dependency = this.project.getDependencyFactory().create(libraryNotation);
 			if (isFML(Objects.requireNonNull(dependency.getGroup()), dependency.getName())) {
 				for (ResolvedArtifact artifact : this.project.getConfigurations().detachedConfiguration(dependency).getResolvedConfiguration().getResolvedArtifacts()) {
@@ -271,5 +271,9 @@ public class NFRTMinecraftLibraryProvider extends MinecraftLibraryProvider {
 		this.ensureResolved();
 
 		// resolveAllLibraries done in ensureResolved()
+	}
+
+	public ForgeUserdevConfiguration getForgeUserdevConfiguration() {
+		return this.forgeUserdevConfiguration;
 	}
 }

@@ -51,8 +51,8 @@ import net.fabricmc.loom.util.Constants;
 import dev.architectury.loom.tool.ForgeToolValueSource;
 import dev.architectury.loom.tool.JavaExecutableFetcher;
 
-import org.relativitymc.neoloom.neoforge.launch.ForgeLaunchConfigs;
 import org.relativitymc.neoloom.neoforge.meta.ModPlatform;
+import org.relativitymc.neoloom.neoforge.meta.ForgeUserdevConfiguration;
 
 public class NFRTMergedMinecraftProvider extends MinecraftProvider implements NFRTMinecraftProvider {
 	private final ConfigContext configContext;
@@ -238,12 +238,8 @@ public class NFRTMergedMinecraftProvider extends MinecraftProvider implements NF
 	}
 
 	@Override
-	public ForgeLaunchConfigs.Config getLaunchConfig() {
-		if (this.metadataProvider.getVersionMeta().isVersionOrNewer(Constants.RELEASE_TIME_26_1_SNAPSHOT)) {
-			return ForgeLaunchConfigs.NEOFORGE_26_1_0;
-		} else {
-			return ForgeLaunchConfigs.NEOFORGE_1_21;
-		}
+	public ForgeUserdevConfiguration getForgeUserdevConfiguration() {
+		return this.libraryProvider.getForgeUserdevConfiguration();
 	}
 
 	protected @NonNull String neoForgeNotation() {

@@ -61,8 +61,8 @@ import net.fabricmc.loom.util.Constants;
 import net.fabricmc.loom.util.gradle.GradleUtils;
 import net.fabricmc.loom.util.gradle.SourceSetReference;
 
+import org.jspecify.annotations.Nullable;
 import org.relativitymc.neoloom.neoforge.NFRTMinecraftProvider;
-import org.relativitymc.neoloom.neoforge.launch.ForgeLaunchConfigs;
 
 public class RunConfig {
 	public String configName;
@@ -151,9 +151,7 @@ public class RunConfig {
 		runConfig.environment = environment;
 
 		if (!settings.isDisableForgeRunTemplates() && extension.getMinecraftProvider() instanceof NFRTMinecraftProvider provider) {
-			ForgeLaunchConfigs.Config launchConfig = provider.getLaunchConfig();
-			ForgeLaunchConfigs.LaunchTarget launchTarget = ForgeLaunchConfigs.LaunchTarget.fromId(environment);
-			runConfig.vmArgs.addAll(launchConfig.collectExtraVmArgs(launchTarget));
+			runConfig.vmArgs.addAll(provider.getLaunchConfigurationOrThrow(environment).jvmArgs());
 		}
 
 		// Custom parameters
@@ -234,18 +232,19 @@ public class RunConfig {
 		return sb.toString();
 	}
 
-	static String getMainClass(String side, LoomGradleExtension extension, String defaultMainClass, boolean disableForgeRunTemplates) {
+	static String getMainClass(String side, LoomGradleExtension extension, @Nullable String defaultMainClass, String name, boolean disableForgeRunTemplates) {
 		if (extension.getMinecraftProvider() instanceof NFRTMinecraftProvider provider) {
 			if (disableForgeRunTemplates) {
 				return defaultMainClass;
 			}
 
-			return provider.getLaunchConfig().mainClass().get(ForgeLaunchConfigs.LaunchTarget.fromId(side));
+			return provider.getLaunchConfigurationOrThrow(side).main();
 		}
 
 		InstallerData installerData = extension.getInstallerData();
 
 		if (installerData == null) {
+			Objects.requireNonNull(defaultMainClass, "Run config " + name + " must specify default main class");
 			return defaultMainClass;
 		}
 
@@ -269,6 +268,7 @@ public class RunConfig {
 			return mainClassName;
 		}
 
+		Objects.requireNonNull(defaultMainClass, "Run config " + name + " must specify default main class");
 		return defaultMainClass;
 	}
 

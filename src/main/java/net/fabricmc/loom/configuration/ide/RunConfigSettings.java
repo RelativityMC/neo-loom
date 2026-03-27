@@ -146,8 +146,7 @@ public abstract class RunConfigSettings implements Named {
 		this.disableForgeRunTemplates = false;
 		this.mainClass = project.getObjects().property(String.class).convention(project.provider(() -> {
 			Objects.requireNonNull(environment, "Run config " + name + " must specify environment");
-			Objects.requireNonNull(defaultMainClass, "Run config " + name + " must specify default main class");
-			return RunConfig.getMainClass(environment, extension, defaultMainClass, disableForgeRunTemplates);
+			return RunConfig.getMainClass(environment, extension, defaultMainClass, name, disableForgeRunTemplates);
 		}));
 		this.devLaunchMainClass = project.getObjects().property(String.class).convention("net.fabricmc.devlaunchinjector.Main");
 
