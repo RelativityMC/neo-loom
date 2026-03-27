@@ -66,6 +66,7 @@ import dev.architectury.loom.util.collection.Multimap;
 
 import org.relativitymc.neoloom.neoforge.NFRTMinecraftProvider;
 import org.relativitymc.neoloom.neoforge.meta.ForgeUserdevConfiguration;
+import org.relativitymc.neoloom.neoforge.util.NameUtil;
 
 @DisableCachingByDefault
 public abstract class GenerateDLIConfigTask extends AbstractLoomTask {
@@ -174,7 +175,7 @@ public abstract class GenerateDLIConfigTask extends AbstractLoomTask {
 					.argument("client", assetsDirectory.getAbsolutePath());
 		} else {
 			for (Map.Entry<String, List<String>> entry : getForgeLaunchProgramArgs().get().entrySet()) {
-				String id = entry.getKey();
+				String id = NameUtil.mangleLaunchEnvName(entry.getKey());
 
 				for (String arg : entry.getValue()) {
 					if ("{asset_index}".equals(arg)) {
