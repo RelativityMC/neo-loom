@@ -105,15 +105,27 @@ public record ForgeUserdevConfiguration(
 		public static LaunchConfiguration fromJsonObjectV2(JsonObject launchEntry) {
 			return new LaunchConfiguration(
 					launchEntry.get("main").getAsString(),
-					launchEntry.get("args").getAsJsonArray().asList().stream()
-							.map(JsonElement::getAsString)
-							.toList(),
-					launchEntry.get("jvmArgs").getAsJsonArray().asList().stream()
-							.map(JsonElement::getAsString)
-							.toList(),
-					launchEntry.get("props").getAsJsonObject().entrySet().stream()
-							.map(entry -> Map.entry(entry.getKey(), entry.getValue().getAsString()))
-							.collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue))
+					Optional.ofNullable(launchEntry.get("args"))
+							.map(element -> {
+								return element.getAsJsonArray().asList().stream()
+										.map(JsonElement::getAsString)
+										.toList();
+							})
+							.orElse(List.of()),
+					Optional.ofNullable(launchEntry.get("jvmArgs"))
+							.map(element -> {
+								return element.getAsJsonArray().asList().stream()
+										.map(JsonElement::getAsString)
+										.toList();
+							})
+							.orElse(List.of()),
+					Optional.ofNullable(launchEntry.get("props"))
+							.map(element -> {
+								return element.getAsJsonObject().entrySet().stream()
+										.map(entry -> Map.entry(entry.getKey(), entry.getValue().getAsString()))
+										.collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+							})
+							.orElse(Map.of())
 			);
 		}
 	}
