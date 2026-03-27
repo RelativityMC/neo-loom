@@ -42,6 +42,7 @@ import java.util.stream.Collectors;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import groovy.xml.XmlUtil;
+import org.jspecify.annotations.Nullable;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
@@ -61,7 +62,6 @@ import net.fabricmc.loom.util.Constants;
 import net.fabricmc.loom.util.gradle.GradleUtils;
 import net.fabricmc.loom.util.gradle.SourceSetReference;
 
-import org.jspecify.annotations.Nullable;
 import org.relativitymc.neoloom.neoforge.NFRTMinecraftProvider;
 
 public class RunConfig {

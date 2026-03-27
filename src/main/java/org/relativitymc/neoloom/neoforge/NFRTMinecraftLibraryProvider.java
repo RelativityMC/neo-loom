@@ -36,11 +36,6 @@ import java.util.Properties;
 import java.util.Set;
 
 import com.google.gson.JsonObject;
-
-import net.fabricmc.loom.util.Constants;
-
-import net.fabricmc.loom.util.ZipUtils;
-
 import org.gradle.api.GradleException;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
@@ -50,6 +45,8 @@ import org.gradle.api.artifacts.ModuleDependency;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.ResolvedArtifact;
 
+import net.fabricmc.loom.util.Constants;
+import net.fabricmc.loom.util.ZipUtils;
 import net.fabricmc.loom.util.LoomVersions;
 import net.fabricmc.loom.LoomGradleExtension;
 import net.fabricmc.loom.configuration.providers.minecraft.MinecraftJarConfiguration;
@@ -225,6 +222,7 @@ public class NFRTMinecraftLibraryProvider extends MinecraftLibraryProvider {
 	public Path resolveFMLJar() {
 		for (String libraryNotation : this.forgeUserdevConfiguration.librariesNotations()) {
 			ExternalModuleDependency dependency = this.project.getDependencyFactory().create(libraryNotation);
+
 			if (isFML(Objects.requireNonNull(dependency.getGroup()), dependency.getName())) {
 				for (ResolvedArtifact artifact : this.project.getConfigurations().detachedConfiguration(dependency).getResolvedConfiguration().getResolvedArtifacts()) {
 					ModuleVersionIdentifier id = artifact.getModuleVersion().getId();

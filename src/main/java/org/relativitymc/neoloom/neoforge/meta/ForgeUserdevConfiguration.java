@@ -46,12 +46,12 @@ public record ForgeUserdevConfiguration(
 		Map<String, List<String>> extraDependenciesNotations,
 		Map<String, LaunchConfiguration> launchConfigurations
 ) {
-
 	public static ForgeUserdevConfiguration fromUserdevJar(File userdevJar) {
 		try {
 			JsonObject userdevJson = ZipUtils.unpackGson(userdevJar.toPath(), "config.json", JsonObject.class);
 
 			int specVersion = userdevJson.get("spec").getAsInt();
+
 			if (specVersion != 2) {
 				throw new UnsupportedOperationException("Unsupported userdev spec: " + specVersion);
 			}
@@ -102,7 +102,6 @@ public record ForgeUserdevConfiguration(
 			List<String> jvmArgs,
 			Map<String, String> jvmProperties
 	) {
-
 		public static LaunchConfiguration fromJsonObjectV2(JsonObject launchEntry) {
 			return new LaunchConfiguration(
 					launchEntry.get("main").getAsString(),
@@ -117,7 +116,5 @@ public record ForgeUserdevConfiguration(
 							.collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue))
 			);
 		}
-
 	}
-
 }

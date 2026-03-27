@@ -24,9 +24,9 @@
 
 package org.relativitymc.neoloom.neoforge;
 
-import org.relativitymc.neoloom.neoforge.meta.ForgeUserdevConfiguration;
-
 import java.util.Objects;
+
+import org.relativitymc.neoloom.neoforge.meta.ForgeUserdevConfiguration;
 
 public interface NFRTMinecraftProvider {
 	ForgeUserdevConfiguration getForgeUserdevConfiguration();
