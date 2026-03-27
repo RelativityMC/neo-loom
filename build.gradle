@@ -26,11 +26,18 @@ group = 'org.relativitymc'
 def baseVersion = '1.16'
 
 def ENV = System.getenv()
+def IS_EXPERIMENTAL = ENV.BRANCH_NAME != null && ENV.BRANCH_NAME.startsWith("exp/")
 if (ENV.BUILD_NUMBER) {
-	version = baseVersion + '.' + ENV.BUILD_NUMBER
+	if (IS_EXPERIMENTAL) {
+		version = baseVersion + '.0-alpha.' + ENV.BUILD_NUMBER
+	} else {
+		version = baseVersion + '.' + ENV.BUILD_NUMBER
+	}
 } else {
 	version = baseVersion + '.local'
 }
+
+logger.lifecycle("Building Loom {}", version)
 
 // We must build against the version of Kotlin Gradle ships with.
 def props = new Properties()
@@ -289,7 +296,7 @@ import org.w3c.dom.Node
 
 publishing {
 	publications {
-		if (true) {
+		if (!IS_EXPERIMENTAL) {
 			// Also publish a snapshot so people can use the latest version if they wish
 			snapshot(MavenPublication) { publication ->
 				groupId = project.group
