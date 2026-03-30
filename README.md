@@ -1,6 +1,6 @@
 # Neo Loom
 
-A fork of Fabric Loom that supports the NeoForge modding toolchain. Heavily based on Architectury Loom. 
+A fork of Fabric Loom that supports the NeoForge and MinecraftForge modding toolchain. Heavily based on Architectury Loom. 
 
 Feel free to reach out on [our Discord server](https://discord.relativitymc.org/).
 
@@ -14,7 +14,6 @@ Feel free to reach out on [our Discord server](https://discord.relativitymc.org/
 ## Current to-dos
 - JUnit
 - Production launch tasks
-- Forge support
 - split-sources, client-only, server-only setups for (Neo)Forge
 
 ## Using Neo Loom
