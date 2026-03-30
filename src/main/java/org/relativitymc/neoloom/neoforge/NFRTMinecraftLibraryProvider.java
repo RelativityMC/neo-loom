@@ -72,6 +72,7 @@ public class NFRTMinecraftLibraryProvider extends MinecraftLibraryProvider {
 	private final boolean isFancyML;
 
 	private boolean dependencyResolved = false;
+	private ExternalModuleDependency fmlDependency;
 
 	public NFRTMinecraftLibraryProvider(NFRTMergedMinecraftProvider minecraftProvider, Project project) {
 		super(minecraftProvider, project);
@@ -103,6 +104,7 @@ public class NFRTMinecraftLibraryProvider extends MinecraftLibraryProvider {
 			externalModuleDependency.setTransitive(false);
 
 			if (isFML(library.group(), library.name())) {
+				this.fmlDependency = externalModuleDependency;
 				continue; // FML applied as minecraft jar
 			}
 
@@ -133,6 +135,7 @@ public class NFRTMinecraftLibraryProvider extends MinecraftLibraryProvider {
 		list.add(this.project.getConfigurations().getByName(LoomGradleExtension.get(this.project).disableObfuscation() ? Constants.Configurations.LOCAL_RUNTIME : "modLocalRuntime"));
 		list.add(this.project.getConfigurations().detachedConfiguration(
 				this.forgeUserdev,
+				this.fmlDependency,
 				this.project.getDependencyFactory().create(this.forgeUserdevConfiguration.mcpNotation()),
 				this.project.getDependencyFactory().create(this.forgeUserdevConfiguration.binPatcherNotation()),
 				this.project.getDependencyFactory().create(this.forgeUserdevConfiguration.universalJarNotation()),
