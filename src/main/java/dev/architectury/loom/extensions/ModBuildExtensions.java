@@ -35,6 +35,7 @@ import java.nio.file.FileSystem;
 import java.nio.file.Files;
 import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
+import java.nio.file.attribute.FileTime;
 import java.util.Set;
 import java.util.jar.Attributes;
 import java.util.jar.JarFile;
@@ -110,6 +111,8 @@ public final class ModBuildExtensions {
 			try (Writer writer = new LfWriter(Files.newBufferedWriter(atPath))) {
 				AccessTransformFormats.FML.write(writer, at);
 			}
+
+			Files.setLastModifiedTime(atPath, FileTime.fromMillis(0L));
 		}
 	}
 }
