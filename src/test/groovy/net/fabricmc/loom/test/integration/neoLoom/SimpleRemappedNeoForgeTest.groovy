@@ -22,7 +22,7 @@
  * SOFTWARE.
  */
 
-package net.fabricmc.loom.test.integration.neoForge
+package net.fabricmc.loom.test.integration.neoLoom
 
 import org.intellij.lang.annotations.Language
 import spock.lang.Specification

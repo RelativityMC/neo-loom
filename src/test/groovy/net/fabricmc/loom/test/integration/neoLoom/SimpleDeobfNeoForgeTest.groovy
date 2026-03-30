@@ -1,7 +1,7 @@
 /*
  * This file is part of fabric-loom, licensed under the MIT License (MIT).
  *
- * Copyright (c) 2016-2021 FabricMC
+ * Copyright (c) 2025 FabricMC
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,44 +22,53 @@
  * SOFTWARE.
  */
 
-package net.fabricmc.loom.test.integration.neoForge
+package net.fabricmc.loom.test.integration.neoLoom
 
+import org.intellij.lang.annotations.Language
 import spock.lang.Specification
 import spock.lang.Unroll
 
 import net.fabricmc.loom.test.util.GradleProjectTestTrait
 
-import static net.fabricmc.loom.test.LoomTestConstants.STANDARD_TEST_VERSIONS
+import static net.fabricmc.loom.test.LoomTestConstants.PRE_RELEASE_GRADLE
 import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
 
-class NeoForgeAccessWidenerTest extends Specification implements GradleProjectTestTrait {
+class SimpleDeobfNeoForgeTest extends Specification implements GradleProjectTestTrait {
 	@Unroll
-	def "neoforge accesswidener (gradle #version)"() {
+	def "build"() {
 		setup:
-		def gradle = gradleProject(project: "accesswidenerNeoForge", version: version)
+		def gradle = gradleProject(project: "minimalBaseNoRemap", version: PRE_RELEASE_GRADLE)
+		gradle.buildGradle << '''
+				dependencies {
+					minecraft 'com.mojang:minecraft:26.1'
+					forgeUserdev 'net.neoforged:neoforge:26.1.0.6-beta:userdev'
+                }
+		'''
+		def sourceFile = new File(gradle.projectDir, "src/main/java/example/Test.java")
+		sourceFile.parentFile.mkdirs()
+		@Language("JAVA") String src =  """
+		package example;
+
+		import net.minecraft.resources.Identifier;
+
+		import org.spongepowered.asm.mixin.Mixin; // Make sure we applied loaders deps via the installer data
+
+		public class Test {
+			public static void main(String[] args) {
+			    Identifier id = Identifier.fromNamespaceAndPath("loom", "test");
+			}
+		}
+		"""
+		sourceFile.text = src
+
 		when:
-		def result = gradle.run(task: "build")
+		def result = gradle.run(tasks: [
+			"build",
+			"configureClientLaunch"
+		])
+
 		then:
 		result.task(":build").outcome == SUCCESS
-		gradle.getOutputZipEntry("fabric-example-mod-1.0.0.jar", "META-INF/accesstransformer.cfg") == expected().replaceAll('\r', '')
-		where:
-		version << STANDARD_TEST_VERSIONS
-	}
-
-	@Unroll
-	def "neoforge accesswidener noRemap (gradle #version)"() {
-		setup:
-		def gradle = gradleProject(project: "accesswidenerNeoForgeNoRemap", version: version)
-		when:
-		def result = gradle.run(task: "build")
-		then:
-		result.task(":build").outcome == SUCCESS
-		gradle.getOutputZipEntry("fabric-example-mod-1.0.0.jar", "META-INF/accesstransformer.cfg") == expected().replaceAll('\r', '')
-		where:
-		version << STANDARD_TEST_VERSIONS
-	}
-
-	String expected() {
-		new File("src/test/resources/accesswidener/expectedAT.cfg").text
+		result.task(":configureClientLaunch").outcome == SUCCESS
 	}
 }

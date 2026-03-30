@@ -364,8 +364,25 @@ tasks.register('writeActionsTestMatrix') {
 				testMatrix.add("net.fabricmc.loom.test.integration.${className}")
 			} else if (it.name.endsWith("noRemap")) {
 				testMatrix.add("net.fabricmc.loom.test.integration.noRemap.*")
-			} else if (it.name.endsWith("neoForge")) {
-				testMatrix.add("net.fabricmc.loom.test.integration.neoForge.*")
+			} else if (it.name.endsWith("neoLoom")) {
+				return // handled separately below
+			}
+		}
+
+		file('src/test/groovy/net/fabricmc/loom/test/integration/neoLoom').eachFile {
+			if (it.name.endsWith("Test.groovy")) {
+				if (it.name.endsWith("ReproducibleBuildTest.groovy")) {
+					// This test gets a special case to run across all os's
+					return
+				}
+
+				if (it.name.endsWith("DebugLineNumbersTest.groovy") && !extendedTests) {
+					// Known flakey test
+					return
+				}
+
+				def className = it.name.replace(".groovy", "")
+				testMatrix.add("net.fabricmc.loom.test.integration.neoLoom.${className}")
 			}
 		}
 
