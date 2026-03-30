@@ -316,7 +316,7 @@ public abstract class RemapJarTask extends AbstractRemapJarTask {
 					getParameters().getTargetNamespace().get()
 			);
 			ClassTweakerReader reader = ClassTweakerReader.create(remapper);
-			reader.read(input, null); // TODO pass mod id
+			reader.read(input);
 
 			return writer.getOutput();
 		}
