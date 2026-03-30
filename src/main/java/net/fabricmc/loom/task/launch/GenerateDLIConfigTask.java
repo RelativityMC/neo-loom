@@ -167,7 +167,7 @@ public abstract class GenerateDLIConfigTask extends AbstractLoomTask {
 				.property("fabric.defaultModDistributionNamespace", getProductionNamespace().get())
 				.property("fabric.defaultMixinRemapType", getDefaultMixinRemapType().get());
 
-		if (!getForgeLaunchProgramArgs().isPresent()) {
+		if (!getForgeLaunchProgramArgs().isPresent() || getForgeLaunchProgramArgs().get().isEmpty()) {
 			launchConfig
 					.argument("client", "--assetIndex")
 					.argument("client", versionInfo.assetIndex().fabricId(getMinecraftVersion().get()))
