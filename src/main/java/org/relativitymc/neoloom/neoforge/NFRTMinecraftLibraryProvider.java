@@ -31,6 +31,7 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Properties;
 import java.util.Set;
@@ -113,13 +114,29 @@ public class NFRTMinecraftLibraryProvider extends MinecraftLibraryProvider {
 			loaderDepsConfig.getDependencies().add(externalModuleDependency);
 		}
 
+		Objects.requireNonNull(this.fmlDependency, "No FML dependency found");
+
 		if (!LoomGradleExtension.get(this.project).disableObfuscation()) {
 			Library unprotect = Library.fromMaven(this.isFancyML ? LoomVersions.UNPROTECT_FANCYMODLOADER10.mavenNotation() : LoomVersions.UNPROTECT_MODLAUNCHER.mavenNotation(), Library.Target.RUNTIME);
 			this.applyClientLibrary(unprotect);
 			this.applyServerLibrary(unprotect);
 		}
 
-		Objects.requireNonNull(this.fmlDependency, "No FML dependency found");
+		// apply MinecraftForge devlaunch workarounds
+		if (!this.isFancyML) {
+			Library forgeBootstrapLoom = Library.fromMaven(LoomVersions.FORGE_BOOTSTRAP_LOOM.mavenNotation(), Library.Target.RUNTIME);
+			this.applyClientLibrary(forgeBootstrapLoom);
+			this.applyServerLibrary(forgeBootstrapLoom);
+
+			// FML rejects this module due to package conflicts
+			Configuration loomDevDeps = this.project.getConfigurations().getByName(Constants.Configurations.LOOM_DEVELOPMENT_DEPENDENCIES);
+			loomDevDeps.exclude(
+					Map.of(
+							"group", "net.fabricmc",
+							"module", "fabric-log4j-util"
+					)
+			);
+		}
 
 		this.dependencyResolved = true;
 	}

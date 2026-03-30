@@ -90,4 +90,12 @@ public class MirrorUtil {
 
 		return Constants.ARCHITECTURY_REPOSITORY;
 	}
+
+	public static String getRelativityMCRepository(ExtensionAware aware) {
+		if (aware.getExtensions().getExtraProperties().has("loom_relativitymc_repository")) {
+			return String.valueOf(aware.getExtensions().getExtraProperties().get("loom_relativitymc_repository"));
+		}
+
+		return Constants.RELATIVITYMC_REPOSITORY;
+	}
 }

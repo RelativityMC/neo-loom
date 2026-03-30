@@ -109,6 +109,7 @@ public record ForgeUserdevConfiguration(
 							.map(element -> {
 								return element.getAsJsonArray().asList().stream()
 										.map(JsonElement::getAsString)
+										.map(LaunchConfiguration::processArg)
 										.toList();
 							})
 							.orElse(List.of()),
@@ -127,6 +128,15 @@ public record ForgeUserdevConfiguration(
 							})
 							.orElse(Map.of())
 			);
+		}
+
+		private static String processArg(String arg) {
+			// make MinecraftForge use dev target for proper devlaunch support
+			if (arg.startsWith("forge_userdev_")) {
+				return "forge_dev_" + arg.substring("forge_userdev_".length());
+			}
+
+			return arg;
 		}
 	}
 }

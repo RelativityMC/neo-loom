@@ -75,6 +75,14 @@ public class LoomRepositoryPlugin implements Plugin<PluginAware> {
 			});
 		});
 
+		repositories.maven(repo -> {
+			repo.setName("RelativityMC");
+			repo.setUrl(MirrorUtil.getRelativityMCRepository(target));
+			repo.content(content -> {
+				content.includeGroup("org.relativitymc");
+			});
+		});
+
 		MavenArtifactRepository mojangRepo = repositories.maven(repo -> {
 			repo.setName("Mojang");
 			repo.setUrl(MirrorUtil.getLibrariesBase(target));
