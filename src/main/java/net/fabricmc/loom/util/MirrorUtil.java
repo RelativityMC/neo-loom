@@ -84,7 +84,7 @@ public class MirrorUtil {
 	}
 
 	public static String getArchitecturyRepository(ExtensionAware aware) {
-		if (aware.getExtensions().getExtraProperties().has("loom_architetcury_repository")) {
+		if (aware.getExtensions().getExtraProperties().has("loom_architectury_repository")) {
 			return String.valueOf(aware.getExtensions().getExtraProperties().get("loom_architectury_repository"));
 		}
 
