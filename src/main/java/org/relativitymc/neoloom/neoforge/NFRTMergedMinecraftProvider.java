@@ -61,7 +61,7 @@ public class NFRTMergedMinecraftProvider extends MinecraftProvider implements NF
 	private final boolean mergedNeoForgeJar;
 
 	private Path minecraftMergedJar;
-	private Path minecraftMergedSources;
+	// private Path minecraftMergedSources;
 	@Nullable
 	private Path minecraftGameResources; // on merged versions
 	@Nullable
@@ -127,12 +127,14 @@ public class NFRTMergedMinecraftProvider extends MinecraftProvider implements NF
 				settings.args("--dist", "joined");
 
 				if (this.mergedNeoForgeJar) {
-					settings.args("--write-result", "gameJarWithNeoForge:" + this.minecraftMergedJar.toAbsolutePath().toString());
-					settings.args("--write-result", "gameSourcesWithNeoForge:" + this.minecraftMergedSources.toAbsolutePath().toString());
+					// settings.args("--write-result", "gameJarWithNeoForge:" + this.minecraftMergedJar.toAbsolutePath().toString());
+					// settings.args("--write-result", "gameSourcesWithNeoForge:" + this.minecraftMergedSources.toAbsolutePath().toString());
+					settings.args("--write-result", "gameJarNoRecompWithNeoForge:" + this.minecraftMergedJar.toAbsolutePath().toString());
 					settings.args("--write-result", "clientResources:" + this.minecraftGameResources.toAbsolutePath().toString());
 				} else {
-					settings.args("--write-result", "gameJar:" + this.minecraftMergedJar.toAbsolutePath().toString());
-					settings.args("--write-result", "gameSources:" + this.minecraftMergedSources.toAbsolutePath().toString());
+					// settings.args("--write-result", "gameJar:" + this.minecraftMergedJar.toAbsolutePath().toString());
+					// settings.args("--write-result", "gameSources:" + this.minecraftMergedSources.toAbsolutePath().toString());
+					settings.args("--write-result", "gameJarNoRecomp:" + this.minecraftMergedJar.toAbsolutePath().toString());
 				}
 			});
 		}
@@ -143,7 +145,7 @@ public class NFRTMergedMinecraftProvider extends MinecraftProvider implements NF
 	private boolean isUpToDate() {
 		if (getExtension().refreshDeps()) return false;
 		if (!Files.exists(this.minecraftMergedJar)) return false;
-		if (!Files.exists(this.minecraftMergedSources)) return false;
+		// if (!Files.exists(this.minecraftMergedSources)) return false;
 		if (this.mergedNeoForgeJar && !Files.exists(this.minecraftGameResources)) return false;
 
 		return true;
@@ -153,7 +155,7 @@ public class NFRTMergedMinecraftProvider extends MinecraftProvider implements NF
 	protected void initFiles() {
 		// no super call
 		this.minecraftMergedJar = path("minecraft-merged.jar");
-		this.minecraftMergedSources = path("minecraft-merged-sources.jar");
+		// this.minecraftMergedSources = path("minecraft-merged-sources.jar");
 
 		if (this.mergedNeoForgeJar) {
 			this.minecraftGameResources = path("minecraft-merged-game-resources.jar");
