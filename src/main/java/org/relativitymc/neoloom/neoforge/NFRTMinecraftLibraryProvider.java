@@ -119,6 +119,8 @@ public class NFRTMinecraftLibraryProvider extends MinecraftLibraryProvider {
 			this.applyServerLibrary(unprotect);
 		}
 
+		Objects.requireNonNull(this.fmlDependency, "No FML dependency found");
+
 		this.dependencyResolved = true;
 	}
 
@@ -239,17 +241,13 @@ public class NFRTMinecraftLibraryProvider extends MinecraftLibraryProvider {
 	}
 
 	public Path resolveFMLJar() {
-		for (String libraryNotation : this.forgeUserdevConfiguration.librariesNotations()) {
-			ExternalModuleDependency dependency = this.project.getDependencyFactory().create(libraryNotation);
+		this.ensureResolved();
 
-			if (isFML(Objects.requireNonNull(dependency.getGroup()), dependency.getName())) {
-				for (ResolvedArtifact artifact : this.project.getConfigurations().detachedConfiguration(dependency).getResolvedConfiguration().getResolvedArtifacts()) {
-					ModuleVersionIdentifier id = artifact.getModuleVersion().getId();
+		for (ResolvedArtifact artifact : this.project.getConfigurations().detachedConfiguration(this.fmlDependency).getResolvedConfiguration().getResolvedArtifacts()) {
+			ModuleVersionIdentifier id = artifact.getModuleVersion().getId();
 
-					if (isFML(id.getGroup(), id.getName())) {
-						return artifact.getFile().toPath();
-					}
-				}
+			if (isFML(id.getGroup(), id.getName())) {
+				return artifact.getFile().toPath();
 			}
 		}
 
