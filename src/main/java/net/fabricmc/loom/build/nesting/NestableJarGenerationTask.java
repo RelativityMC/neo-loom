@@ -55,6 +55,7 @@ import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.TaskAction;
+import org.gradle.api.tasks.bundling.ZipEntryCompression;
 import org.gradle.work.DisableCachingByDefault;
 import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
@@ -86,6 +87,9 @@ public abstract class NestableJarGenerationTask extends AbstractLoomTask {
 
 	@Input
 	protected abstract MapProperty<String, Metadata> getJarIds();
+
+	@Input
+	public abstract Property<Boolean> getUncompressNestedJars();
 
 	@Input
 	public abstract Property<ModPlatform> getModPlatform();
@@ -241,6 +245,10 @@ public abstract class NestableJarGenerationTask extends AbstractLoomTask {
 	private void makeNestableJar(final File input, final File output, final @Nullable String modJsonFile, final @Nullable String nestingMetadata) {
 		try {
 			Files.copy(input.toPath(), output.toPath());
+
+			if (getUncompressNestedJars().get()) {
+				ZipReprocessorUtil.reprocessZip(output.toPath(), false, true, ZipEntryCompression.STORED);
+			}
 		} catch (IOException e) {
 			throw new UncheckedIOException("Failed to copy mod file %s".formatted(input), e);
 		}

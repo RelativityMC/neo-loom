@@ -72,6 +72,7 @@ public abstract class RemapTaskConfiguration implements Runnable {
 			task.from(includeConfiguration);
 			task.getModPlatform().set(extension.getMinecraftProvider().getModPlatform());
 			task.getOutputDirectory().set(getProject().getLayout().getBuildDirectory().dir(task.getName()));
+			task.getUncompressNestedJars().set(extension.getUncompressNestedJars());
 		});
 
 		if (extension.dontRemapOutputs()) {

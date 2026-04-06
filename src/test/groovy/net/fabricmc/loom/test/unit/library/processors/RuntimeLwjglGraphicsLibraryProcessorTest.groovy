@@ -22,40 +22,24 @@
  * SOFTWARE.
  */
 
-package net.fabricmc.loom.util;
+package net.fabricmc.loom.test.unit.library.processors
 
-import java.io.OutputStream;
+import net.fabricmc.loom.configuration.providers.minecraft.library.Library
+import net.fabricmc.loom.configuration.providers.minecraft.library.LibraryProcessor
+import net.fabricmc.loom.configuration.providers.minecraft.library.processors.RuntimeLwjglGraphicsLibraryProcessor
+import net.fabricmc.loom.test.util.PlatformTestUtils
 
-import javax.inject.Inject;
+class RuntimeLwjglGraphicsLibraryProcessorTest extends LibraryProcessorTest {
+	def "Make lwjgl-opengl runtime"() {
+		when:
+		def (original, context) = getLibs("26.1-snapshot-10", PlatformTestUtils.MAC_OS_X64)
+		def processor = new RuntimeLwjglGraphicsLibraryProcessor(PlatformTestUtils.MAC_OS_X64, context)
+		def processed = mockLibraryProcessorManager().processLibraries([processor], original)
 
-import org.gradle.api.Project;
-import org.gradle.api.provider.Provider;
-import org.gradle.api.provider.ValueSource;
-import org.gradle.api.provider.ValueSourceParameters;
-import org.gradle.process.ExecOperations;
-import org.gradle.process.ExecResult;
+		then:
+		processor.applicationResult == LibraryProcessor.ApplicationResult.CAN_APPLY
 
-public abstract class XVFBExistsValueSource implements ValueSource<Boolean, ValueSourceParameters.None> {
-	public static final String XVFB = "xvfb-run";
-
-	@Inject
-	protected abstract ExecOperations getExecOperations();
-
-	@Override
-	public Boolean obtain() {
-		ExecResult result = getExecOperations().exec(spec -> {
-			spec.commandLine(XVFB);
-			spec.args("--help");
-
-			// We don't care about the output
-			spec.setStandardOutput(OutputStream.nullOutputStream());
-			spec.setErrorOutput(OutputStream.nullOutputStream());
-		});
-
-		return result.getExitValue() == 0;
-	}
-
-	public static Provider<Boolean> exists(Project project) {
-		return project.getProviders().of(XVFBExistsValueSource.class, i -> { });
+		findLibrary("org.lwjgl:lwjgl-opengl", original).target() == Library.Target.COMPILE
+		findLibrary("org.lwjgl:lwjgl-opengl", processed).target() == Library.Target.RUNTIME
 	}
 }

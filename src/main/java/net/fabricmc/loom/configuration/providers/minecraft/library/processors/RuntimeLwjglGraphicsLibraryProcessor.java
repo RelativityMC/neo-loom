@@ -22,40 +22,38 @@
  * SOFTWARE.
  */
 
-package net.fabricmc.loom.util;
+package net.fabricmc.loom.configuration.providers.minecraft.library.processors;
 
-import java.io.OutputStream;
+import java.util.function.Consumer;
+import java.util.function.Predicate;
 
-import javax.inject.Inject;
+import net.fabricmc.loom.configuration.providers.minecraft.library.Library;
+import net.fabricmc.loom.configuration.providers.minecraft.library.LibraryContext;
+import net.fabricmc.loom.configuration.providers.minecraft.library.LibraryProcessor;
+import net.fabricmc.loom.util.Platform;
 
-import org.gradle.api.Project;
-import org.gradle.api.provider.Provider;
-import org.gradle.api.provider.ValueSource;
-import org.gradle.api.provider.ValueSourceParameters;
-import org.gradle.process.ExecOperations;
-import org.gradle.process.ExecResult;
+public class RuntimeLwjglGraphicsLibraryProcessor extends LibraryProcessor {
+	private static final String LWJGL_OPENGL = "org.lwjgl:lwjgl-opengl";
+	private static final String LWJGL_VULKAN = "org.lwjgl:lwjgl-vulkan";
 
-public abstract class XVFBExistsValueSource implements ValueSource<Boolean, ValueSourceParameters.None> {
-	public static final String XVFB = "xvfb-run";
-
-	@Inject
-	protected abstract ExecOperations getExecOperations();
-
-	@Override
-	public Boolean obtain() {
-		ExecResult result = getExecOperations().exec(spec -> {
-			spec.commandLine(XVFB);
-			spec.args("--help");
-
-			// We don't care about the output
-			spec.setStandardOutput(OutputStream.nullOutputStream());
-			spec.setErrorOutput(OutputStream.nullOutputStream());
-		});
-
-		return result.getExitValue() == 0;
+	public RuntimeLwjglGraphicsLibraryProcessor(Platform platform, LibraryContext context) {
+		super(platform, context);
 	}
 
-	public static Provider<Boolean> exists(Project project) {
-		return project.getProviders().of(XVFBExistsValueSource.class, i -> { });
+	@Override
+	public ApplicationResult getApplicationResult() {
+		return ApplicationResult.CAN_APPLY;
+	}
+
+	@Override
+	public Predicate<Library> apply(Consumer<Library> dependencyConsumer) {
+		return library -> {
+			if (library.is(LWJGL_OPENGL) || library.is(LWJGL_VULKAN)) {
+				dependencyConsumer.accept(library.withTarget(Library.Target.RUNTIME));
+				return false;
+			}
+
+			return true;
+		};
 	}
 }
