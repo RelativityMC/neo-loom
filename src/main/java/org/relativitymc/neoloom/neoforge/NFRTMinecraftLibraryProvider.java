@@ -117,7 +117,10 @@ public class NFRTMinecraftLibraryProvider extends MinecraftLibraryProvider {
 		Objects.requireNonNull(this.fmlDependency, "No FML dependency found");
 
 		if (!LoomGradleExtension.get(this.project).disableObfuscation()) {
-			Library unprotect = Library.fromMaven(this.isFancyML ? LoomVersions.UNPROTECT_FANCYMODLOADER10.mavenNotation() : LoomVersions.UNPROTECT_MODLAUNCHER.mavenNotation(), Library.Target.RUNTIME);
+			Library unprotectLoader = Library.fromMaven(this.isFancyML ? LoomVersions.UNPROTECT_FANCYMODLOADER10.mavenNotation() : LoomVersions.UNPROTECT_MODLAUNCHER.mavenNotation(), Library.Target.RUNTIME);
+			Library unprotect = Library.fromMaven(LoomVersions.UNPROTECT.mavenNotation(), Library.Target.RUNTIME);
+			this.applyClientLibrary(unprotectLoader);
+			this.applyServerLibrary(unprotectLoader);
 			this.applyClientLibrary(unprotect);
 			this.applyServerLibrary(unprotect);
 		}

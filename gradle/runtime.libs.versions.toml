@@ -39,4 +39,5 @@ enigma-swing = { module = "cuchaz:enigma-swing", version.ref = "enigma" }
 # Forge runtime libs
 unprotect-fancymodloader10 = { module = "io.github.juuxel:unprotect-fancymodloader10", version.ref = "unprotect" }
 unprotect-modlauncher = { module = "io.github.juuxel:unprotect-modlauncher", version.ref = "unprotect" }
+unprotect = { module = "io.github.juuxel:unprotect", version.ref = "unprotect" }
 forge-bootstrap-loom = { module = "org.relativitymc:forge-bootstrap-loom", version.ref = "forge-bootstrap-loom" }
