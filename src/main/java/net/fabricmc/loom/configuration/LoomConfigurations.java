@@ -34,6 +34,7 @@ import org.gradle.api.artifacts.dsl.DependencyFactory;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
 import org.gradle.api.attributes.Bundling;
 import org.gradle.api.attributes.Category;
+import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.JavaPlugin;
 
 import net.fabricmc.loom.LoomGradleExtension;
@@ -87,10 +88,13 @@ public abstract class LoomConfigurations implements Runnable {
 		registerNonTransitive(Constants.Configurations.MINECRAFT, Role.NONE);
 		registerNonTransitive(Constants.Configurations.FORGE_USERDEV, Role.NONE);
 
+		ObjectFactory objectFactory = getProject().getObjects();
+
 		register(Constants.Configurations.NFRT_TOOL, Role.RESOLVABLE).configure(configuration -> {
 			configuration.defaultDependencies(dependencies -> {
 				var nfrtDependency = dependencyFactory.create("net.neoforged:neoform-runtime:" + Constants.NeoForge.DEFAULT_NFRT_VERSION).attributes(attributes -> {
-					attributes.attribute(Bundling.BUNDLING_ATTRIBUTE, getProject().getObjects().named(Bundling.class, Bundling.SHADOWED));
+					Bundling shadowedBundling = objectFactory.named(Bundling.class, Bundling.SHADOWED);
+					attributes.attribute(Bundling.BUNDLING_ATTRIBUTE, shadowedBundling);
 				});
 				dependencies.add(nfrtDependency);
 			});
@@ -98,12 +102,12 @@ public abstract class LoomConfigurations implements Runnable {
 
 		register(Constants.Configurations.NEOFORGE_ACCESS_TRANSFORMERS, Role.RESOLVABLE).configure(configuration -> {
 			configuration.attributes(attributes -> {
-				attributes.attribute(Category.CATEGORY_ATTRIBUTE, getProject().getObjects().named(Category.CATEGORY_ATTRIBUTE.getType(), Constants.NeoForge.AT_CATEGORY));
+				attributes.attribute(Category.CATEGORY_ATTRIBUTE, objectFactory.named(Category.CATEGORY_ATTRIBUTE.getType(), Constants.NeoForge.AT_CATEGORY));
 			});
 		});
 		register(Constants.Configurations.NEOFORGE_INTERFACE_INJECTIONS, Role.RESOLVABLE).configure(configuration -> {
 			configuration.attributes(attributes -> {
-				attributes.attribute(Category.CATEGORY_ATTRIBUTE, getProject().getObjects().named(Category.CATEGORY_ATTRIBUTE.getType(), Constants.NeoForge.IJ_CATEGORY));
+				attributes.attribute(Category.CATEGORY_ATTRIBUTE, objectFactory.named(Category.CATEGORY_ATTRIBUTE.getType(), Constants.NeoForge.IJ_CATEGORY));
 			});
 		});
 
