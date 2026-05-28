@@ -43,3 +43,12 @@ diff --git a/build.gradle b/build.gradle
  }
 
  def moduleDependencies(project, List<String> depNames) {
+@@ -146,7 +132,7 @@
+
+        apply plugin: "java-library"
+        apply plugin: "checkstyle"
+-       apply plugin: "net.fabricmc.fabric-loom"
++       apply plugin: "org.relativitymc.neo-loom"
+        apply plugin: "com.diffplug.spotless"
+
+        tasks.withType(JavaCompile).configureEach {
