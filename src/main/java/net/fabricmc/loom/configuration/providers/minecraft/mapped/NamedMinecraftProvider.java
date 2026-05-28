@@ -28,6 +28,7 @@ import java.util.List;
 
 import org.gradle.api.Project;
 
+import net.fabricmc.tinyremapper.extension.mixin.MixinExtension;
 import net.fabricmc.loom.api.mappings.layered.MappingsNamespace;
 import net.fabricmc.loom.configuration.providers.minecraft.LegacyMergedMinecraftProvider;
 import net.fabricmc.loom.configuration.providers.minecraft.MergedMinecraftProvider;
@@ -38,6 +39,9 @@ import net.fabricmc.loom.configuration.providers.minecraft.SingleJarEnvType;
 import net.fabricmc.loom.configuration.providers.minecraft.SingleJarMinecraftProvider;
 import net.fabricmc.loom.configuration.providers.minecraft.SplitMinecraftProvider;
 import net.fabricmc.tinyremapper.TinyRemapper;
+
+import org.relativitymc.neoloom.neoforge.NFRTMergedMinecraftProvider;
+import org.relativitymc.neoloom.neoforge.remap.FMLRemap;
 
 public abstract class NamedMinecraftProvider<M extends MinecraftProvider> extends AbstractMappedMinecraftProvider<M> {
 	public NamedMinecraftProvider(Project project, M minecraftProvider) {
@@ -194,6 +198,60 @@ public abstract class NamedMinecraftProvider<M extends MinecraftProvider> extend
 		@Override
 		public SingleJarEnvType env() {
 			return env;
+		}
+	}
+
+	public static final class NeoForgeMergedImpl extends NamedMinecraftProvider<NFRTMergedMinecraftProvider> implements NeoForgeMerged {
+		public NeoForgeMergedImpl(Project project, NFRTMergedMinecraftProvider minecraftProvider) {
+			super(project, minecraftProvider);
+		}
+
+		@Override
+		public List<RemappedJars> getRemappedJars() {
+			if (minecraftProvider.isMergedNeoForgeJar()) {
+				return List.of(
+						new RemappedJars(minecraftProvider.getMergedJar(), getMergedJar(), minecraftProvider.getOfficialNamespace()),
+						new RemappedJars(minecraftProvider.getGameResourcesJar(), getGameResourcesJar(), minecraftProvider.getOfficialNamespace()),
+						new RemappedJars(minecraftProvider.getFMLJar(), getFMLJar(), minecraftProvider.getOfficialNamespace(), minecraftProvider.getMergedJar())
+				);
+			} else {
+				return List.of(
+						new RemappedJars(minecraftProvider.getMergedJar(), getMergedJar(), minecraftProvider.getOfficialNamespace(), minecraftProvider.getNeoForgeUniversalJar()),
+						new RemappedJars(minecraftProvider.getNeoForgeUniversalJar(), getNeoForgeUniversalJar(), minecraftProvider.getOfficialNamespace(), minecraftProvider.getMergedJar()),
+						new RemappedJars(minecraftProvider.getFMLJar(), getFMLJar(), minecraftProvider.getOfficialNamespace(), minecraftProvider.getMergedJar(), minecraftProvider.getNeoForgeUniversalJar())
+				);
+			}
+		}
+
+		@Override
+		public List<MinecraftJar.Type> getDependencyTypes() {
+			if (minecraftProvider.isMergedNeoForgeJar()) {
+				return List.of(MinecraftJar.Type.MERGED, MinecraftJar.Type.GAME_RESOURCES, MinecraftJar.Type.FML);
+			} else {
+				return List.of(MinecraftJar.Type.MERGED, MinecraftJar.Type.NEOFORGE_UNIVERSAL, MinecraftJar.Type.FML);
+			}
+		}
+
+		@Override
+		public List<MinecraftJar> getMinecraftJars() {
+			if (minecraftProvider.isMergedNeoForgeJar()) {
+				return List.of(getMergedJar(), getGameResourcesJar(), getFMLJar());
+			} else {
+				return List.of(getMergedJar(), getNeoForgeUniversalJar(), getFMLJar());
+			}
+		}
+
+		@Override
+		protected void configureRemapper(RemappedJars remappedJars, TinyRemapper.Builder tinyRemapperBuilder) {
+			super.configureRemapper(remappedJars, tinyRemapperBuilder);
+
+			if (remappedJars.outputJar().getType() == MinecraftJar.Type.FML) {
+				FMLRemap.configureRemapper(tinyRemapperBuilder);
+			}
+
+			if (remappedJars.outputJar().getType() == MinecraftJar.Type.NEOFORGE_UNIVERSAL) {
+				tinyRemapperBuilder.extension(new MixinExtension()); // Remap mixins in neoforge
+			}
 		}
 	}
 }

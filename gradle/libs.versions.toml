@@ -19,6 +19,9 @@ test-retry = "1.6.2"
 checkstyle = "13.4.1"
 codenarc = "3.7.0"
 
+# Neo Loom
+night-config = "3.6.6"
+
 [libraries]
 # Loom compile libraries
 asm = { module = "org.ow2.asm:asm", version.ref = "asm" }
@@ -43,6 +46,9 @@ fabric-unpick-utils = { module = "net.fabricmc.unpick:unpick-format-utils", vers
 # Misc
 kotlin-gradle-plugin = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref = "kotlin" }
 kotlin-metadata = { module = "org.jetbrains.kotlin:kotlin-metadata-jvm", version.ref = "kotlin" }
+
+# Neo Loom
+night-config-toml = { module = "com.electronwill.night-config:toml", version.ref = "night-config" }
 
 [plugins]
 kotlin = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }

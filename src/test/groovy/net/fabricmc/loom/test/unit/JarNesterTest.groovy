@@ -29,6 +29,7 @@ import java.nio.file.Path
 
 import com.google.gson.Gson
 import com.google.gson.JsonObject
+import org.relativitymc.neoloom.neoforge.meta.ModPlatform
 import spock.lang.Specification
 import spock.lang.TempDir
 
@@ -48,7 +49,7 @@ class JarNesterTest extends Specification {
 		def target = makeModJar("mod.jar", '{"schemaVersion":1,"id":"mod","version":"1.0"}')
 
 		when:
-		JarNester.nestJars([], target.toFile())
+		JarNester.nestJars([], target.toFile(), ModPlatform.FABRIC)
 
 		then:
 		noExceptionThrown()
@@ -62,7 +63,7 @@ class JarNesterTest extends Specification {
 		def nested = makeModJar("lib.jar", '{"schemaVersion":1,"id":"lib","version":"1.0"}')
 
 		when:
-		JarNester.nestJars([nested.toFile()], target.toFile())
+		JarNester.nestJars([nested.toFile()], target.toFile(), ModPlatform.FABRIC)
 
 		then:
 		ZipUtils.contains(target, "META-INF/jars/lib.jar")
@@ -80,7 +81,7 @@ class JarNesterTest extends Specification {
 
 		when:
 		// Pass in reverse alphabetical order to verify sorting
-		JarNester.nestJars([libB.toFile(), libA.toFile()], target.toFile())
+		JarNester.nestJars([libB.toFile(), libA.toFile()], target.toFile(), ModPlatform.FABRIC)
 
 		then:
 		def fmj = readFmj(target)
@@ -97,7 +98,7 @@ class JarNesterTest extends Specification {
 		def nested = makeModJar("new.jar", '{"schemaVersion":1,"id":"new","version":"1.0"}')
 
 		when:
-		JarNester.nestJars([nested.toFile()], target.toFile())
+		JarNester.nestJars([nested.toFile()], target.toFile(), ModPlatform.FABRIC)
 
 		then:
 		def fmj = readFmj(target)
@@ -115,7 +116,7 @@ class JarNesterTest extends Specification {
 		def nested = makeModJar("lib.jar", '{"schemaVersion":1,"id":"lib","version":"1.0"}')
 
 		when:
-		JarNester.nestJars([nested.toFile()], notAMod.toFile())
+		JarNester.nestJars([nested.toFile()], notAMod.toFile(), ModPlatform.FABRIC)
 
 		then:
 		def e = thrown(IllegalArgumentException)
@@ -128,7 +129,7 @@ class JarNesterTest extends Specification {
 		def notAMod = makePlainJar("plain.jar")
 
 		when:
-		JarNester.nestJars([notAMod.toFile()], target.toFile())
+		JarNester.nestJars([notAMod.toFile()], target.toFile(), ModPlatform.FABRIC)
 
 		then:
 		def e = thrown(IllegalArgumentException)
@@ -141,7 +142,7 @@ class JarNesterTest extends Specification {
 		def lib1 = makeModJar("lib.jar", '{"schemaVersion":1,"id":"lib","version":"1.0"}')
 
 		// Pre-nest lib.jar so it already occupies META-INF/jars/lib.jar
-		JarNester.nestJars([lib1.toFile()], target.toFile())
+		JarNester.nestJars([lib1.toFile()], target.toFile(), ModPlatform.FABRIC)
 
 		// A second (different) jar file that happens to have the same name
 		def lib2Dir = Files.createTempDirectory(dir, "lib2")
@@ -149,7 +150,7 @@ class JarNesterTest extends Specification {
 		ZipUtils.add(lib2, "fabric.mod.json", '{"schemaVersion":1,"id":"lib2","version":"1.0"}')
 
 		when:
-		JarNester.nestJars([lib2.toFile()], target.toFile())
+		JarNester.nestJars([lib2.toFile()], target.toFile(), ModPlatform.FABRIC)
 
 		then:
 		def e = thrown(IllegalArgumentException)
@@ -162,7 +163,7 @@ class JarNesterTest extends Specification {
 		def target = makeReproducibleModJar("mod.jar", '{"schemaVersion":1,"id":"mod","version":"1.0"}')
 
 		when:
-		JarNester.nestJars([lib.toFile()], target.toFile())
+		JarNester.nestJars([lib.toFile()], target.toFile(), ModPlatform.FABRIC)
 
 		then:
 		Checksum.of(target).sha256().hex() == "c3b6aaa362b372d3ed885b61ff37f275899b5bc6c5a0fff8775166694ed7f875"
@@ -175,7 +176,7 @@ class JarNesterTest extends Specification {
 		def target = makeReproducibleModJar("mod.jar", '{"schemaVersion":1,"id":"mod","version":"1.0"}')
 
 		when:
-		JarNester.nestJars([libB.toFile(), libA.toFile()].shuffled(), target.toFile())
+		JarNester.nestJars([libB.toFile(), libA.toFile()].shuffled(), target.toFile(), ModPlatform.FABRIC)
 
 		then:
 		Checksum.of(target).sha256().hex() == "c309abb576c15e7146cc9c3612247b27ddfe273bb12683129da20253342ef0c4"

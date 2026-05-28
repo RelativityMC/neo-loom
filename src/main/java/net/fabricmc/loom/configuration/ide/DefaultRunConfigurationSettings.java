@@ -25,6 +25,7 @@
 package net.fabricmc.loom.configuration.ide;
 
 import java.util.Locale;
+import java.util.Objects;
 
 import org.gradle.api.JavaVersion;
 import org.gradle.api.Project;
@@ -40,19 +41,29 @@ import net.fabricmc.loom.util.Platform;
 import net.fabricmc.loom.util.Strings;
 import net.fabricmc.loom.util.gradle.GradleUtils;
 
+import org.relativitymc.neoloom.neoforge.NFRTMinecraftProvider;
+import org.relativitymc.neoloom.neoforge.meta.ForgeUserdevConfiguration;
+import org.relativitymc.neoloom.neoforge.util.NameUtil;
+
 public class DefaultRunConfigurationSettings {
 	// Configure the default values before the user can modify them.
 	public static void configureDefaults(RunConfiguration run, Project project) {
+		run.getUseForgeRunTemplates().convention(true);
 		run.getAppendProjectPathToDisplayName().convention(true);
-		run.getMainClass().convention(run.getRuntimeEnvironment().map(side -> RunConfigUtils.getMainClass(side, LoomGradleExtension.get(project))));
+		run.getMainClass().convention(project.provider(() -> {
+			String environment = run.getRuntimeEnvironment().get();
+			boolean useForgeRunTemplates = run.getUseForgeRunTemplates().get();
+			return Objects.requireNonNull(RunConfigUtils.getMainClass(environment, LoomGradleExtension.get(project), useForgeRunTemplates), "Run config " + run.getName() + " must specify default main class");
+		}));
 		run.getDevLaunchMainClass().convention(Constants.DLI_ENTRYPOINT);
 		run.getSourceSet().convention(run.getRuntimeEnvironment().map(runtimeEnvironment -> MinecraftSourceSets.get(project).getSourceSetForEnv(runtimeEnvironment)));
 		run.getDisplayName().convention(run.getSourceSet().map(sourceSet -> {
 			String configName = "";
 
-			final boolean isSplitClientSourceSet = LoomGradleExtension.get(project).areEnvironmentSourceSetsSplit()
+			LoomGradleExtension extension = LoomGradleExtension.get(project);
+			final boolean isSplitClientSourceSet = extension.areEnvironmentSourceSetsSplit()
 					&& sourceSet.equals("client")
-					&& run.getRuntimeEnvironment().get().equals("client");
+					&& isClientRunConfiguration(run, extension);
 
 			if (!sourceSet.equals(SourceSet.MAIN_SOURCE_SET_NAME) && !isSplitClientSourceSet) {
 				configName += Strings.capitalizeCamelCaseName(sourceSet) + " ";
@@ -84,10 +95,17 @@ public class DefaultRunConfigurationSettings {
 		String environment = run.getRuntimeEnvironment().get().toLowerCase(Locale.ROOT);
 
 		run.getJvmArguments().add("-Dfabric.dli.config=" + encodeEscaped(extension.getFiles().getDevLauncherConfig().getAbsolutePath()));
-		run.getJvmArguments().add("-Dfabric.dli.env=" + environment);
+		run.getJvmArguments().add("-Dfabric.dli.env=" + NameUtil.mangleLaunchEnvName(environment));
 		run.getJvmArguments().add("-Dfabric.dli.main=" + run.getMainClass().get());
 
-		if (environment.equals("client")) {
+		boolean isClient = isClientRunConfiguration(run, extension);
+
+		if (run.getUseForgeRunTemplates().get() && extension.getMinecraftProvider() instanceof NFRTMinecraftProvider provider) {
+			ForgeUserdevConfiguration.LaunchConfiguration launchConfiguration = provider.getLaunchConfigurationOrThrow(environment);
+			run.getJvmArguments().addAll(launchConfiguration.jvmArgs());
+		}
+
+		if (isClient) {
 			if (context.usesLWJGL3() && Platform.CURRENT.getOperatingSystem().isMacOS()) {
 				run.getJvmArguments().add("-XstartOnFirstThread");
 			}
@@ -108,6 +126,20 @@ public class DefaultRunConfigurationSettings {
 		finialiseValues(run);
 
 		return RunConfigUtils.toSerialisable(run, project);
+	}
+
+	private static boolean isClientRunConfiguration(RunConfiguration run, LoomGradleExtension extension) {
+		String environment = run.getRuntimeEnvironment().get().toLowerCase(Locale.ROOT);
+		boolean isClient;
+
+		if (run.getUseForgeRunTemplates().get() && extension.getMinecraftProvider() instanceof NFRTMinecraftProvider provider) {
+			ForgeUserdevConfiguration.LaunchConfiguration launchConfiguration = provider.getLaunchConfigurationOrThrow(environment);
+			isClient = launchConfiguration.isClient();
+		} else {
+			isClient = environment.equals("client");
+		}
+
+		return isClient;
 	}
 
 	static void finialiseValues(RunConfiguration run) {

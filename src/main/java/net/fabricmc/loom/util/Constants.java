@@ -33,12 +33,18 @@ public class Constants {
 	public static final String VERSION_MANIFESTS = "https://piston-meta.mojang.com/mc/game/version_manifest_v2.json";
 	public static final String EXPERIMENTAL_VERSIONS = "https://maven.fabricmc.net/net/minecraft/experimental_versions.json";
 	public static final String FABRIC_REPOSITORY = "https://maven.fabricmc.net/";
+	public static final String NEOFORGE_RELEASES_REPOSITORY = "https://maven.neoforged.net/releases/";
+	public static final String NEOFORGE_MOJANGMETA_REPOSITORY = "https://maven.neoforged.net/mojang-meta/";
+	public static final String ARCHITECTURY_REPOSITORY = "https://maven.architectury.dev/";
+	public static final String RELATIVITYMC_REPOSITORY = "https://repo.codemc.io/repository/relativitymc/";
 	public static final String DLI_ENTRYPOINT = "net.fabricmc.devlaunchinjector.Main";
 
 	public static final int ASM_VERSION = Opcodes.ASM9;
 	public static final String RELEASE_TIME_1_21_11_UNOBFUSCATED_SNAPSHOTS = "2025-11-01T00:00:00+00:00";
 	public static final String RELEASE_TIME_1_3 = "2012-07-25T22:00:00+00:00";
 	public static final String RELEASE_TIME_BETA_1_0 = "2010-12-19T22:00:00+00:00";
+
+	public static final String RELEASE_TIME_26_1_SNAPSHOT = "2025-12-16T12:42:29+00:00";
 
 	private Constants() {
 	}
@@ -51,6 +57,11 @@ public class Constants {
 		public static final String MOD_COMPILE_CLASSPATH_MAPPED = "modCompileClasspathMapped";
 		public static final String INCLUDE = "include";
 		public static final String MINECRAFT = "minecraft";
+
+		public static final String FORGE_USERDEV = "forgeUserdev";
+		public static final String NFRT_TOOL = "neoFormRuntimeTool";
+		public static final String NEOFORGE_ACCESS_TRANSFORMERS = "neoForgeAccessTransformers";
+		public static final String NEOFORGE_INTERFACE_INJECTIONS = "neoForgeInterfaceInjections";
 
 		public static final String MINECRAFT_COMPILE_LIBRARIES = "minecraftLibraries";
 		public static final String MINECRAFT_RUNTIME_LIBRARIES = "minecraftRuntimeLibraries";
@@ -131,6 +142,7 @@ public class Constants {
 	public static final class Task {
 		public static final String PROCESS_INCLUDE_JARS = "processIncludeJars";
 		public static final String EXPORT_CLASSPATH = "exportClasspath";
+		public static final String GENERATE_NEOFORGE_PUBLISHING_DATA = "generateNeoForgePublishingData";
 
 		private Task() {
 		}
@@ -189,5 +201,15 @@ public class Constants {
 		public static final String MIXIN_VERSION = "Fabric-Mixin-Version";
 		public static final String MIXIN_GROUP = "Fabric-Mixin-Group";
 		public static final String KNOWN_IDY_BSMS = "Fabric-Loom-Known-Indy-BSMS";
+	}
+
+	public static final class NeoForge {
+		public static final String DEFAULT_NFRT_VERSION = "2.0.18";
+		public static final String ACCESS_TRANSFORMER_PATH = "META-INF/accesstransformer.cfg";
+		public static final String MIXIN_CONFIGS_MANIFEST_KEY = "MixinConfigs";
+		public static final String AT_CATEGORY = "accesstransformer";
+		public static final String IJ_CATEGORY = "interfaceinjection";
+		public static final String AT_ELEMENTS = "accessTransformersElements";
+		public static final String IJ_ELEMENTS = "interfaceInjectionsElements";
 	}
 }

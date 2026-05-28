@@ -30,7 +30,10 @@ import org.gradle.api.NamedDomainObjectProvider;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
+import org.gradle.api.artifacts.dsl.DependencyFactory;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
+import org.gradle.api.attributes.Bundling;
+import org.gradle.api.attributes.Category;
 import org.gradle.api.plugins.JavaPlugin;
 
 import net.fabricmc.loom.LoomGradleExtension;
@@ -51,6 +54,7 @@ public abstract class LoomConfigurations implements Runnable {
 	@Override
 	public void run() {
 		final LoomGradleExtension extension = LoomGradleExtension.get(getProject());
+		DependencyFactory dependencyFactory = getProject().getDependencyFactory();
 
 		register(Constants.Configurations.MOD_COMPILE_CLASSPATH, Role.RESOLVABLE);
 		registerNonTransitive(Constants.Configurations.MOD_COMPILE_CLASSPATH_MAPPED, Role.RESOLVABLE);
@@ -81,6 +85,27 @@ public abstract class LoomConfigurations implements Runnable {
 		registerNonTransitive(Constants.Configurations.LOADER_DEPENDENCIES, Role.RESOLVABLE);
 
 		registerNonTransitive(Constants.Configurations.MINECRAFT, Role.NONE);
+		registerNonTransitive(Constants.Configurations.FORGE_USERDEV, Role.NONE);
+
+		register(Constants.Configurations.NFRT_TOOL, Role.RESOLVABLE).configure(configuration -> {
+			configuration.defaultDependencies(dependencies -> {
+				var nfrtDependency = dependencyFactory.create("net.neoforged:neoform-runtime:" + Constants.NeoForge.DEFAULT_NFRT_VERSION).attributes(attributes -> {
+					attributes.attribute(Bundling.BUNDLING_ATTRIBUTE, getProject().getObjects().named(Bundling.class, Bundling.SHADOWED));
+				});
+				dependencies.add(nfrtDependency);
+			});
+		});
+
+		register(Constants.Configurations.NEOFORGE_ACCESS_TRANSFORMERS, Role.RESOLVABLE).configure(configuration -> {
+			configuration.attributes(attributes -> {
+				attributes.attribute(Category.CATEGORY_ATTRIBUTE, getProject().getObjects().named(Category.CATEGORY_ATTRIBUTE.getType(), Constants.NeoForge.AT_CATEGORY));
+			});
+		});
+		register(Constants.Configurations.NEOFORGE_INTERFACE_INJECTIONS, Role.RESOLVABLE).configure(configuration -> {
+			configuration.attributes(attributes -> {
+				attributes.attribute(Category.CATEGORY_ATTRIBUTE, getProject().getObjects().named(Category.CATEGORY_ATTRIBUTE.getType(), Constants.NeoForge.IJ_CATEGORY));
+			});
+		});
 
 		register(Constants.Configurations.INCLUDE, Role.NONE);
 

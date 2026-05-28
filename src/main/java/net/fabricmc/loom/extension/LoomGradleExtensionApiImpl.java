@@ -78,11 +78,14 @@ import net.fabricmc.loom.configuration.providers.minecraft.MinecraftSourceSets;
 import net.fabricmc.loom.task.GenerateSourcesTask;
 import net.fabricmc.loom.task.NestJarsAction;
 import net.fabricmc.loom.task.RemapJarTask;
+import net.fabricmc.loom.task.Aw2AtAction;
 import net.fabricmc.loom.util.DeprecationHelper;
 import net.fabricmc.loom.util.MirrorUtil;
 import net.fabricmc.loom.util.fmj.FabricModJson;
 import net.fabricmc.loom.util.fmj.FabricModJsonHelpers;
 import net.fabricmc.loom.util.gradle.SourceSetHelper;
+
+import org.relativitymc.neoloom.neoforge.task.GenerateNeoForgePublishingDataTask;
 
 /**
  * This class implements the public extension api.
@@ -183,7 +186,9 @@ public abstract class LoomGradleExtensionApiImpl implements LoomGradleExtensionA
 
 					// if no configuration is selected by the user, attempt to select one
 					// based on the mc version and which sides are present for it
-					if (!metadataProvider.getVersionMeta().hasServer()) {
+					if (metadataProvider.getForgeUserdevDependency() != null) {
+						return MinecraftJarConfiguration.NEOFORGE_MERGED;
+					} else if (!metadataProvider.getVersionMeta().hasServer()) {
 						return MinecraftJarConfiguration.CLIENT_ONLY;
 					} else if (!metadataProvider.getVersionMeta().hasClient()) {
 						return MinecraftJarConfiguration.SERVER_ONLY;
@@ -591,6 +596,24 @@ public abstract class LoomGradleExtensionApiImpl implements LoomGradleExtensionA
 	@Override
 	public void nestJars(TaskProvider<? extends Jar> jarTask, NamedDomainObjectProvider<? extends Configuration> configuration) {
 		IncludeConfigurations.nestJars(getProject(), jarTask, configuration);
+	}
+
+	@Override
+	public void convertAw2At(TaskProvider<? extends Jar> jarTask, List<String> atAccessWideners) {
+		jarTask.configure(task -> {
+			if (task instanceof RemapJarTask remapJarTask) {
+				// For RemapJarTask, add to the atAccwssWideners property
+				remapJarTask.getAtAccessWideners().addAll(atAccessWideners);
+			} else {
+				// For regular Jar tasks (non-remap mode), add an Aw2AtAction
+				Aw2AtAction.addToTask(task, atAccessWideners);
+			}
+		});
+	}
+
+	@Override
+	public void publishTransitiveCTNeoForge(ConfigurableFileCollection classTweakers) {
+		GenerateNeoForgePublishingDataTask.setup(getProject(), classTweakers);
 	}
 
 	private boolean notObfuscated() {

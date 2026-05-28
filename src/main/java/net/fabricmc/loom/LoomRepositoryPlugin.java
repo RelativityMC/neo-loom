@@ -67,6 +67,22 @@ public class LoomRepositoryPlugin implements Plugin<PluginAware> {
 			repo.setUrl(MirrorUtil.getFabricRepository(target));
 		});
 
+		repositories.maven(repo -> {
+			repo.setName("Architectury");
+			repo.setUrl(MirrorUtil.getArchitecturyRepository(target));
+			repo.content(content -> {
+				content.includeGroup("io.github.juuxel");
+			});
+		});
+
+		repositories.maven(repo -> {
+			repo.setName("RelativityMC");
+			repo.setUrl(MirrorUtil.getRelativityMCRepository(target));
+			repo.content(content -> {
+				content.includeGroup("org.relativitymc");
+			});
+		});
+
 		MavenArtifactRepository mojangRepo = repositories.maven(repo -> {
 			repo.setName("Mojang");
 			repo.setUrl(MirrorUtil.getLibrariesBase(target));
@@ -89,6 +105,21 @@ public class LoomRepositoryPlugin implements Plugin<PluginAware> {
 		}
 
 		repositories.mavenCentral();
+
+		// put NeoForge repo below everything else
+		repositories.maven(repo -> {
+			repo.setName("NeoForge Releases");
+			repo.setUrl(MirrorUtil.getNeoForgeReleasesRepository(target));
+		});
+
+		repositories.maven(repo -> {
+			repo.setName("NeoForge Mojang Meta");
+			repo.setUrl(MirrorUtil.getNeoForgeMojangMetaRepository(target));
+			repo.metadataSources(sources -> sources.gradleMetadata());
+			repo.content(content -> {
+				content.includeModule("net.neoforged", "minecraft-dependencies");
+			});
+		});
 	}
 
 	private void declareLocalRepositories(RepositoryHandler repositories, LoomFiles files) {

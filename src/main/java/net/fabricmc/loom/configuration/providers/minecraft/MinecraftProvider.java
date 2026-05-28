@@ -33,6 +33,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.gradle.api.JavaVersion;
 import org.gradle.api.Project;
+import org.gradle.api.artifacts.ExternalModuleDependency;
 import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -49,6 +50,8 @@ import net.fabricmc.loom.util.download.DownloadExecutor;
 import net.fabricmc.loom.util.download.GradleDownloadProgressListener;
 import net.fabricmc.loom.util.gradle.GradleUtils;
 import net.fabricmc.loom.util.gradle.ProgressGroup;
+
+import org.relativitymc.neoloom.neoforge.meta.ModPlatform;
 
 public abstract class MinecraftProvider {
 	private static final Logger LOGGER = LoggerFactory.getLogger(MinecraftProvider.class);
@@ -101,7 +104,7 @@ public abstract class MinecraftProvider {
 		libraryProvider.provide();
 	}
 
-	private void verifyJavaVersion() {
+	protected void verifyJavaVersion() {
 		if (configContext.extension().disableObfuscation()) {
 			return;
 		}
@@ -280,6 +283,10 @@ public abstract class MinecraftProvider {
 
 	public abstract MappingsNamespace getOfficialNamespace();
 
+	public ModPlatform getModPlatform() {
+		return ModPlatform.FABRIC;
+	}
+
 	protected Project getProject() {
 		return configContext.project();
 	}
@@ -292,10 +299,24 @@ public abstract class MinecraftProvider {
 		return getExtension().refreshDeps();
 	}
 
+	public String getJarPrefix() {
+		return "";
+	}
+
 	public static File minecraftWorkingDirectory(Project project, String version) {
 		LoomGradleExtension extension = LoomGradleExtension.get(project);
 		File workingDir = new File(extension.getFiles().getUserCache(), version);
 		workingDir.mkdirs();
 		return workingDir;
+	}
+
+	public static File forgeWorkingDirectory(Project project, String minecraftVersion, ExternalModuleDependency neoForgeVersion) {
+		File workingDir = new File(minecraftWorkingDirectory(project, minecraftVersion), mangleForgeVersion(neoForgeVersion));
+		workingDir.mkdirs();
+		return workingDir;
+	}
+
+	public static String mangleForgeVersion(ExternalModuleDependency neoForgeVersion) {
+		return neoForgeVersion.getGroup() + "." + neoForgeVersion.getName() + "_" + neoForgeVersion.getVersion();
 	}
 }

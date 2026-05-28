@@ -96,7 +96,7 @@ class MultiMcVersionTest extends Specification implements GradleProjectTestTrait
 		then:
 		result.task(":fabric-1.19.3:build").outcome == SUCCESS
 		// Ensure that loom is only loaded once.
-		result.output.count("Fabric Loom:") == 1
+		result.output.count("Neo Loom:") == 1
 
 		where:
 		version << [PRE_RELEASE_GRADLE]

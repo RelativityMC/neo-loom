@@ -65,6 +65,8 @@ import net.fabricmc.mappingio.format.MappingFormat;
 import net.fabricmc.stitch.Command;
 import net.fabricmc.stitch.commands.CommandProposeFieldNames;
 
+import org.relativitymc.neoloom.neoforge.mappings.ForgeMigratedMappingConfiguration;
+
 public class MappingConfiguration {
 	private static final Logger LOGGER = LoggerFactory.getLogger(MappingConfiguration.class);
 
@@ -74,7 +76,7 @@ public class MappingConfiguration {
 	// The mappings that gradle gives us
 	private final Path baseTinyMappings;
 	// The mappings we use in practice
-	public final Path tinyMappings;
+	public Path tinyMappings;
 	public final Path tinyMappingsJar;
 	private final Path unpickDefinitions;
 
@@ -83,7 +85,7 @@ public class MappingConfiguration {
 	private UnpickMetadata unpickMetadata;
 	private Map<String, String> signatureFixes;
 
-	private MappingConfiguration(String mappingsIdentifier, Path mappingsWorkingDir) {
+	protected MappingConfiguration(String mappingsIdentifier, Path mappingsWorkingDir) {
 		this.mappingsIdentifier = mappingsIdentifier;
 
 		this.mappingsWorkingDir = mappingsWorkingDir;
@@ -105,10 +107,18 @@ public class MappingConfiguration {
 			}
 		});
 
+		final LoomGradleExtension extension = LoomGradleExtension.get(project);
+
 		final String mappingsIdentifier = createMappingsIdentifier(mappingsName, version, getMappingsClassifier(dependency, jarInfo.v2()), minecraftProvider.minecraftVersion());
 		final Path workingDir = minecraftProvider.dir(mappingsIdentifier).toPath();
 
-		var mappingProvider = new MappingConfiguration(mappingsIdentifier, workingDir);
+		MappingConfiguration mappingProvider;
+
+		if (extension.getMinecraftProvider().getModPlatform().isForgeLike()) {
+			mappingProvider = new ForgeMigratedMappingConfiguration(mappingsIdentifier, workingDir);
+		} else {
+			mappingProvider = new MappingConfiguration(mappingsIdentifier, workingDir);
+		}
 
 		try {
 			mappingProvider.setup(project, serviceFactory, minecraftProvider, inputJar);
@@ -141,10 +151,19 @@ public class MappingConfiguration {
 			}
 		}
 
+		this.setupPost(project);
+
 		if (Files.notExists(tinyMappingsJar) || minecraftProvider.refreshDeps()) {
 			Files.deleteIfExists(tinyMappingsJar);
 			ZipUtils.add(tinyMappingsJar, "mappings/mappings.tiny", Files.readAllBytes(tinyMappings));
 		}
+	}
+
+	public void setupPost(Project project) throws IOException {
+		this.manipulateMappings(project);
+	}
+
+	protected void manipulateMappings(Project project) throws IOException {
 	}
 
 	public void applyToProject(Project project, DependencyInfo dependency) {
