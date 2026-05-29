@@ -258,7 +258,6 @@ public class NFRTMergedMinecraftProvider extends MinecraftProvider implements NF
 		return Objects.requireNonNull(Objects.requireNonNull(metadataProvider, "Metadata provider not setup").getForgeUserdevDependency(), "NeoForge version not setup");
 	}
 
-
 	public enum VersionCapabilities {
 		NEOFORGE_26_1(ModPlatform.NEOFORGE, false, false),
 		NEOFORGE_LEGACY(ModPlatform.NEOFORGE, true, true),

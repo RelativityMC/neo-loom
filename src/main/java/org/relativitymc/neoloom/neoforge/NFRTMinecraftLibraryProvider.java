@@ -58,7 +58,6 @@ import net.fabricmc.loom.configuration.providers.minecraft.MinecraftProvider;
 import net.fabricmc.loom.configuration.providers.minecraft.library.Library;
 
 import org.relativitymc.neoloom.neoforge.meta.ForgeUserdevConfiguration;
-import org.relativitymc.neoloom.neoforge.meta.ModPlatform;
 
 public class NFRTMinecraftLibraryProvider extends MinecraftLibraryProvider {
 	private static final String FML_LOADER_GROUP = "net.minecraftforge";
