@@ -38,12 +38,12 @@ class SimpleDeobfNeoForgeTest extends Specification implements GradleProjectTest
 	def "build"() {
 		setup:
 		def gradle = gradleProject(project: "minimalBaseNoRemap", version: PRE_RELEASE_GRADLE)
-		gradle.buildGradle << '''
+		gradle.buildGradle << """
 				dependencies {
 					minecraft 'com.mojang:minecraft:1.21.11_unobfuscated'
 					forgeUserdev 'net.neoforged:neoforge:21.11.38-beta:userdev'
                 }
-		'''
+		"""
 		def sourceFile = new File(gradle.projectDir, "src/main/java/example/Test.java")
 		sourceFile.parentFile.mkdirs()
 		@Language("JAVA") String src =  """
@@ -70,5 +70,11 @@ class SimpleDeobfNeoForgeTest extends Specification implements GradleProjectTest
 		then:
 		result.task(":build").outcome == SUCCESS
 		result.task(":configureClientLaunch").outcome == SUCCESS
+
+		where:
+		mcVersion              | forgeNotation
+		"1.21.11_unobfuscated" | "net.neoforged:neoforge:21.11.42:userdev"
+		"26.1.2"               | "net.neoforged:neoforge:26.1.2.67-beta:userdev"
+		"26.1.2"               | "net.minecraftforge:forge:26.1.2-64.0.8:userdev"
 	}
 }

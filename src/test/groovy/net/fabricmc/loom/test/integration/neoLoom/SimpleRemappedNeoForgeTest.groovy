@@ -38,27 +38,30 @@ class SimpleRemappedNeoForgeTest extends Specification implements GradleProjectT
 	def "build"() {
 		setup:
 		def gradle = gradleProject(project: "minimalBase", version: PRE_RELEASE_GRADLE)
-		gradle.buildGradle << '''
+		gradle.buildGradle << """
 				repositories {
 					maven {
 						url = "https://repo.codemc.io/repository/relativitymc/"
 					}
+					maven {
+						url = "https://maven.minecraftforge.net/"
+					}
 				}
 
 				dependencies {
-					minecraft 'com.mojang:minecraft:1.21.11_unobfuscated'
-					forgeUserdev 'net.neoforged:neoforge:21.11.38-beta:userdev'
+					minecraft 'com.mojang:minecraft:${mcVersion}'
+					forgeUserdev '${forgeNotation}'
 					mappings loom.layered {
-						it.mappings "org.relativitymc:modern-yarn:1.21.11_unobfuscated+build.2:v2"
-						it.mappings "org.relativitymc:modern-yarn-mappings-patch-neoforge:26.1+build.1"
+						it.mappings ${mappings}
+						${mappingsPatches}
 					}
                 }
 
                 loom {
                 	useIntermediateMappings = true
-					intermediaryUrl = 'https://repo.codemc.io/repository/relativitymc/org/relativitymc/intermediary/%1$s/intermediary-%1$s-v2.jar'
+					${intermediary}
 				}
-		'''
+		"""
 		def sourceFile = new File(gradle.projectDir, "src/main/java/example/Test.java")
 		sourceFile.parentFile.mkdirs()
 		@Language("JAVA") String src =  """
@@ -85,5 +88,11 @@ class SimpleRemappedNeoForgeTest extends Specification implements GradleProjectT
 		then:
 		result.task(":build").outcome == SUCCESS
 		result.task(":configureClientLaunch").outcome == SUCCESS
+
+		where:
+		mcVersion              | forgeNotation                                      | mappings                                                           | mappingsPatches | intermediary
+		"1.21.11_unobfuscated" | "net.neoforged:neoforge:21.11.42:userdev"          | "\"org.relativitymc:modern-yarn:1.21.11_unobfuscated+build.2:v2\"" | "it.mappings \"org.relativitymc:modern-yarn-mappings-patch-neoforge:26.1+build.1\"" | "intermediaryUrl = 'https://repo.codemc.io/repository/relativitymc/org/relativitymc/intermediary/%1\\\$s/intermediary-%1\\\$s-v2.jar'"
+		"26.1.2"               | "net.neoforged:neoforge:26.1.2.67-beta:userdev"    | "\"org.relativitymc:modern-yarn:26.1.2+build.3:v2\""               | "it.mappings \"org.relativitymc:modern-yarn-mappings-patch-neoforge:26.1+build.1\"" | "intermediaryUrl = 'https://repo.codemc.io/repository/relativitymc/org/relativitymc/intermediary/%1\\\$s/intermediary-%1\\\$s-v2.jar'"
+		"26.1.2"               | "net.minecraftforge:forge:26.1.2-64.0.8:userdev"   | "\"org.relativitymc:modern-yarn:26.1.2+build.3:v2\""               | "it.mappings \"org.relativitymc:modern-yarn-mappings-patch-forge:26.1+build.2\""    | "intermediaryUrl = 'https://repo.codemc.io/repository/relativitymc/org/relativitymc/intermediary/%1\\\$s/intermediary-%1\\\$s-v2.jar'"
 	}
 }
