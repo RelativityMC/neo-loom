@@ -30,6 +30,8 @@ import net.fabricmc.tinyremapper.api.TrRemapper;
 public class FMLRemap {
 	private static final String FORGE_OBJECT_HOLDER = "net/minecraftforge/fml/common/asm/ObjectHolderDefinalize";
 	private static final String FORGE_MOD_DIR_TRANSFORMER_DISCOVERER = "net/minecraftforge/fml/loading/ModDirTransformerDiscoverer";
+	private static final String FORGE_DEV_LOCATOR = "net/minecraftforge/fml/loading/targets/ForgeDevLocator";
+	private static final String FORGE_DEV_LAUNCH_HANDLER = "net/minecraftforge/fml/loading/targets/ForgeDevLaunchHandler";
 	private static final String NEOFORGE_OBJECT_HOLDER = "net/neoforged/fml/common/asm/ObjectHolderDefinalize";
 	private static final String NEOFORGE_LAUNCH_HANDLER = "net/neoforged/fml/loading/targets/CommonUserdevLaunchHandler";
 	private static final String NEOFORGE_LOADER = "net/neoforged/fml/loading/FMLLoader";
@@ -46,6 +48,10 @@ public class FMLRemap {
 
 			if (cls.getName().equals(FORGE_MOD_DIR_TRANSFORMER_DISCOVERER)) {
 				// TODO
+			}
+
+			if (cls.getName().equals(FORGE_DEV_LOCATOR) || cls.getName().equals(FORGE_DEV_LAUNCH_HANDLER)) {
+				return StringConstantPatcher.forGameLocator(next, remapper);
 			}
 
 			if (cls.getName().equals(NEOFORGE_LAUNCH_HANDLER)) {

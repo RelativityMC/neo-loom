@@ -58,7 +58,8 @@ public class NFRTMergedMinecraftProvider extends MinecraftProvider implements NF
 	private final ConfigContext configContext;
 	private final MinecraftMetadataProvider metadataProvider;
 	private final NFRTMinecraftLibraryProvider libraryProvider;
-	private final boolean mergedNeoForgeJar;
+
+	private final VersionCapabilities capabilities;
 
 	private Path minecraftMergedJar;
 	// private Path minecraftMergedSources;
@@ -74,7 +75,13 @@ public class NFRTMergedMinecraftProvider extends MinecraftProvider implements NF
 		this.metadataProvider = metadataProvider;
 		this.libraryProvider = new NFRTMinecraftLibraryProvider(this, configContext.project());
 
-		this.mergedNeoForgeJar = !this.metadataProvider.getVersionMeta().isVersionOrNewer(Constants.RELEASE_TIME_26_1_SNAPSHOT) || !this.libraryProvider.isFancyML();
+		boolean isUnobf = this.metadataProvider.getVersionMeta().isVersionOrNewer(Constants.RELEASE_TIME_26_1_SNAPSHOT);
+
+		if (this.libraryProvider.isFancyML()) {
+			this.capabilities = isUnobf ? VersionCapabilities.NEOFORGE_26_1 : VersionCapabilities.NEOFORGE_LEGACY;
+		} else {
+			this.capabilities = VersionCapabilities.MINECRAFTFORGE;
+		}
 	}
 
 	@Override
@@ -117,9 +124,6 @@ public class NFRTMergedMinecraftProvider extends MinecraftProvider implements NF
 				// settings.args("--java-executable", JavaExecutableFetcher.getJavaToolchainExecutable(getProject(), 21).get()); // was for https://github.com/neoforged/NeoForge/issues/2956
 
 				settings.args("--disable-cache");
-				// if (getExtension().refreshDeps()) {
-				// 	settings.args("--disable-cache");
-				// }
 
 				settings.args("--artifact-manifest", artifactManifestFile.getAbsolutePath());
 				settings.args("--warn-on-artifact-manifest-miss");
@@ -127,15 +131,14 @@ public class NFRTMergedMinecraftProvider extends MinecraftProvider implements NF
 				settings.args("--neoforge", neoForgeNotation() + ":userdev");
 				settings.args("--dist", "joined");
 
-				if (this.mergedNeoForgeJar) {
-					// settings.args("--write-result", "gameJarWithNeoForge:" + this.minecraftMergedJar.toAbsolutePath().toString());
-					// settings.args("--write-result", "gameSourcesWithNeoForge:" + this.minecraftMergedSources.toAbsolutePath().toString());
+				if (this.capabilities.useMergedJar) {
 					settings.args("--write-result", "gameJarNoRecompWithNeoForge:" + this.minecraftMergedJar.toAbsolutePath().toString());
-					settings.args("--write-result", "clientResources:" + this.minecraftGameResources.toAbsolutePath().toString());
 				} else {
-					// settings.args("--write-result", "gameJar:" + this.minecraftMergedJar.toAbsolutePath().toString());
-					// settings.args("--write-result", "gameSources:" + this.minecraftMergedSources.toAbsolutePath().toString());
 					settings.args("--write-result", "gameJarNoRecomp:" + this.minecraftMergedJar.toAbsolutePath().toString());
+				}
+
+				if (this.capabilities.requireGameResources) {
+					settings.args("--write-result", "clientResources:" + this.minecraftGameResources.toAbsolutePath().toString());
 				}
 			});
 		}
@@ -147,7 +150,7 @@ public class NFRTMergedMinecraftProvider extends MinecraftProvider implements NF
 		if (getExtension().refreshDeps()) return false;
 		if (!Files.exists(this.minecraftMergedJar)) return false;
 		// if (!Files.exists(this.minecraftMergedSources)) return false;
-		if (this.mergedNeoForgeJar && !Files.exists(this.minecraftGameResources)) return false;
+		if (this.capabilities.requireGameResources && !Files.exists(this.minecraftGameResources)) return false;
 
 		return true;
 	}
@@ -158,9 +161,11 @@ public class NFRTMergedMinecraftProvider extends MinecraftProvider implements NF
 		this.minecraftMergedJar = path("minecraft-merged.jar");
 		// this.minecraftMergedSources = path("minecraft-merged-sources.jar");
 
-		if (this.mergedNeoForgeJar) {
+		if (this.capabilities.requireGameResources) {
 			this.minecraftGameResources = path("minecraft-merged-game-resources.jar");
-		} else {
+		}
+
+		if (!this.capabilities.useMergedJar) {
 			this.neoForgeUniversalJar = this.libraryProvider.resolveUniversalJar();
 		}
 
@@ -172,8 +177,8 @@ public class NFRTMergedMinecraftProvider extends MinecraftProvider implements NF
 		return MappingsNamespace.OFFICIAL;
 	}
 
-	public boolean isMergedNeoForgeJar() {
-		return this.mergedNeoForgeJar;
+	public VersionCapabilities getCapabilities() {
+		return this.capabilities;
 	}
 
 	public Path getMergedJar() {
@@ -198,7 +203,7 @@ public class NFRTMergedMinecraftProvider extends MinecraftProvider implements NF
 	}
 
 	public List<Path> getFullClasspath() {
-		if (this.mergedNeoForgeJar) {
+		if (this.capabilities.useMergedJar) {
 			return List.of(this.minecraftMergedJar);
 		} else {
 			return List.of(this.minecraftMergedJar, getNeoForgeUniversalJar());
@@ -232,7 +237,7 @@ public class NFRTMergedMinecraftProvider extends MinecraftProvider implements NF
 
 	@Override
 	public ModPlatform getModPlatform() {
-		return ModPlatform.NEOFORGE;
+		return this.capabilities.platform;
 	}
 
 	@Override
@@ -251,5 +256,22 @@ public class NFRTMergedMinecraftProvider extends MinecraftProvider implements NF
 
 	protected ExternalModuleDependency forgeUserdevDependency() {
 		return Objects.requireNonNull(Objects.requireNonNull(metadataProvider, "Metadata provider not setup").getForgeUserdevDependency(), "NeoForge version not setup");
+	}
+
+
+	public enum VersionCapabilities {
+		NEOFORGE_26_1(ModPlatform.NEOFORGE, false, false),
+		NEOFORGE_LEGACY(ModPlatform.NEOFORGE, true, true),
+		MINECRAFTFORGE(ModPlatform.FORGE, false, true);
+
+		public final ModPlatform platform;
+		public final boolean useMergedJar;
+		public final boolean requireGameResources;
+
+		VersionCapabilities(ModPlatform platform, boolean useMergedJar, boolean requireGameResources) {
+			this.platform = Objects.requireNonNull(platform);
+			this.useMergedJar = useMergedJar;
+			this.requireGameResources = requireGameResources;
+		}
 	}
 }

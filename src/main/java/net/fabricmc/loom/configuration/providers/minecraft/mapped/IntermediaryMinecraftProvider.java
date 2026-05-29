@@ -24,6 +24,7 @@
 
 package net.fabricmc.loom.configuration.providers.minecraft.mapped;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.gradle.api.Project;
@@ -190,28 +191,40 @@ public abstract sealed class IntermediaryMinecraftProvider<M extends MinecraftPr
 
 		@Override
 		public List<RemappedJars> getRemappedJars() {
-			if (minecraftProvider.isMergedNeoForgeJar()) {
-				return List.of(
-						new RemappedJars(minecraftProvider.getMergedJar(), getMergedJar(), minecraftProvider.getOfficialNamespace()),
-						new RemappedJars(minecraftProvider.getGameResourcesJar(), getGameResourcesJar(), minecraftProvider.getOfficialNamespace()),
-						new RemappedJars(minecraftProvider.getFMLJar(), getFMLJar(), minecraftProvider.getOfficialNamespace(), minecraftProvider.getMergedJar())
-				);
+			ArrayList<RemappedJars> list = new ArrayList<>(4);
+			list.add(new RemappedJars(minecraftProvider.getFMLJar(), getFMLJar(), minecraftProvider.getOfficialNamespace(), minecraftProvider.getMergedJar()));
+
+			if (minecraftProvider.getCapabilities().useMergedJar) {
+				list.add(new RemappedJars(minecraftProvider.getMergedJar(), getMergedJar(), minecraftProvider.getOfficialNamespace()));
 			} else {
-				return List.of(
-						new RemappedJars(minecraftProvider.getMergedJar(), getMergedJar(), minecraftProvider.getOfficialNamespace(), minecraftProvider.getNeoForgeUniversalJar()),
-						new RemappedJars(minecraftProvider.getNeoForgeUniversalJar(), getNeoForgeUniversalJar(), minecraftProvider.getOfficialNamespace(), minecraftProvider.getMergedJar()),
-						new RemappedJars(minecraftProvider.getFMLJar(), getFMLJar(), minecraftProvider.getOfficialNamespace(), minecraftProvider.getMergedJar(), minecraftProvider.getNeoForgeUniversalJar())
-				);
+				list.add(new RemappedJars(minecraftProvider.getMergedJar(), getMergedJar(), minecraftProvider.getOfficialNamespace(), minecraftProvider.getNeoForgeUniversalJar()));
+				list.add(new RemappedJars(minecraftProvider.getNeoForgeUniversalJar(), getNeoForgeUniversalJar(), minecraftProvider.getOfficialNamespace(), minecraftProvider.getMergedJar()));
 			}
+
+			if (minecraftProvider.getCapabilities().requireGameResources) {
+				list.add(new RemappedJars(minecraftProvider.getGameResourcesJar(), getGameResourcesJar(), minecraftProvider.getOfficialNamespace()));
+			}
+
+			return List.copyOf(list);
 		}
 
 		@Override
 		public List<MinecraftJar> getMinecraftJars() {
-			if (minecraftProvider.isMergedNeoForgeJar()) {
-				return List.of(getMergedJar(), getGameResourcesJar(), getFMLJar());
+			ArrayList<MinecraftJar> list = new ArrayList<>(4);
+			list.add(getFMLJar());
+
+			if (minecraftProvider.getCapabilities().useMergedJar) {
+				list.add(getMergedJar());
 			} else {
-				return List.of(getMergedJar(), getNeoForgeUniversalJar(), getFMLJar());
+				list.add(getMergedJar());
+				list.add(getNeoForgeUniversalJar());
 			}
+
+			if (minecraftProvider.getCapabilities().requireGameResources) {
+				list.add(getGameResourcesJar());
+			}
+
+			return List.copyOf(list);
 		}
 
 		@Override
