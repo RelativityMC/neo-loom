@@ -214,6 +214,8 @@ public class MappingConfiguration {
 			} else {
 				Files.copy(baseTinyMappings, tinyMappings, StandardCopyOption.REPLACE_EXISTING);
 			}
+
+			this.mergeExtraMappings(project);
 		} else {
 			final List<Path> minecraftJars = minecraftProvider.getMinecraftJars();
 
@@ -226,6 +228,9 @@ public class MappingConfiguration {
 			LOGGER.info(":populating field names");
 			suggestFieldNames(minecraftJars.get(0), baseTinyMappings, tinyMappings);
 		}
+	}
+
+	protected void mergeExtraMappings(Project project) throws IOException {
 	}
 
 	private static boolean areMappingsV2(Path path) throws IOException {

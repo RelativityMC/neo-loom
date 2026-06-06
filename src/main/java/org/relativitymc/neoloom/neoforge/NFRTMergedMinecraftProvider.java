@@ -75,12 +75,19 @@ public class NFRTMergedMinecraftProvider extends MinecraftProvider implements NF
 		this.metadataProvider = metadataProvider;
 		this.libraryProvider = new NFRTMinecraftLibraryProvider(this, configContext.project());
 
-		boolean isUnobf = this.metadataProvider.getVersionMeta().isVersionOrNewer(Constants.RELEASE_TIME_26_1_SNAPSHOT);
+		boolean isUnobf = this.metadataProvider.isUnobfuscated();
+		boolean is1_20_6orNewer = this.metadataProvider.getVersionMeta().isVersionOrNewer(Constants.RELEASE_TIME_1_20_6);
 
 		if (this.libraryProvider.isFancyML()) {
 			this.capabilities = isUnobf ? VersionCapabilities.NEOFORGE_26_1 : VersionCapabilities.NEOFORGE_LEGACY;
 		} else {
-			this.capabilities = VersionCapabilities.MINECRAFTFORGE;
+			if (isUnobf) {
+				this.capabilities = VersionCapabilities.MINECRAFTFORGE_26_1;
+			} else if (is1_20_6orNewer) {
+				this.capabilities = VersionCapabilities.MINECRAFTFORGE_MOJMAPPED;
+			} else {
+				this.capabilities = VersionCapabilities.MINECRAFTFORGE_LEGACY;
+			}
 		}
 	}
 
@@ -174,7 +181,7 @@ public class NFRTMergedMinecraftProvider extends MinecraftProvider implements NF
 
 	@Override
 	public MappingsNamespace getOfficialNamespace() {
-		return MappingsNamespace.OFFICIAL;
+		return this.capabilities.rawJarNamespace;
 	}
 
 	public VersionCapabilities getCapabilities() {
@@ -250,6 +257,10 @@ public class NFRTMergedMinecraftProvider extends MinecraftProvider implements NF
 		return this.libraryProvider.getForgeUserdevConfiguration();
 	}
 
+	public byte[] readTSRGMappings() throws IOException {
+		return this.libraryProvider.readTSRGMappings();
+	}
+
 	protected @NonNull String neoForgeNotation() {
 		return forgeUserdevDependency().getGroup() + ":" + forgeUserdevDependency().getName() + ":" + forgeUserdevDependency().getVersion();
 	}
@@ -259,18 +270,28 @@ public class NFRTMergedMinecraftProvider extends MinecraftProvider implements NF
 	}
 
 	public enum VersionCapabilities {
-		NEOFORGE_26_1(ModPlatform.NEOFORGE, false, false),
-		NEOFORGE_LEGACY(ModPlatform.NEOFORGE, true, true),
-		MINECRAFTFORGE(ModPlatform.FORGE, false, true);
+		NEOFORGE_26_1(ModPlatform.NEOFORGE, false, false, MappingsNamespace.OFFICIAL, MappingsNamespace.OFFICIAL, false, false),
+		NEOFORGE_LEGACY(ModPlatform.NEOFORGE, true, true, MappingsNamespace.MOJANG_MAPPINGS, MappingsNamespace.MOJANG_MAPPINGS, true, false),
+		MINECRAFTFORGE_26_1(ModPlatform.FORGE, false, true, MappingsNamespace.OFFICIAL, MappingsNamespace.OFFICIAL, false, false),
+		MINECRAFTFORGE_MOJMAPPED(ModPlatform.FORGE, false, true, MappingsNamespace.MOJANG_MAPPINGS, MappingsNamespace.SRG, true, true),
+		MINECRAFTFORGE_LEGACY(ModPlatform.FORGE, false, true, MappingsNamespace.SRG, MappingsNamespace.SRG, false, true);
 
 		public final ModPlatform platform;
 		public final boolean useMergedJar;
 		public final boolean requireGameResources;
+		public final MappingsNamespace productionNamespace;
+		public final MappingsNamespace rawJarNamespace;
+		public final boolean requireMojangMappings;
+		public final boolean requireSrg;
 
-		VersionCapabilities(ModPlatform platform, boolean useMergedJar, boolean requireGameResources) {
+		VersionCapabilities(ModPlatform platform, boolean useMergedJar, boolean requireGameResources, MappingsNamespace productionNamespace, MappingsNamespace rawJarNamespace, boolean requireMojangMappings, boolean requireSrg) {
 			this.platform = Objects.requireNonNull(platform);
 			this.useMergedJar = useMergedJar;
 			this.requireGameResources = requireGameResources;
+			this.productionNamespace = productionNamespace;
+			this.rawJarNamespace = rawJarNamespace;
+			this.requireMojangMappings = requireMojangMappings;
+			this.requireSrg = requireSrg;
 		}
 	}
 }

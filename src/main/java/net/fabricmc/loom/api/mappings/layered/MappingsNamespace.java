@@ -58,6 +58,9 @@ public enum MappingsNamespace {
 	 */
 	INTERMEDIARY,
 
+	MOJANG_MAPPINGS,
+	SRG,
+
 	/**
 	 * Named mappings are the developer friendly names used to develop mods against.
 	 */
@@ -75,6 +78,8 @@ public enum MappingsNamespace {
 		case "clientOfficial" -> CLIENT_OFFICIAL;
 		case "serverOfficial" -> SERVER_OFFICIAL;
 		case "intermediary" -> INTERMEDIARY;
+		case "mojangMappings" -> MOJANG_MAPPINGS;
+		case "srg" -> SRG;
 		case "named" -> NAMED;
 		default -> null;
 		};
@@ -85,6 +90,7 @@ public enum MappingsNamespace {
 		return switch (this) {
 		case CLIENT_OFFICIAL -> "clientOfficial";
 		case SERVER_OFFICIAL -> "serverOfficial";
+		case MOJANG_MAPPINGS -> "mojangMappings";
 		default -> name().toLowerCase(Locale.ROOT);
 		};
 	}

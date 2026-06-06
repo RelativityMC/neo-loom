@@ -85,7 +85,7 @@ public final class MethodInheritanceMappingsMigrator implements MappingsMigrator
 			// for (Path jar : minecraftProvider.getMinecraftJars()) {
 			// 	methodsToRemove.addAll(prepareCache(project.getLogger(), rawMappings, List.of(jar)));
 			// }
-			methodsToRemove.addAll(prepareCache(project.getLogger(), rawMappings, minecraftProvider.getFullClasspath()));
+			methodsToRemove.addAll(prepareCache(project.getLogger(), minecraftProvider.getOfficialNamespace().toString(), rawMappings, minecraftProvider.getFullClasspath()));
 
 			Files.writeString(cacheFile, new Gson().toJson(methodsToRemove.stream().sorted(Comparator.comparing(p -> p.left() + "|" + p.right())).toList()), StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
 		}
@@ -119,9 +119,8 @@ public final class MethodInheritanceMappingsMigrator implements MappingsMigrator
 		}
 	}
 
-	private Set<Pair<String, String>> prepareCache(Logger logger, Path rawMappings, List<Path> jars) throws IOException {
+	private Set<Pair<String, String>> prepareCache(Logger logger, String patchedNs, Path rawMappings, List<Path> jars) throws IOException {
 		MemoryMappingTree mappings = new MemoryMappingTree();
-		String patchedNs = MappingsNamespace.OFFICIAL.toString();
 
 		try (BufferedReader reader = Files.newBufferedReader(rawMappings)) {
 			MappingReader.read(reader, new MappingSourceNsSwitch(mappings, patchedNs));

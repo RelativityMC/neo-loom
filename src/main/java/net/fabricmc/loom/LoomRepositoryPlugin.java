@@ -72,6 +72,7 @@ public class LoomRepositoryPlugin implements Plugin<PluginAware> {
 			repo.setUrl(MirrorUtil.getArchitecturyRepository(target));
 			repo.content(content -> {
 				content.includeGroup("io.github.juuxel");
+				content.includeGroup("dev.architectury");
 			});
 		});
 

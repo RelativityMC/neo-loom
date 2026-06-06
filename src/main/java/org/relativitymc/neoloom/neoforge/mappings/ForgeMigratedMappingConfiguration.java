@@ -24,13 +24,37 @@
 
 package org.relativitymc.neoloom.neoforge.mappings;
 
+import java.io.BufferedReader;
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.UncheckedIOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.util.List;
+import java.util.Map;
 
+import net.fabricmc.loom.api.mappings.layered.MappingsNamespace;
+import net.fabricmc.loom.configuration.providers.mappings.mojmap.MojangMappingLayer;
+import net.fabricmc.loom.configuration.providers.mappings.mojmap.MojangMappingsSpec;
+import net.fabricmc.loom.configuration.providers.mappings.utils.DstNameFilterMappingVisitor;
+import net.fabricmc.loom.configuration.providers.minecraft.MinecraftVersionMeta;
+import net.fabricmc.loom.util.download.DownloadException;
+
+import net.fabricmc.mappingio.MappingReader;
+import net.fabricmc.mappingio.adapter.MappingDstNsReorder;
+import net.fabricmc.mappingio.adapter.MappingNsRenamer;
+import net.fabricmc.mappingio.adapter.MappingSourceNsSwitch;
+import net.fabricmc.mappingio.format.MappingFormat;
+import net.fabricmc.mappingio.format.proguard.ProGuardFileReader;
+import net.fabricmc.mappingio.format.srg.TsrgFileReader;
+import net.fabricmc.mappingio.format.tiny.Tiny2FileReader;
+import net.fabricmc.mappingio.format.tiny.Tiny2FileWriter;
+import net.fabricmc.mappingio.tree.MemoryMappingTree;
+
+import org.cadixdev.lorenz.io.srg.tsrg.TSrgReader;
 import org.jspecify.annotations.NonNull;
 import org.gradle.api.Project;
 
@@ -51,6 +75,124 @@ public final class ForgeMigratedMappingConfiguration extends MappingConfiguratio
 		super(mappingsIdentifier, mappingsWorkingDir);
 		this.hashPath = mappingsWorkingDir.resolve("mappings-migrated.hash");
 		this.rawTinyMappings = this.tinyMappings;
+	}
+
+	@Override
+	protected void mergeExtraMappings(Project project) throws IOException {
+		LoomGradleExtension extension = LoomGradleExtension.get(project);
+		NFRTMergedMinecraftProvider minecraftProvider = (NFRTMergedMinecraftProvider) extension.getMinecraftProvider();
+
+		MemoryMappingTree tree = new MemoryMappingTree();
+
+		try (BufferedReader reader = Files.newBufferedReader(this.tinyMappings, StandardCharsets.UTF_8)) {
+			Tiny2FileReader.read(reader, tree);
+		}
+
+		try {
+			if (!tree.getSrcNamespace().equals(MappingsNamespace.OFFICIAL.toString())) {
+				throw new IllegalArgumentException("Mapping must use official as source namespace, found " + tree.getSrcNamespace());
+			}
+
+			boolean didAnything = false;
+
+			if (minecraftProvider.getCapabilities().requireMojangMappings) {
+				mergeMojangMappings(extension, tree);
+				didAnything |= true;
+			}
+
+			if (minecraftProvider.getCapabilities().requireSrg) {
+				mergeSrgMappings(extension, tree, minecraftProvider.readTSRGMappings());
+				didAnything |= true;
+			}
+
+			if (didAnything) {
+				try (var writer = new Tiny2FileWriter(Files.newBufferedWriter(this.tinyMappings, StandardCharsets.UTF_8), false)) {
+					tree.accept(writer);
+				}
+			}
+		} catch (Throwable t) {
+			try {
+				Files.delete(this.tinyMappings);
+			} catch (Throwable t1) {
+				t.addSuppressed(t1);
+			}
+
+			throw t;
+		}
+	}
+
+	private void mergeSrgMappings(LoomGradleExtension extension, MemoryMappingTree tree, byte[] bytes) throws IOException {
+		try (BufferedReader reader = new BufferedReader(new InputStreamReader(new ByteArrayInputStream(bytes), StandardCharsets.UTF_8))) {
+			MappingDstNsReorder nsReorder = new MappingDstNsReorder(
+					tree,
+					List.of(MappingsNamespace.SRG.toString())
+			);
+			MappingNsRenamer nsRenamer = new MappingNsRenamer(
+					nsReorder,
+					Map.of(
+							"obf", MappingsNamespace.OFFICIAL.toString(),
+							"srg", MappingsNamespace.SRG.toString()
+					)
+			);
+			TsrgFileReader.read(reader, "obf", "srg", nsRenamer);
+		}
+	}
+
+	private void mergeMojangMappings(LoomGradleExtension extension, MemoryMappingTree tree) throws IOException {
+		final MinecraftVersionMeta versionInfo = extension.getMinecraftProvider().getVersionInfo();
+		final MinecraftVersionMeta.Download clientDownload = versionInfo.download(MojangMappingsSpec.MANIFEST_CLIENT_MAPPINGS);
+		final MinecraftVersionMeta.Download serverDownload = versionInfo.download(MojangMappingsSpec.MANIFEST_SERVER_MAPPINGS);
+
+		if (clientDownload == null) {
+			throw new RuntimeException("Failed to find official mojang mappings for " + extension.getMetadataProvider().getMinecraftVersion());
+		}
+
+		Path mojmapDir = this.mappingsWorkingDir().resolve("..").resolve("neo-loom-mojmaps");
+		Files.createDirectories(mojmapDir);
+
+		final Path clientMappings = mojmapDir.resolve("client.txt");
+		final Path serverMappings = mojmapDir.resolve("server.txt");
+
+		try {
+			extension.download(clientDownload.url())
+					.sha1(clientDownload.sha1())
+					.downloadPath(clientMappings);
+
+			extension.download(serverDownload.url())
+					.sha1(serverDownload.sha1())
+					.downloadPath(serverMappings);
+		} catch (DownloadException e) {
+			throw new UncheckedIOException("Failed to download mappings", e);
+		}
+
+		if (!tree.getDstNamespaces().contains(MappingsNamespace.INTERMEDIARY.toString())) {
+			readMojangMappings(tree, clientMappings, serverMappings);
+			return;
+		}
+
+		// Create a mapping tree with src: official dst: named, intermediary
+		MemoryMappingTree mappingTree = new MemoryMappingTree();
+		tree.accept(mappingTree);
+
+		readMojangMappings(mappingTree, clientMappings, serverMappings);
+
+		// The following code first switches the src namespace to intermediary dropping any entries that don't have an intermediary name
+		// This removes any none root methods before switching it back to official
+		var officialSwitch = new MappingSourceNsSwitch(tree, MappingsNamespace.OFFICIAL.toString(), false);
+		var intermediarySwitch = new MappingSourceNsSwitch(officialSwitch, MappingsNamespace.INTERMEDIARY.toString(), true);
+		mappingTree.accept(intermediarySwitch);
+	}
+
+	private static void readMojangMappings(MemoryMappingTree mappingTree, Path clientMappings, Path serverMappings) throws IOException {
+		// Make official the source namespace
+		var nsSwitch = new MappingSourceNsSwitch(mappingTree, MappingsNamespace.OFFICIAL.toString());
+
+		// Read both server and client mappings
+		try (BufferedReader clientBufferedReader = Files.newBufferedReader(clientMappings, StandardCharsets.UTF_8);
+		     BufferedReader serverBufferedReader = Files.newBufferedReader(serverMappings, StandardCharsets.UTF_8)) {
+			ProGuardFileReader.read(clientBufferedReader, MappingsNamespace.MOJANG_MAPPINGS.toString(), MappingsNamespace.OFFICIAL.toString(), nsSwitch);
+			ProGuardFileReader.read(serverBufferedReader, MappingsNamespace.MOJANG_MAPPINGS.toString(), MappingsNamespace.OFFICIAL.toString(), nsSwitch);
+		}
 	}
 
 	@Override

@@ -85,6 +85,7 @@ import net.fabricmc.loom.util.fmj.FabricModJson;
 import net.fabricmc.loom.util.fmj.FabricModJsonHelpers;
 import net.fabricmc.loom.util.gradle.SourceSetHelper;
 
+import org.relativitymc.neoloom.neoforge.NFRTMergedMinecraftProvider;
 import org.relativitymc.neoloom.neoforge.task.GenerateNeoForgePublishingDataTask;
 
 /**
@@ -155,13 +156,29 @@ public abstract class LoomGradleExtensionApiImpl implements LoomGradleExtensionA
 		this.intermediary = project.getObjects().property(String.class)
 				.convention(DEFAULT_INTERMEDIARY_URL);
 		this.productionNamespace = project.getObjects().property(String.class);
-		this.productionNamespace.convention(project.provider(() -> LoomGradleExtension.get(project).getMetadataProvider().isUnobfuscated() ? MappingsNamespace.OFFICIAL.toString() : MappingsNamespace.INTERMEDIARY.toString()));
+		this.productionNamespace.convention(project.provider(() -> {
+			LoomGradleExtension extension = LoomGradleExtension.get(project);
+
+			if (extension.getMinecraftProvider() instanceof NFRTMergedMinecraftProvider provider) {
+				return provider.getCapabilities().productionNamespace.toString();
+			}
+
+			return extension.getMetadataProvider().isUnobfuscated() ? MappingsNamespace.OFFICIAL.toString() : MappingsNamespace.INTERMEDIARY.toString();
+		}));
 		this.productionNamespace.finalizeValueOnRead();
 		this.useIntermediateMappings = project.getObjects().property(Boolean.class);
 		this.useIntermediateMappings.convention(project.provider(() -> !LoomGradleExtension.get(project).getMetadataProvider().isUnobfuscated()));
 		this.useIntermediateMappings.finalizeValueOnRead();
 		this.defaultMixinRemapType = project.getObjects().property(String.class);
-		this.defaultMixinRemapType.convention(project.provider(() -> LoomGradleExtension.get(project).getMetadataProvider().isUnobfuscated() ? ArtifactMetadata.MixinRemapType.STATIC.name() : ArtifactMetadata.MixinRemapType.MIXIN.name()));
+		this.defaultMixinRemapType.convention(project.provider(() -> {
+			LoomGradleExtension extension = LoomGradleExtension.get(project);
+
+			if (extension.getMinecraftProvider() instanceof NFRTMergedMinecraftProvider) {
+				return ArtifactMetadata.MixinRemapType.STATIC.name();
+			}
+
+			return extension.getMetadataProvider().isUnobfuscated() ? ArtifactMetadata.MixinRemapType.STATIC.name() : ArtifactMetadata.MixinRemapType.MIXIN.name();
+		}));
 		this.defaultMixinRemapType.finalizeValueOnRead();
 
 		this.intermediateMappingsProvider = project.getObjects().property(IntermediateMappingsProvider.class);

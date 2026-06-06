@@ -54,7 +54,6 @@ import net.fabricmc.loom.util.LoomVersions;
 import net.fabricmc.loom.LoomGradleExtension;
 import net.fabricmc.loom.configuration.providers.minecraft.MinecraftJarConfiguration;
 import net.fabricmc.loom.configuration.providers.minecraft.MinecraftLibraryProvider;
-import net.fabricmc.loom.configuration.providers.minecraft.MinecraftProvider;
 import net.fabricmc.loom.configuration.providers.minecraft.library.Library;
 
 import org.relativitymc.neoloom.neoforge.meta.ForgeUserdevConfiguration;
@@ -66,7 +65,7 @@ public class NFRTMinecraftLibraryProvider extends MinecraftLibraryProvider {
 	private static final String FANCYML_LOADER_NAME = "loader";
 
 	private final Project project;
-	private final MinecraftProvider minecraftProvider;
+	private final NFRTMergedMinecraftProvider minecraftProvider;
 
 	private final ModuleDependency forgeUserdev;
 	private final ForgeUserdevConfiguration forgeUserdevConfiguration;
@@ -272,6 +271,19 @@ public class NFRTMinecraftLibraryProvider extends MinecraftLibraryProvider {
 	private static boolean isFML(String group, String name) {
 		return (FML_LOADER_GROUP.equals(group) && FML_LOADER_NAME.equals(name))
 				|| (FANCYML_LOADER_GROUP.equals(group) && FANCYML_LOADER_NAME.equals(name));
+	}
+
+	public byte[] readTSRGMappings() throws IOException {
+		File mcpZip = this.project.getConfigurations().detachedConfiguration(this.project.getDependencyFactory().create(this.forgeUserdevConfiguration.mcpNotation())).getSingleFile();
+
+		JsonObject jsonObject = ZipUtils.unpackGson(mcpZip.toPath(), "config.json", JsonObject.class);
+
+		String mappingsPath = jsonObject
+				.getAsJsonObject("data")
+				.get("mappings")
+				.getAsString();
+
+		return ZipUtils.unpack(mcpZip.toPath(), mappingsPath);
 	}
 
 	public void collectArtifactManifest(Properties properties) {

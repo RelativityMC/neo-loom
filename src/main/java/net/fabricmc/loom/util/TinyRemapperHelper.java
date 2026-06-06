@@ -67,10 +67,11 @@ public final class TinyRemapperHelper {
 		LoomGradleExtension extension = LoomGradleExtension.get(project);
 		MemoryMappingTree mappingTree = extension.getMappingConfiguration().getMappingsService(project, serviceFactory).getMappingTree();
 
-		if (fixRecords && !mappingTree.getSrcNamespace().equals(fromM)) {
-			throw new IllegalStateException("Mappings src namespace must match remap src namespace, expected " + fromM + " but got " + mappingTree.getSrcNamespace());
-		}
+		// if (fixRecords && !mappingTree.getSrcNamespace().equals(fromM)) {
+		// 	throw new IllegalStateException("Mappings src namespace must match remap src namespace, expected " + fromM + " but got " + mappingTree.getSrcNamespace());
+		// }
 
+		int sourceNsId = mappingTree.getNamespaceId(fromM);
 		int intermediaryNsId = mappingTree.getNamespaceId(MappingsNamespace.INTERMEDIARY.toString());
 
 		TinyRemapper.Builder builder = TinyRemapper.newRemapper(TinyRemapperLoggerAdapter.INSTANCE)
@@ -83,7 +84,7 @@ public final class TinyRemapperHelper {
 				.withKnownIndyBsm(extension.getKnownIndyBsms().get())
 				.extraPreApplyVisitor((cls, next) -> {
 					if (fixRecords && !cls.isRecord() && "java/lang/Record".equals(cls.getSuperName())) {
-						return new RecordComponentFixVisitor(next, mappingTree, intermediaryNsId);
+						return new RecordComponentFixVisitor(next, mappingTree, sourceNsId, intermediaryNsId);
 					}
 
 					return next;
