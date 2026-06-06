@@ -35,6 +35,7 @@ import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 import org.jspecify.annotations.NonNull;
 import org.gradle.api.Project;
@@ -46,11 +47,14 @@ import net.fabricmc.loom.util.download.DownloadException;
 import net.fabricmc.mappingio.adapter.MappingDstNsReorder;
 import net.fabricmc.mappingio.adapter.MappingNsRenamer;
 import net.fabricmc.mappingio.adapter.MappingSourceNsSwitch;
+import net.fabricmc.mappingio.adapter.ForwardingMappingVisitor;
 import net.fabricmc.mappingio.format.proguard.ProGuardFileReader;
 import net.fabricmc.mappingio.format.srg.TsrgFileReader;
 import net.fabricmc.mappingio.format.tiny.Tiny2FileReader;
 import net.fabricmc.mappingio.format.tiny.Tiny2FileWriter;
 import net.fabricmc.mappingio.tree.MemoryMappingTree;
+import net.fabricmc.mappingio.tree.MappingTree;
+import net.fabricmc.mappingio.MappedElementKind;
 import net.fabricmc.loom.LoomGradleExtension;
 import net.fabricmc.loom.configuration.providers.mappings.MappingConfiguration;
 
@@ -115,9 +119,38 @@ public final class ForgeMigratedMappingConfiguration extends MappingConfiguratio
 	}
 
 	private void mergeSrgMappings(LoomGradleExtension extension, MemoryMappingTree tree, byte[] bytes) throws IOException {
+		// Create a mapping tree copy
+		MemoryMappingTree mappingTree = new MemoryMappingTree();
+		tree.accept(mappingTree);
+
+		int officialNsId = tree.getNamespaceId(MappingsNamespace.OFFICIAL.toString());
+		int mojangMappingsNsId = tree.getNamespaceId(MappingsNamespace.MOJANG_MAPPINGS.toString());
+
 		try (BufferedReader reader = new BufferedReader(new InputStreamReader(new ByteArrayInputStream(bytes), StandardCharsets.UTF_8))) {
+			var copyMojangMappedClassNames = new ForwardingMappingVisitor(mappingTree) {
+				private String lastClass = null;
+
+				@Override
+				public boolean visitClass(String srcName) throws IOException {
+					this.lastClass = srcName;
+					return super.visitClass(srcName);
+				}
+
+				@Override
+				public void visitDstName(MappedElementKind targetKind, int namespace, String name) throws IOException {
+					if (targetKind == MappedElementKind.CLASS) {
+						MappingTree.ClassMapping classMapping = tree.getClass(lastClass, officialNsId);
+
+						if (classMapping != null) {
+							name = Objects.requireNonNull(classMapping.getName(mojangMappingsNsId));
+						}
+					}
+
+					super.visitDstName(targetKind, namespace, name);
+				}
+			};
 			MappingDstNsReorder nsReorder = new MappingDstNsReorder(
-					tree,
+					copyMojangMappedClassNames,
 					List.of(MappingsNamespace.SRG.toString())
 			);
 			MappingNsRenamer nsRenamer = new MappingNsRenamer(
@@ -129,6 +162,12 @@ public final class ForgeMigratedMappingConfiguration extends MappingConfiguratio
 			);
 			TsrgFileReader.read(reader, "obf", "srg", nsRenamer);
 		}
+
+		// The following code first switches the src namespace to intermediary dropping any entries that don't have an intermediary name
+		// This removes any none root methods before switching it back to official
+		var officialSwitch = new MappingSourceNsSwitch(tree, MappingsNamespace.OFFICIAL.toString(), false);
+		var intermediarySwitch = new MappingSourceNsSwitch(officialSwitch, MappingsNamespace.INTERMEDIARY.toString(), true);
+		mappingTree.accept(intermediarySwitch);
 	}
 
 	private void mergeMojangMappings(LoomGradleExtension extension, MemoryMappingTree tree) throws IOException {
