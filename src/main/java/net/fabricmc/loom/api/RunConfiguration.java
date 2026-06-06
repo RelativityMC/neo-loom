@@ -141,10 +141,10 @@ public interface RunConfiguration extends Named {
 	Property<Boolean> getUseForgeRunTemplates();
 
 	default void inherit(RunConfiguration parent) {
-		getDisplayName().convention(parent.getDisplayName());
 		getJvmArguments().convention(parent.getJvmArguments());
-		getProgramArguments().convention(parent.getProgramArguments());
-		getEnvironmentVars().convention(parent.getEnvironmentVars());
+		getProgramArguments().addAll(parent.getProgramArguments());
+		getEnvironmentVars().putAll(parent.getEnvironmentVars());
+		getSystemProperties().putAll(parent.getSystemProperties());
 		getRuntimeEnvironment().convention(parent.getRuntimeEnvironment());
 		getAppendProjectPathToDisplayName().convention(parent.getAppendProjectPathToDisplayName());
 		getMainClass().convention(parent.getMainClass());
