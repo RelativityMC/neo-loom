@@ -1,10 +1,31 @@
+/*
+ * This file is part of fabric-loom, licensed under the MIT License (MIT).
+ *
+ * Copyright (c) 2026 FabricMC
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ */
+
 package org.relativitymc.neoloom.neoforge.remap;
 
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.MethodVisitor;
-
-import net.fabricmc.loom.util.Constants;
-
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.tree.AbstractInsnNode;
 import org.objectweb.asm.tree.InsnList;
@@ -18,8 +39,10 @@ import org.objectweb.asm.tree.analysis.Frame;
 import org.objectweb.asm.tree.analysis.SourceInterpreter;
 import org.objectweb.asm.tree.analysis.SourceValue;
 
+import net.fabricmc.loom.util.Constants;
+
 /**
- * This patches ForgeDevLaunchHandler on older forge releases before this commit for use in dev:
+ * This patches ForgeDevLaunchHandler on older forge releases before this commit for use in dev.
  * <a href="https://github.com/MinecraftForge/MinecraftForge/commit/0e74886f8d570d855af57be2c43a8093b3fc5f2f">0e74886f8d570d855af57be2c43a8093b3fc5f2f</a>
  */
 public class ForgeOldDevLaunchHandlerPatcher extends ClassVisitor {
@@ -57,8 +80,7 @@ public class ForgeOldDevLaunchHandlerPatcher extends ClassVisitor {
 
 					InsnList insns = methodNode.instructions;
 
-					insn_loop:
-					for (int i = 0; i < insns.size(); i++) {
+					insn_loop: for (int i = 0; i < insns.size(); i++) {
 						AbstractInsnNode insn = insns.get(i);
 						if (insn.getOpcode() != Opcodes.INVOKESTATIC) continue;
 						MethodInsnNode methodInsn = (MethodInsnNode) insn;
