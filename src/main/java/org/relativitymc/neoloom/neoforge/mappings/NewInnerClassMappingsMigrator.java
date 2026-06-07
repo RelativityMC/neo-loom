@@ -194,6 +194,8 @@ public final class NewInnerClassMappingsMigrator implements MappingsMigrator {
 			}
 		}
 
+		newClassNames.sort(Comparator.comparing(strings -> strings[0]));
+
 		String[] encNs = new String[namespaceCount + 1];
 		encNs[0] = Objects.requireNonNull(mappings.getSrcNamespace());
 		System.arraycopy(mappings.getDstNamespaces().toArray(String[]::new), 0, encNs, 1, namespaceCount);
@@ -233,6 +235,32 @@ public final class NewInnerClassMappingsMigrator implements MappingsMigrator {
 
 		public NewMappings sortNames() {
 			return new NewMappings(namespaces.clone(), newNames.stream().map(String[]::clone).sorted(Comparator.comparing(strings -> strings[0])).collect(Collectors.toCollection(ArrayList::new)));
+		}
+
+		@Override
+		public boolean equals(Object o) {
+			if (o == null || getClass() != o.getClass()) return false;
+			NewMappings that = (NewMappings) o;
+			if (!Objects.deepEquals(namespaces, that.namespaces)) return false;
+			if (newNames.size() != that.newNames.size()) return false;
+
+			for (int i = 0, newNamesSize = newNames.size(); i < newNamesSize; i++) {
+				if (!Arrays.deepEquals(newNames.get(i), that.newNames.get(i))) return false;
+			}
+
+			return true;
+		}
+
+		@Override
+		public int hashCode() {
+			int result = 1;
+			result = 31 * result + Objects.hashCode(Arrays.hashCode(namespaces));
+
+			for (String[] newName : newNames) {
+				result = 31 * result + Arrays.hashCode(newName);
+			}
+
+			return result;
 		}
 	}
 }

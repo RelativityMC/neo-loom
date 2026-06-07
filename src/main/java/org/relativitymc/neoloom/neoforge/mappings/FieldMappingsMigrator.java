@@ -95,10 +95,10 @@ public final class FieldMappingsMigrator implements MappingsMigrator {
 			migratedFields.forEach(entry -> {
 				map.put(entry.getKey().owner + "#" + entry.getKey().field, entry.getValue());
 			});
+			migratedFields.sort(Comparator.comparing(entry -> entry.getKey().owner + "#" + entry.getKey().field));
 			Files.writeString(migratedFieldsCache, new Gson().toJson(map));
 		}
 
-		this.migratedFields.sort(Comparator.comparing(entry -> entry.getKey().owner + "#" + entry.getKey().field));
 		return migratedFields.hashCode();
 	}
 

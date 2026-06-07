@@ -30,6 +30,7 @@ import java.io.Writer;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -65,7 +66,7 @@ import org.relativitymc.neoloom.neoforge.NFRTMergedMinecraftProvider;
  * see if there are different names for the same method in the mappings, and remove them.
  */
 public final class MethodInheritanceMappingsMigrator implements MappingsMigrator {
-	private Set<Pair<String, String>> methodsToRemove;
+	private List<Pair<String, String>> methodsToRemove;
 
 	@Override
 	public long setup(Project project, NFRTMergedMinecraftProvider minecraftProvider, Path cache, Path rawMappings) throws IOException {
@@ -75,19 +76,20 @@ public final class MethodInheritanceMappingsMigrator implements MappingsMigrator
 			try (BufferedReader reader = Files.newBufferedReader(cacheFile)) {
 				List<Pair<String, String>> list = new Gson().fromJson(reader, new TypeToken<List<Pair<String, String>>>() {
 				});
-				methodsToRemove = new HashSet<>(list);
+				methodsToRemove = new ArrayList<>(list);
 			}
 		} else {
 			Files.deleteIfExists(cacheFile);
 			LoomGradleExtension extension = LoomGradleExtension.get(project);
-			methodsToRemove = new HashSet<>();
+			methodsToRemove = new ArrayList<>();
 
 			// for (Path jar : minecraftProvider.getMinecraftJars()) {
 			// 	methodsToRemove.addAll(prepareCache(project.getLogger(), rawMappings, List.of(jar)));
 			// }
-			methodsToRemove.addAll(prepareCache(project.getLogger(), minecraftProvider.getOfficialNamespace().toString(), rawMappings, minecraftProvider.getFullClasspath()));
+			HashSet<Pair<String, String>> set = new HashSet<>(prepareCache(project.getLogger(), minecraftProvider.getOfficialNamespace().toString(), rawMappings, minecraftProvider.getFullClasspath()));
+			methodsToRemove.addAll(set.stream().sorted(Comparator.comparing(p -> p.left() + "|" + p.right())).toList());
 
-			Files.writeString(cacheFile, new Gson().toJson(methodsToRemove.stream().sorted(Comparator.comparing(p -> p.left() + "|" + p.right())).toList()), StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
+			Files.writeString(cacheFile, new Gson().toJson(methodsToRemove), StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
 		}
 
 		return methodsToRemove.hashCode();
@@ -102,12 +104,14 @@ public final class MethodInheritanceMappingsMigrator implements MappingsMigrator
 				MappingReader.read(reader, mappings);
 			}
 
+			Set<Pair<String, String>> methodsToRemoveSet = new HashSet<>(this.methodsToRemove);
+
 			for (MappingTree.ClassMapping classMapping : mappings.getClasses()) {
 				// TODO: Change if/when MIO supports removals again
 				for (MappingTree.MethodMapping method : List.copyOf(classMapping.getMethods())) {
 					var key = new Pair<>(method.getName(MappingsNamespace.INTERMEDIARY.toString()), method.getDesc(MappingsNamespace.INTERMEDIARY.toString()));
 
-					if (methodsToRemove.contains(key)) {
+					if (methodsToRemoveSet.contains(key)) {
 						classMapping.removeMethod(method.getSrcName(), method.getSrcDesc());
 					}
 				}
