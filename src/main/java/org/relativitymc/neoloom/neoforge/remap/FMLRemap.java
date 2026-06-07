@@ -50,8 +50,12 @@ public class FMLRemap {
 				// TODO
 			}
 
-			if (cls.getName().equals(FORGE_DEV_LOCATOR) || cls.getName().equals(FORGE_DEV_LAUNCH_HANDLER)) {
+			if (cls.getName().equals(FORGE_DEV_LOCATOR)) {
 				return StringConstantPatcher.forGameLocator(next, remapper);
+			}
+
+			if (cls.getName().equals(FORGE_DEV_LAUNCH_HANDLER)) {
+				return StringConstantPatcher.forGameLocator(new ForgeOldDevLaunchHandlerPatcher(next), remapper);
 			}
 
 			if (cls.getName().equals(NEOFORGE_LAUNCH_HANDLER)) {
