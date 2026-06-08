@@ -26,8 +26,10 @@ package net.fabricmc.loom.task.launch;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -38,6 +40,8 @@ import java.util.StringJoiner;
 import java.util.stream.Collectors;
 
 import org.gradle.api.Project;
+import org.gradle.api.artifacts.Configuration;
+import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.logging.configuration.ConsoleOutput;
 import org.gradle.api.provider.MapProperty;
@@ -112,6 +116,10 @@ public abstract class GenerateDLIConfigTask extends AbstractLoomTask {
 	@Optional
 	protected abstract MapProperty<String, List<String>> getForgeLaunchProgramArgs();
 
+	@Input
+	@Optional
+	protected abstract MapProperty<String, Map<String, String>> getForgeLaunchProperties();
+
 	@InputFile
 	@PathSensitive(PathSensitivity.ABSOLUTE)
 	@Optional
@@ -147,6 +155,39 @@ public abstract class GenerateDLIConfigTask extends AbstractLoomTask {
 		if (getExtension().getMinecraftProvider() instanceof NFRTMinecraftProvider provider) {
 			for (Map.Entry<String, ForgeUserdevConfiguration.LaunchConfiguration> entry : provider.getForgeUserdevConfiguration().launchConfigurations().entrySet()) {
 				getForgeLaunchProgramArgs().put(entry.getKey(), entry.getValue().programArgs());
+				getForgeLaunchProperties().put(
+						entry.getKey(),
+						entry.getValue().jvmProperties().entrySet().stream()
+								.map(innerEntry -> {
+									if ("{minecraft_classpath_file}".equals(innerEntry.getValue())) {
+										// List<MinecraftSourceSets.ConfigurationName> mcSourceSetsConfigurations = MinecraftSourceSets.get(getProject()).getConfigurations();
+										// if (mcSourceSetsConfigurations.size() != 1) throw new UnsupportedOperationException("Split source set not supported with versions using legacy classpath");
+
+										String mergedJarName = getExtension().getMinecraftProvider().getJarPrefix() + "minecraft-merged";
+
+										Configuration runtimeClasspath = getProject().getConfigurations().detachedConfiguration(
+												getProject().getConfigurations().getByName("runtimeClasspath").getAllDependencies().stream()
+														.filter(dependency -> !"unprotect-fancymodloader10".equals(dependency.getName())) // load unprotect as a mod-ish thing
+														.filter(dependency -> !mergedJarName.equals(dependency.getName())) // load merged jar as a mod as well
+														.map(Dependency::copy)
+														.toArray(Dependency[]::new)
+										);
+										String classpathFileContent = runtimeClasspath.getFiles().stream().map(File::getAbsolutePath).collect(Collectors.joining("\n"));
+										File file = new File(getExtension().getFiles().getProjectPersistentCache(), "forge_minecraft_classpath.txt");
+
+										try {
+											Files.writeString(file.toPath(), classpathFileContent, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
+										} catch (IOException e) {
+											throw new UncheckedIOException(e);
+										}
+
+										return Map.entry(innerEntry.getKey(), file.getAbsolutePath());
+									}
+
+									return innerEntry;
+								})
+								.collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue))
+				);
 			}
 		}
 	}
@@ -185,6 +226,16 @@ public abstract class GenerateDLIConfigTask extends AbstractLoomTask {
 					}
 
 					launchConfig.argument(id, arg);
+				}
+			}
+		}
+
+		if (getForgeLaunchProperties().isPresent() && !getForgeLaunchProperties().get().isEmpty()) {
+			for (Map.Entry<String, Map<String, String>> outerEntry : getForgeLaunchProperties().get().entrySet()) {
+				String id = NameUtil.mangleLaunchEnvName(outerEntry.getKey());
+
+				for (Map.Entry<String, String> entry : outerEntry.getValue().entrySet()) {
+					launchConfig.property(id, entry.getKey(), entry.getValue());
 				}
 			}
 		}

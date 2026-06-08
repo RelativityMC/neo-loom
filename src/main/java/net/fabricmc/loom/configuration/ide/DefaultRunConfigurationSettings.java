@@ -24,8 +24,10 @@
 
 package net.fabricmc.loom.configuration.ide;
 
+import java.io.File;
 import java.util.Locale;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 import org.gradle.api.JavaVersion;
 import org.gradle.api.Project;
@@ -102,7 +104,17 @@ public class DefaultRunConfigurationSettings {
 
 		if (run.getUseForgeRunTemplates().get() && extension.getMinecraftProvider() instanceof NFRTMinecraftProvider provider) {
 			ForgeUserdevConfiguration.LaunchConfiguration launchConfiguration = provider.getLaunchConfigurationOrThrow(environment);
-			run.getJvmArguments().addAll(launchConfiguration.jvmArgs());
+			run.getJvmArguments().addAll(
+					launchConfiguration.jvmArgs().stream()
+							.map(arg -> {
+								if ("{modules}".equals(arg)) {
+									return provider.getModulePath().getFiles().stream().map(File::getAbsolutePath).collect(Collectors.joining(File.pathSeparator));
+								}
+
+								return arg;
+							})
+							.toList()
+			);
 		}
 
 		if (isClient) {

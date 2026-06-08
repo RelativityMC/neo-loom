@@ -37,6 +37,7 @@ public class FMLRemap {
 	private static final String NEOFORGE_LOADER = "net/neoforged/fml/loading/FMLLoader";
 	private static final String NEOFORGE_GAME_LOCATOR = "net/neoforged/fml/loading/moddiscovery/locators/GameLocator";
 	private static final String NEOFORGE_REQUIRED_SYSTEM_FILES = "net/neoforged/fml/loading/moddiscovery/locators/RequiredSystemFiles";
+	private static final String NEOFORGE_BUILTIN_LANGUAGE_LOADER = "net/neoforged/fml/loading/BuiltInLanguageLoader";
 
 	public static void configureRemapper(TinyRemapper.Builder tinyRemapperBuilder) {
 		tinyRemapperBuilder.extraPostApplyVisitor((cls, next) -> {
@@ -72,6 +73,10 @@ public class FMLRemap {
 
 			if (cls.getName().equals(NEOFORGE_REQUIRED_SYSTEM_FILES)) {
 				return StringConstantPatcher.forRequiredSystemFiles(next, remapper);
+			}
+
+			if (cls.getName().equals(NEOFORGE_BUILTIN_LANGUAGE_LOADER)) {
+				return new NeoForgeBuiltInLanguageLoaderPatcher(next);
 			}
 
 			return next;

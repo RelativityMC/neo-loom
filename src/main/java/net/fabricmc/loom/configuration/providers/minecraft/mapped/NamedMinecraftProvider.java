@@ -272,7 +272,7 @@ public abstract class NamedMinecraftProvider<M extends MinecraftProvider> extend
 				FMLRemap.configureRemapper(tinyRemapperBuilder);
 			}
 
-			if (remappedJars.outputJar().getType() == MinecraftJar.Type.NEOFORGE_UNIVERSAL) {
+			if (remappedJars.outputJar().getType() == MinecraftJar.Type.NEOFORGE_UNIVERSAL || remappedJars.outputJar().getType() == MinecraftJar.Type.MERGED) {
 				tinyRemapperBuilder.extension(new MixinExtension()); // Remap mixins in neoforge
 			}
 		}

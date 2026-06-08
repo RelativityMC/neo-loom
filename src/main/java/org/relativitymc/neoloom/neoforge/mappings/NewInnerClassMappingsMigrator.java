@@ -47,7 +47,6 @@ import org.gradle.api.Project;
 import org.gradle.api.logging.Logger;
 
 import net.fabricmc.loom.LoomGradleExtension;
-import net.fabricmc.loom.api.mappings.layered.MappingsNamespace;
 import net.fabricmc.loom.util.FileSystemUtil;
 import net.fabricmc.mappingio.MappedElementKind;
 import net.fabricmc.mappingio.MappingReader;
@@ -79,7 +78,7 @@ public final class NewInnerClassMappingsMigrator implements MappingsMigrator {
 			Files.deleteIfExists(cacheFile);
 			LoomGradleExtension extension = LoomGradleExtension.get(project);
 
-			newClassMappings = prepareCache(project.getLogger(), rawMappings, minecraftProvider.getFullClasspath()).sortNames();
+			newClassMappings = prepareCache(project.getLogger(), minecraftProvider.getOfficialNamespace().toString(), rawMappings, minecraftProvider.getFullClasspath()).sortNames();
 
 			Files.writeString(cacheFile, new Gson().toJson(newClassMappings), StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
 		}
@@ -120,9 +119,8 @@ public final class NewInnerClassMappingsMigrator implements MappingsMigrator {
 		}
 	}
 
-	private NewMappings prepareCache(Logger logger, Path rawMappings, List<Path> jars) throws IOException {
+	private NewMappings prepareCache(Logger logger, String patchedNs, Path rawMappings, List<Path> jars) throws IOException {
 		MemoryMappingTree mappings = new MemoryMappingTree();
-		String patchedNs = MappingsNamespace.OFFICIAL.toString();
 
 		try (BufferedReader reader = Files.newBufferedReader(rawMappings)) {
 			MappingReader.read(reader, new MappingSourceNsSwitch(mappings, patchedNs));
@@ -151,10 +149,10 @@ public final class NewInnerClassMappingsMigrator implements MappingsMigrator {
 		List<String[]> newClassNames = new ArrayList<>();
 
 		for (String className : classNames) {
-			if (mappings.getClass(className) == null) {
+			if (mappings.getClass(className, patchedNsIndex) == null) {
 				String parentName = className.substring(0, className.indexOf('$'));
 				String childName = className.substring(className.indexOf('$') + 1);
-				MappingTree.ClassMapping parentMapping = mappings.getClass(parentName);
+				MappingTree.ClassMapping parentMapping = mappings.getClass(parentName, patchedNsIndex);
 
 				if (parentMapping != null) {
 					String[] mapped = new String[namespaceCount];

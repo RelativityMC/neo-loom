@@ -41,6 +41,7 @@ public record ForgeUserdevConfiguration(
 		String universalJarNotation,
 		List<String> librariesNotations,
 		List<String> testLibrariesNotations,
+		List<String> modulePathNotations,
 		String mcpNotation,
 		String binPatcherNotation,
 		Map<String, List<String>> extraDependenciesNotations,
@@ -66,6 +67,13 @@ public record ForgeUserdevConfiguration(
 					Optional.ofNullable(userdevJson.get("testLibraries"))
 							.map(jsonElement -> {
 								return jsonElement.getAsJsonArray().asList().stream()
+										.map(JsonElement::getAsString)
+										.toList();
+							})
+							.orElse(List.of()),
+					Optional.ofNullable(userdevJson.get("modules"))
+							.map(jsonElement1 -> {
+								return jsonElement1.getAsJsonArray().asList().stream()
 										.map(JsonElement::getAsString)
 										.toList();
 							})
@@ -121,6 +129,7 @@ public record ForgeUserdevConfiguration(
 							.map(element -> {
 								return element.getAsJsonArray().asList().stream()
 										.map(JsonElement::getAsString)
+										.map((String jvmArg) -> processJvmArg(jvmArg))
 										.toList();
 							})
 							.orElse(List.of()),
@@ -140,6 +149,10 @@ public record ForgeUserdevConfiguration(
 				return "forge_dev_" + arg.substring("forge_userdev_".length());
 			}
 
+			return arg;
+		}
+
+		private static String processJvmArg(String arg) {
 			return arg;
 		}
 	}

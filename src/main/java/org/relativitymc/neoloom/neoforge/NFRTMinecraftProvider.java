@@ -26,6 +26,8 @@ package org.relativitymc.neoloom.neoforge;
 
 import java.util.Objects;
 
+import org.gradle.api.file.FileCollection;
+
 import org.relativitymc.neoloom.neoforge.meta.ForgeUserdevConfiguration;
 
 public interface NFRTMinecraftProvider {
@@ -36,4 +38,6 @@ public interface NFRTMinecraftProvider {
 		ForgeUserdevConfiguration.LaunchConfiguration launchConfiguration = Objects.requireNonNull(forgeUserdevConfiguration.launchConfigurations().get(environment), () -> "Invalid environment for forge template: " + environment);
 		return launchConfiguration;
 	}
+
+	FileCollection getModulePath();
 }

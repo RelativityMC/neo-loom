@@ -47,6 +47,8 @@ import org.gradle.api.artifacts.ExternalModuleDependency;
 import org.gradle.api.artifacts.ModuleDependency;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.ResolvedArtifact;
+import org.gradle.api.file.ConfigurableFileCollection;
+import org.gradle.api.file.FileCollection;
 
 import net.fabricmc.loom.util.Constants;
 import net.fabricmc.loom.util.ZipUtils;
@@ -73,6 +75,7 @@ public class NFRTMinecraftLibraryProvider extends MinecraftLibraryProvider {
 
 	private boolean dependencyResolved = false;
 	private ExternalModuleDependency fmlDependency;
+	private final ConfigurableFileCollection modulePath;
 
 	public NFRTMinecraftLibraryProvider(NFRTMergedMinecraftProvider minecraftProvider, Project project) {
 		super(minecraftProvider, project);
@@ -85,6 +88,8 @@ public class NFRTMinecraftLibraryProvider extends MinecraftLibraryProvider {
 		this.isFancyML = this.forgeUserdevConfiguration.librariesNotations().stream()
 				.map(notation -> Library.fromMaven(notation, Library.Target.COMPILE))
 				.anyMatch(library -> FANCYML_LOADER_GROUP.equals(library.group()) && FANCYML_LOADER_NAME.equals(library.name()));
+
+		this.modulePath = project.getObjects().fileCollection();
 	}
 
 	public void ensureResolved() {
@@ -139,6 +144,15 @@ public class NFRTMinecraftLibraryProvider extends MinecraftLibraryProvider {
 					)
 			);
 		}
+
+		this.modulePath.from(
+				this.project.getConfigurations().detachedConfiguration(
+						this.forgeUserdevConfiguration.modulePathNotations().stream()
+								.map(notation -> this.project.getDependencyFactory().create(notation).setTransitive(false))
+								.toArray(Dependency[]::new)
+				)
+		);
+		this.modulePath.getFiles(); // resolve eagerly
 
 		this.dependencyResolved = true;
 	}
@@ -282,6 +296,12 @@ public class NFRTMinecraftLibraryProvider extends MinecraftLibraryProvider {
 				.getAsString();
 
 		return ZipUtils.unpack(mcpZip.toPath(), mappingsPath);
+	}
+
+	public FileCollection getModulePath() {
+		this.ensureResolved();
+
+		return this.modulePath;
 	}
 
 	public void collectArtifactManifest(Properties properties) {

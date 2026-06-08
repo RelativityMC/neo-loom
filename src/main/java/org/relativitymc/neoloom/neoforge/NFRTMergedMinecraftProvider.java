@@ -36,6 +36,7 @@ import java.util.Properties;
 
 import org.gradle.api.GradleException;
 import org.gradle.api.artifacts.ExternalModuleDependency;
+import org.gradle.api.file.FileCollection;
 import org.gradle.api.provider.Provider;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
@@ -255,6 +256,11 @@ public class NFRTMergedMinecraftProvider extends MinecraftProvider implements NF
 	@Override
 	public ForgeUserdevConfiguration getForgeUserdevConfiguration() {
 		return this.libraryProvider.getForgeUserdevConfiguration();
+	}
+
+	@Override
+	public FileCollection getModulePath() {
+		return this.libraryProvider.getModulePath();
 	}
 
 	public byte[] readTSRGMappings() throws IOException {
