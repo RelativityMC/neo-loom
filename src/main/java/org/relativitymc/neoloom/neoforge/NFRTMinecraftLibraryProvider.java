@@ -149,14 +149,12 @@ public class NFRTMinecraftLibraryProvider extends MinecraftLibraryProvider {
 		List<Configuration> list = new ArrayList<>();
 
 		list.add(this.project.getConfigurations().detachedConfiguration(this.getCollectedDependencies().toArray(Dependency[]::new)));
-		list.add(this.project.getConfigurations().detachedConfiguration(
-				this.forgeUserdev,
-				this.fmlDependency,
-				this.project.getDependencyFactory().create(this.forgeUserdevConfiguration.mcpNotation()),
-				this.project.getDependencyFactory().create(this.forgeUserdevConfiguration.binPatcherNotation()),
-				this.project.getDependencyFactory().create(this.forgeUserdevConfiguration.universalJarNotation()),
-				this.project.getDependencyFactory().create(this.forgeUserdevConfiguration.sourcesNotation())
-		));
+		list.add(this.project.getConfigurations().detachedConfiguration(this.forgeUserdev));
+		list.add(this.project.getConfigurations().detachedConfiguration(this.fmlDependency));
+		list.add(this.project.getConfigurations().detachedConfiguration(this.project.getDependencyFactory().create(this.forgeUserdevConfiguration.mcpNotation())));
+		list.add(this.project.getConfigurations().detachedConfiguration(this.project.getDependencyFactory().create(this.forgeUserdevConfiguration.binPatcherNotation())));
+		list.add(this.project.getConfigurations().detachedConfiguration(this.project.getDependencyFactory().create(this.forgeUserdevConfiguration.universalJarNotation())));
+		list.add(this.project.getConfigurations().detachedConfiguration(this.project.getDependencyFactory().create(this.forgeUserdevConfiguration.sourcesNotation())));
 
 		try {
 			list.add(this.project.getConfigurations().detachedConfiguration(this.resolveMCPDependencies().toArray(Dependency[]::new)));
