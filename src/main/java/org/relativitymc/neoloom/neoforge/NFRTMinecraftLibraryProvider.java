@@ -58,6 +58,8 @@ import net.fabricmc.loom.configuration.providers.minecraft.MinecraftJarConfigura
 import net.fabricmc.loom.configuration.providers.minecraft.MinecraftLibraryProvider;
 import net.fabricmc.loom.configuration.providers.minecraft.library.Library;
 
+import dev.architectury.loom.util.Version;
+
 import org.relativitymc.neoloom.neoforge.meta.ForgeUserdevConfiguration;
 
 public class NFRTMinecraftLibraryProvider extends MinecraftLibraryProvider {
@@ -66,12 +68,15 @@ public class NFRTMinecraftLibraryProvider extends MinecraftLibraryProvider {
 	private static final String FANCYML_LOADER_GROUP = "net.neoforged.fancymodloader";
 	private static final String FANCYML_LOADER_NAME = "loader";
 
+	private static final Version FANCYML_LOADER_UNPROTECT_BACKEND_VERSION = Version.parse("10.0.14");
+
 	private final Project project;
 	private final NFRTMergedMinecraftProvider minecraftProvider;
 
 	private final ModuleDependency forgeUserdev;
 	private final ForgeUserdevConfiguration forgeUserdevConfiguration;
 	private final boolean isFancyML;
+	private final boolean isFancyML10OrNewer;
 
 	private boolean dependencyResolved = false;
 	private ExternalModuleDependency fmlDependency;
@@ -88,6 +93,9 @@ public class NFRTMinecraftLibraryProvider extends MinecraftLibraryProvider {
 		this.isFancyML = this.forgeUserdevConfiguration.librariesNotations().stream()
 				.map(notation -> Library.fromMaven(notation, Library.Target.COMPILE))
 				.anyMatch(library -> FANCYML_LOADER_GROUP.equals(library.group()) && FANCYML_LOADER_NAME.equals(library.name()));
+		this.isFancyML10OrNewer = this.forgeUserdevConfiguration.librariesNotations().stream()
+				.map(notation -> Library.fromMaven(notation, Library.Target.COMPILE))
+				.anyMatch(library -> FANCYML_LOADER_GROUP.equals(library.group()) && FANCYML_LOADER_NAME.equals(library.name()) && Version.parse(library.version()).compareTo(FANCYML_LOADER_UNPROTECT_BACKEND_VERSION) >= 0);
 
 		this.modulePath = project.getObjects().fileCollection();
 	}
@@ -121,7 +129,7 @@ public class NFRTMinecraftLibraryProvider extends MinecraftLibraryProvider {
 		Objects.requireNonNull(this.fmlDependency, "No FML dependency found");
 
 		if (!LoomGradleExtension.get(this.project).disableObfuscation()) {
-			Library unprotectLoader = Library.fromMaven(this.isFancyML ? LoomVersions.UNPROTECT_FANCYMODLOADER10.mavenNotation() : LoomVersions.UNPROTECT_MODLAUNCHER.mavenNotation(), Library.Target.RUNTIME);
+			Library unprotectLoader = Library.fromMaven(this.isFancyML10OrNewer ? LoomVersions.UNPROTECT_FANCYMODLOADER10.mavenNotation() : LoomVersions.UNPROTECT_MODLAUNCHER.mavenNotation(), Library.Target.RUNTIME);
 			Library unprotect = Library.fromMaven(LoomVersions.UNPROTECT.mavenNotation(), Library.Target.RUNTIME);
 			this.applyClientLibrary(unprotectLoader);
 			this.applyServerLibrary(unprotectLoader);

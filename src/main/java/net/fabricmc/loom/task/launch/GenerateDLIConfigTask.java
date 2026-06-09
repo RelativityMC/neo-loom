@@ -167,7 +167,6 @@ public abstract class GenerateDLIConfigTask extends AbstractLoomTask {
 
 										Configuration runtimeClasspath = getProject().getConfigurations().detachedConfiguration(
 												getProject().getConfigurations().getByName("runtimeClasspath").getAllDependencies().stream()
-														.filter(dependency -> !"unprotect-fancymodloader10".equals(dependency.getName())) // load unprotect as a mod-ish thing
 														.filter(dependency -> !mergedJarName.equals(dependency.getName())) // load merged jar as a mod as well
 														.map(Dependency::copy)
 														.toArray(Dependency[]::new)
