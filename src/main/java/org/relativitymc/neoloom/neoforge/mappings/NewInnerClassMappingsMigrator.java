@@ -126,8 +126,6 @@ public final class NewInnerClassMappingsMigrator implements MappingsMigrator {
 			MappingReader.read(reader, new MappingSourceNsSwitch(mappings, patchedNs));
 		}
 
-		int patchedNsIndex = mappings.getNamespaceId(patchedNs);
-
 		List<String> classNames = jars.stream()
 				.map(NewInnerClassMappingsMigrator::readClassNames)
 				.flatMap(Collection::stream)
@@ -149,10 +147,10 @@ public final class NewInnerClassMappingsMigrator implements MappingsMigrator {
 		List<String[]> newClassNames = new ArrayList<>();
 
 		for (String className : classNames) {
-			if (mappings.getClass(className, patchedNsIndex) == null) {
+			if (mappings.getClass(className) == null) {
 				String parentName = className.substring(0, className.indexOf('$'));
 				String childName = className.substring(className.indexOf('$') + 1);
-				MappingTree.ClassMapping parentMapping = mappings.getClass(parentName, patchedNsIndex);
+				MappingTree.ClassMapping parentMapping = mappings.getClass(parentName);
 
 				if (parentMapping != null) {
 					String[] mapped = new String[namespaceCount];
