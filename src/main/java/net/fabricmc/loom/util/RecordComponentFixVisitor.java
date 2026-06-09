@@ -34,16 +34,16 @@ import net.fabricmc.mappingio.tree.MemoryMappingTree;
 
 public class RecordComponentFixVisitor extends ClassVisitor {
 	private final MemoryMappingTree mappings;
-	private final int sourceNsId;
+	private final int officialNsId;
 	private final int intermediaryNsId;
 
 	private String owner;
 	private boolean hasExistingComponents = false;
 
-	public RecordComponentFixVisitor(ClassVisitor classVisitor, MemoryMappingTree mappings, int sourceNsId, int intermediaryNsId) {
+	public RecordComponentFixVisitor(ClassVisitor classVisitor, MemoryMappingTree mappings, int officialNsId, int intermediaryNsId) {
 		super(Constants.ASM_VERSION, classVisitor);
 		this.mappings = mappings;
-		this.sourceNsId = sourceNsId;
+		this.officialNsId = officialNsId;
 		this.intermediaryNsId = intermediaryNsId;
 	}
 
@@ -64,7 +64,7 @@ public class RecordComponentFixVisitor extends ClassVisitor {
 
 	@Override
 	public FieldVisitor visitField(int access, String name, String descriptor, String signature, Object value) {
-		String intermediaryName = Objects.requireNonNull(mappings.getField(owner, name, descriptor, sourceNsId), "Could not get field for %s:%s%s".formatted(owner, name, descriptor)).getName(intermediaryNsId);
+		String intermediaryName = Objects.requireNonNull(mappings.getField(owner, name, descriptor, officialNsId), "Could not get field for %s:%s%s".formatted(owner, name, descriptor)).getName(intermediaryNsId);
 
 		if (!hasExistingComponents && intermediaryName != null && intermediaryName.startsWith("comp_")) {
 			super.visitRecordComponent(name, descriptor, signature);
