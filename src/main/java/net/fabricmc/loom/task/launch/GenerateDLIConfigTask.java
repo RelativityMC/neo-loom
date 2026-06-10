@@ -167,7 +167,7 @@ public abstract class GenerateDLIConfigTask extends AbstractLoomTask {
 
 										Configuration runtimeClasspath = getProject().getConfigurations().detachedConfiguration(
 												getProject().getConfigurations().getByName("runtimeClasspath").getAllDependencies().stream()
-														.filter(dependency -> !mergedJarName.equals(dependency.getName())) // load merged jar as a mod as well
+														.filter(dependency -> dependency.getName() == null || !dependency.getName().startsWith(mergedJarName)) // load merged jar as a mod as well
 														.map(Dependency::copy)
 														.toArray(Dependency[]::new)
 										);
