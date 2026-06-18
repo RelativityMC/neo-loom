@@ -283,6 +283,11 @@ public abstract class NestableJarGenerationTask extends AbstractLoomTask {
 			}
 		}
 
+		@Nullable
+		public String classifierRaw() {
+			return classifier;
+		}
+
 		@Override
 		public String toString() {
 			return group + ":" + name + ":" + version + classifier();

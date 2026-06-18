@@ -30,6 +30,9 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.Collection;
 import java.util.Comparator;
+import java.util.Objects;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
@@ -133,7 +136,7 @@ public class JarNester {
 			JsonObject identifierObject = new JsonObject();
 			JsonObject versionObject = new JsonObject();
 			identifierObject.addProperty("group", metadata.group());
-			identifierObject.addProperty("artifact", metadata.name());
+			identifierObject.addProperty("artifact", Stream.of(metadata.name(), metadata.classifierRaw()).filter(Objects::nonNull).filter(s -> !s.isEmpty()).collect(Collectors.joining(":")));
 			versionObject.addProperty("range", "[" + metadata.version() + ",)");
 			versionObject.addProperty("artifactVersion", metadata.version());
 			jsonObject.add("identifier", identifierObject);
