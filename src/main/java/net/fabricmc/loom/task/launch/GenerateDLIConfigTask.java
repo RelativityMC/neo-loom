@@ -37,17 +37,22 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.StringJoiner;
+import java.util.jar.Attributes;
+import java.util.jar.JarFile;
+import java.util.jar.Manifest;
 import java.util.stream.Collectors;
 
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.Dependency;
+import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.logging.configuration.ConsoleOutput;
 import org.gradle.api.provider.MapProperty;
 import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.InputFile;
+import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.OutputFile;
@@ -65,8 +70,10 @@ import net.fabricmc.loom.configuration.providers.minecraft.mapped.MappedMinecraf
 import net.fabricmc.loom.task.AbstractLoomTask;
 import net.fabricmc.loom.task.service.ClasspathGroupService;
 import net.fabricmc.loom.util.service.ScopedServiceFactory;
+import net.fabricmc.loom.util.ZipUtils;
 
 import dev.architectury.loom.util.collection.Multimap;
+import dev.architectury.loom.metadata.ForgeModMetadata;
 
 import org.relativitymc.neoloom.neoforge.NFRTMinecraftProvider;
 import org.relativitymc.neoloom.neoforge.meta.ForgeUserdevConfiguration;
@@ -131,6 +138,15 @@ public abstract class GenerateDLIConfigTask extends AbstractLoomTask {
 	@Nested
 	protected abstract Property<ClasspathGroupService.Options> getClasspathGroupOptions();
 
+	@InputFiles
+	@PathSensitive(PathSensitivity.NONE)
+	@Optional
+	public abstract ConfigurableFileCollection getRuntimeClasspathForForge();
+
+	@OutputFile
+	@Optional
+	protected abstract RegularFileProperty getForgeLegacyClasspathFile();
+
 	public GenerateDLIConfigTask() {
 		getVersionInfoJson().set(LoomGradlePlugin.GSON.toJson(getExtension().getMinecraftProvider().getVersionInfo()));
 		getMinecraftVersion().set(getExtension().getMinecraftProvider().minecraftVersion());
@@ -153,6 +169,17 @@ public abstract class GenerateDLIConfigTask extends AbstractLoomTask {
 		getDefaultMixinRemapType().set(getExtension().getDefaultMixinRemapTypeEnum().map(remapType -> remapType.toString().toLowerCase(Locale.ROOT)));
 
 		if (getExtension().getMinecraftProvider() instanceof NFRTMinecraftProvider provider) {
+			String mergedJarName = getExtension().getMinecraftProvider().getJarPrefix() + "minecraft-merged";
+
+			Configuration runtimeClasspath = getProject().getConfigurations().detachedConfiguration(
+					getProject().getConfigurations().getByName("runtimeClasspath").getAllDependencies().stream()
+							.filter(dependency -> dependency.getName() == null || !dependency.getName().startsWith(mergedJarName)) // load merged jar as a mod as well
+							.map(Dependency::copy)
+							.toArray(Dependency[]::new)
+			);
+			getRuntimeClasspathForForge().from(runtimeClasspath);
+			getForgeLegacyClasspathFile().set(new File(getExtension().getFiles().getProjectPersistentCache(), "forge_minecraft_classpath.txt"));
+
 			for (Map.Entry<String, ForgeUserdevConfiguration.LaunchConfiguration> entry : provider.getForgeUserdevConfiguration().launchConfigurations().entrySet()) {
 				getForgeLaunchProgramArgs().put(entry.getKey(), entry.getValue().programArgs());
 				getForgeLaunchProperties().put(
@@ -160,27 +187,7 @@ public abstract class GenerateDLIConfigTask extends AbstractLoomTask {
 						entry.getValue().jvmProperties().entrySet().stream()
 								.map(innerEntry -> {
 									if ("{minecraft_classpath_file}".equals(innerEntry.getValue())) {
-										// List<MinecraftSourceSets.ConfigurationName> mcSourceSetsConfigurations = MinecraftSourceSets.get(getProject()).getConfigurations();
-										// if (mcSourceSetsConfigurations.size() != 1) throw new UnsupportedOperationException("Split source set not supported with versions using legacy classpath");
-
-										String mergedJarName = getExtension().getMinecraftProvider().getJarPrefix() + "minecraft-merged";
-
-										Configuration runtimeClasspath = getProject().getConfigurations().detachedConfiguration(
-												getProject().getConfigurations().getByName("runtimeClasspath").getAllDependencies().stream()
-														.filter(dependency -> dependency.getName() == null || !dependency.getName().startsWith(mergedJarName)) // load merged jar as a mod as well
-														.map(Dependency::copy)
-														.toArray(Dependency[]::new)
-										);
-										String classpathFileContent = runtimeClasspath.getFiles().stream().map(File::getAbsolutePath).collect(Collectors.joining("\n"));
-										File file = new File(getExtension().getFiles().getProjectPersistentCache(), "forge_minecraft_classpath.txt");
-
-										try {
-											Files.writeString(file.toPath(), classpathFileContent, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
-										} catch (IOException e) {
-											throw new UncheckedIOException(e);
-										}
-
-										return Map.entry(innerEntry.getKey(), file.getAbsolutePath());
+										return Map.entry(innerEntry.getKey(), this.getForgeLegacyClasspathFile().getAsFile().get().getAbsolutePath());
 									}
 
 									return innerEntry;
@@ -198,6 +205,35 @@ public abstract class GenerateDLIConfigTask extends AbstractLoomTask {
 
 		if (versionInfo.assets().equals("legacy")) {
 			assetsDirectory = new File(assetsDirectory, "/legacy/" + versionInfo.id());
+		}
+
+		if (this.getForgeLegacyClasspathFile().isPresent()) {
+			String classpathFileContent = this.getRuntimeClasspathForForge().getFiles().stream()
+					.filter(file -> {
+						try {
+							if (ZipUtils.isZip(file.toPath())) {
+								if (ZipUtils.contains(file.toPath(), ForgeModMetadata.NEOFORGE_FILE_PATH)) return false;
+								if (ZipUtils.contains(file.toPath(), ForgeModMetadata.FORGE_FILE_PATH)) return false;
+
+								try (JarFile jarFile = new JarFile(file)) {
+									Manifest manifest = jarFile.getManifest();
+
+									if (manifest != null) {
+										String fmlModType = manifest.getMainAttributes().getValue(new Attributes.Name("FMLModType"));
+										if ("GAMELIBRARY".equals(fmlModType) || "MOD".equals(fmlModType)) return false;
+									}
+								}
+							}
+
+							return true;
+						} catch (IOException e) {
+							throw new UncheckedIOException(e);
+						}
+					})
+					.map(File::getAbsolutePath)
+					.collect(Collectors.joining("\n"));
+
+			Files.writeString(this.getForgeLegacyClasspathFile().getAsFile().get().toPath(), classpathFileContent, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
 		}
 
 		final LaunchConfig launchConfig = new LaunchConfig()
