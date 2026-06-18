@@ -5,11 +5,11 @@ A fork of Fabric Loom that supports the NeoForge and MinecraftForge modding tool
 Feel free to reach out on [our Discord server](https://discord.relativitymc.org/).
 
 ## Currently implemented
-- 1.21+ No-Remap setup
-- 26.1+ Remap setup
+- 1.21.1+
 - Jar-in-Jar
 - ClassTweaker / AccessWidener -> AccessTransformer conversion
 - Devlaunch
+- Publishing and consuming MDG-compatible Access Transformer and Interface Injection
 
 ## Current to-dos
 - JUnit
