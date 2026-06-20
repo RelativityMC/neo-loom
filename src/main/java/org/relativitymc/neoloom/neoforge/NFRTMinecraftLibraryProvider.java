@@ -74,12 +74,13 @@ public class NFRTMinecraftLibraryProvider extends MinecraftLibraryProvider {
 	private final NFRTMergedMinecraftProvider minecraftProvider;
 
 	private final ModuleDependency forgeUserdev;
-	private final ForgeUserdevConfiguration forgeUserdevConfiguration;
-	private final boolean isFancyML;
-	private final boolean isFancyML10OrNewer;
 
 	private boolean dependencyResolved = false;
+	private ForgeUserdevConfiguration forgeUserdevConfiguration;
+	private boolean isFancyML;
+	private boolean isFancyML10OrNewer;
 	private ExternalModuleDependency fmlDependency;
+
 	private final ConfigurableFileCollection modulePath;
 
 	public NFRTMinecraftLibraryProvider(NFRTMergedMinecraftProvider minecraftProvider, Project project) {
@@ -88,6 +89,16 @@ public class NFRTMinecraftLibraryProvider extends MinecraftLibraryProvider {
 		this.minecraftProvider = minecraftProvider;
 
 		this.forgeUserdev = minecraftProvider.forgeUserdevDependency();
+
+		this.modulePath = project.getObjects().fileCollection();
+	}
+
+	public void ensureResolved() {
+		if (this.dependencyResolved) return;
+		this.dependencyResolved = true;
+
+		super.provide(); // resolve vanilla libraries
+
 		this.forgeUserdevConfiguration = ForgeUserdevConfiguration.fromUserdevJar(project.getConfigurations().detachedConfiguration(minecraftProvider.forgeUserdevDependency()).getSingleFile());
 
 		this.isFancyML = this.forgeUserdevConfiguration.librariesNotations().stream()
@@ -96,14 +107,6 @@ public class NFRTMinecraftLibraryProvider extends MinecraftLibraryProvider {
 		this.isFancyML10OrNewer = this.forgeUserdevConfiguration.librariesNotations().stream()
 				.map(notation -> Library.fromMaven(notation, Library.Target.COMPILE))
 				.anyMatch(library -> FANCYML_LOADER_GROUP.equals(library.group()) && FANCYML_LOADER_NAME.equals(library.name()) && Version.parse(library.version()).compareTo(FANCYML_LOADER_UNPROTECT_BACKEND_VERSION) >= 0);
-
-		this.modulePath = project.getObjects().fileCollection();
-	}
-
-	public void ensureResolved() {
-		if (this.dependencyResolved) return;
-
-		super.provide(); // resolve vanilla libraries
 
 		List<Library> libraries = this.forgeUserdevConfiguration.librariesNotations().stream()
 				.map(notation -> Library.fromMaven(notation, Library.Target.COMPILE))
@@ -161,8 +164,6 @@ public class NFRTMinecraftLibraryProvider extends MinecraftLibraryProvider {
 				)
 		);
 		this.modulePath.getFiles(); // resolve eagerly
-
-		this.dependencyResolved = true;
 	}
 
 	public List<Configuration> getNFRTDeps() {
@@ -194,6 +195,8 @@ public class NFRTMinecraftLibraryProvider extends MinecraftLibraryProvider {
 	}
 
 	public List<Dependency> resolveMCPDependencies() {
+		this.ensureResolved();
+
 		File mcpZip = this.project.getConfigurations().detachedConfiguration(this.project.getDependencyFactory().create(this.forgeUserdevConfiguration.mcpNotation())).getSingleFile();
 
 		JsonObject jsonObject;
@@ -264,6 +267,8 @@ public class NFRTMinecraftLibraryProvider extends MinecraftLibraryProvider {
 	}
 
 	public Path resolveUniversalJar() {
+		this.ensureResolved();
+
 		Configuration neoforgeDep = this.project.getConfigurations().detachedConfiguration(this.project.getDependencyFactory().create(this.forgeUserdevConfiguration.universalJarNotation()));
 		Set<File> resolve = neoforgeDep.resolve();
 
@@ -294,6 +299,8 @@ public class NFRTMinecraftLibraryProvider extends MinecraftLibraryProvider {
 	}
 
 	public byte[] readTSRGMappings() throws IOException {
+		this.ensureResolved();
+
 		File mcpZip = this.project.getConfigurations().detachedConfiguration(this.project.getDependencyFactory().create(this.forgeUserdevConfiguration.mcpNotation())).getSingleFile();
 
 		JsonObject jsonObject = ZipUtils.unpackGson(mcpZip.toPath(), "config.json", JsonObject.class);
@@ -342,10 +349,14 @@ public class NFRTMinecraftLibraryProvider extends MinecraftLibraryProvider {
 	}
 
 	public ForgeUserdevConfiguration getForgeUserdevConfiguration() {
+		this.ensureResolved();
+
 		return this.forgeUserdevConfiguration;
 	}
 
 	public boolean isFancyML() {
+		this.ensureResolved();
+
 		return this.isFancyML;
 	}
 }
