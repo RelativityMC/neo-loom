@@ -401,4 +401,7 @@ public interface LoomGradleExtensionAPI {
 
 	@ApiStatus.Experimental
 	void publishTransitiveCTNeoForge(ConfigurableFileCollection classTweakers);
+
+	@ApiStatus.Experimental
+	ListProperty<String> getForgeExtraMixinConfigs();
 }

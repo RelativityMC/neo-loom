@@ -48,6 +48,7 @@ import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.logging.configuration.ConsoleOutput;
+import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.MapProperty;
 import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.Input;
@@ -147,6 +148,10 @@ public abstract class GenerateDLIConfigTask extends AbstractLoomTask {
 	@Optional
 	protected abstract RegularFileProperty getForgeLegacyClasspathFile();
 
+	@Input
+	@Optional
+	protected abstract ListProperty<String> getForgeExtraMixinConfigs();
+
 	public GenerateDLIConfigTask() {
 		getVersionInfoJson().set(LoomGradlePlugin.GSON.toJson(getExtension().getMinecraftProvider().getVersionInfo()));
 		getMinecraftVersion().set(getExtension().getMinecraftProvider().minecraftVersion());
@@ -195,6 +200,8 @@ public abstract class GenerateDLIConfigTask extends AbstractLoomTask {
 								.collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue))
 				);
 			}
+
+			getForgeExtraMixinConfigs().set(getExtension().getForgeExtraMixinConfigs());
 		}
 	}
 
@@ -262,6 +269,12 @@ public abstract class GenerateDLIConfigTask extends AbstractLoomTask {
 
 					launchConfig.argument(id, arg);
 				}
+			}
+		}
+
+		if (getForgeExtraMixinConfigs().isPresent() && !getForgeExtraMixinConfigs().get().isEmpty()) {
+			for (String mixinConfig : getForgeExtraMixinConfigs().get()) {
+				launchConfig.argument("-mixin.config").argument(mixinConfig);
 			}
 		}
 

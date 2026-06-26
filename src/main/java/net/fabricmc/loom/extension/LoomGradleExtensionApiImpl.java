@@ -117,6 +117,8 @@ public abstract class LoomGradleExtensionApiImpl implements LoomGradleExtensionA
 	private final Property<Boolean> splitEnvironmentalSourceSet;
 	private final InterfaceInjectionExtensionAPI interfaceInjectionExtension;
 
+	private final ListProperty<String> forgeExtraMixinConfigs;
+
 	private final NamedDomainObjectContainer<RunConfigSettings> runConfigs;
 	private final NamedDomainObjectContainer<DecompilerOptions> decompilers;
 	private final NamedDomainObjectContainer<ModSettings> mods;
@@ -183,6 +185,9 @@ public abstract class LoomGradleExtensionApiImpl implements LoomGradleExtensionA
 
 		this.intermediateMappingsProvider = project.getObjects().property(IntermediateMappingsProvider.class);
 		this.intermediateMappingsProvider.finalizeValueOnRead();
+
+		this.forgeExtraMixinConfigs = project.getObjects().listProperty(String.class);
+		this.forgeExtraMixinConfigs.finalizeValueOnRead();
 
 		this.deprecationHelper = new DeprecationHelper.ProjectBased(project);
 
@@ -631,6 +636,11 @@ public abstract class LoomGradleExtensionApiImpl implements LoomGradleExtensionA
 	@Override
 	public void publishTransitiveCTNeoForge(ConfigurableFileCollection classTweakers) {
 		GenerateNeoForgePublishingDataTask.setup(getProject(), classTweakers);
+	}
+
+	@Override
+	public ListProperty<String> getForgeExtraMixinConfigs() {
+		return forgeExtraMixinConfigs;
 	}
 
 	private boolean notObfuscated() {
