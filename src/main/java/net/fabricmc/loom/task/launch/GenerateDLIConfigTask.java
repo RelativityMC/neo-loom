@@ -176,6 +176,7 @@ public abstract class GenerateDLIConfigTask extends AbstractLoomTask {
 		if (getExtension().getMinecraftProvider() instanceof NFRTMinecraftProvider provider) {
 			String mergedJarName = getExtension().getMinecraftProvider().getJarPrefix() + "minecraft-merged";
 
+			getForgeLegacyClasspathFile().set(new File(getExtension().getFiles().getProjectPersistentCache(), "forge_minecraft_classpath.txt"));
 			boolean[] requiresLegacyClasspath = new boolean[1];
 
 			for (Map.Entry<String, ForgeUserdevConfiguration.LaunchConfiguration> entry : provider.getForgeUserdevConfiguration().launchConfigurations().entrySet()) {
@@ -203,7 +204,6 @@ public abstract class GenerateDLIConfigTask extends AbstractLoomTask {
 								.toArray(Dependency[]::new)
 				);
 				getRuntimeClasspathForForge().from(runtimeClasspath);
-				getForgeLegacyClasspathFile().set(new File(getExtension().getFiles().getProjectPersistentCache(), "forge_minecraft_classpath.txt"));
 			}
 
 			getForgeExtraMixinConfigs().set(getExtension().getForgeExtraMixinConfigs());
