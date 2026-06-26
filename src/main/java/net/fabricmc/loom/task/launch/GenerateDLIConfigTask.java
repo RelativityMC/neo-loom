@@ -176,14 +176,7 @@ public abstract class GenerateDLIConfigTask extends AbstractLoomTask {
 		if (getExtension().getMinecraftProvider() instanceof NFRTMinecraftProvider provider) {
 			String mergedJarName = getExtension().getMinecraftProvider().getJarPrefix() + "minecraft-merged";
 
-			Configuration runtimeClasspath = getProject().getConfigurations().detachedConfiguration(
-					getProject().getConfigurations().getByName("runtimeClasspath").getAllDependencies().stream()
-							.filter(dependency -> dependency.getName() == null || !dependency.getName().startsWith(mergedJarName)) // load merged jar as a mod as well
-							.map(Dependency::copy)
-							.toArray(Dependency[]::new)
-			);
-			getRuntimeClasspathForForge().from(runtimeClasspath);
-			getForgeLegacyClasspathFile().set(new File(getExtension().getFiles().getProjectPersistentCache(), "forge_minecraft_classpath.txt"));
+			boolean[] requiresLegacyClasspath = new boolean[1];
 
 			for (Map.Entry<String, ForgeUserdevConfiguration.LaunchConfiguration> entry : provider.getForgeUserdevConfiguration().launchConfigurations().entrySet()) {
 				getForgeLaunchProgramArgs().put(entry.getKey(), entry.getValue().programArgs());
@@ -192,6 +185,7 @@ public abstract class GenerateDLIConfigTask extends AbstractLoomTask {
 						entry.getValue().jvmProperties().entrySet().stream()
 								.map(innerEntry -> {
 									if ("{minecraft_classpath_file}".equals(innerEntry.getValue())) {
+										requiresLegacyClasspath[0] = true;
 										return Map.entry(innerEntry.getKey(), this.getForgeLegacyClasspathFile().getAsFile().get().getAbsolutePath());
 									}
 
@@ -199,6 +193,17 @@ public abstract class GenerateDLIConfigTask extends AbstractLoomTask {
 								})
 								.collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue))
 				);
+			}
+
+			if (requiresLegacyClasspath[0]) {
+				Configuration runtimeClasspath = getProject().getConfigurations().detachedConfiguration(
+						getProject().getConfigurations().getByName("runtimeClasspath").getAllDependencies().stream()
+								.filter(dependency -> dependency.getName() == null || !dependency.getName().startsWith(mergedJarName)) // load merged jar as a mod as well
+								.map(Dependency::copy)
+								.toArray(Dependency[]::new)
+				);
+				getRuntimeClasspathForForge().from(runtimeClasspath);
+				getForgeLegacyClasspathFile().set(new File(getExtension().getFiles().getProjectPersistentCache(), "forge_minecraft_classpath.txt"));
 			}
 
 			getForgeExtraMixinConfigs().set(getExtension().getForgeExtraMixinConfigs());
