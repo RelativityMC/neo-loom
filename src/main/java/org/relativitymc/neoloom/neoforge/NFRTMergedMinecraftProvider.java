@@ -119,7 +119,7 @@ public class NFRTMergedMinecraftProvider extends MinecraftProvider implements NF
 				Provider<String> javaToolchainExecutable;
 
 				if (javaVersion != null) {
-					javaToolchainExecutable = JavaExecutableFetcher.getJavaToolchainExecutable(getProject(), javaVersion.majorVersion());
+					javaToolchainExecutable = JavaExecutableFetcher.getJavaToolchainExecutable(getProject(), Math.max(javaVersion.majorVersion(), 21));
 				} else {
 					javaToolchainExecutable = JavaExecutableFetcher.getJavaToolchainExecutable(getProject());
 				}
@@ -280,7 +280,7 @@ public class NFRTMergedMinecraftProvider extends MinecraftProvider implements NF
 		NEOFORGE_LEGACY(ModPlatform.NEOFORGE, true, true, MappingsNamespace.MOJANG_MAPPINGS, MappingsNamespace.MOJANG_MAPPINGS, true, false),
 		MINECRAFTFORGE_26_1(ModPlatform.FORGE, false, true, MappingsNamespace.OFFICIAL, MappingsNamespace.OFFICIAL, false, false),
 		MINECRAFTFORGE_MOJMAPPED(ModPlatform.FORGE, false, true, MappingsNamespace.MOJANG_MAPPINGS, MappingsNamespace.SRG, true, true),
-		MINECRAFTFORGE_LEGACY(ModPlatform.FORGE, false, true, MappingsNamespace.SRG, MappingsNamespace.SRG, false, true);
+		MINECRAFTFORGE_LEGACY(ModPlatform.FORGE, true, true, MappingsNamespace.SRG, MappingsNamespace.MOJANG_MAPPINGS, true, true);
 
 		public final ModPlatform platform;
 		public final boolean useMergedJar;

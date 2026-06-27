@@ -156,6 +156,7 @@ class SimpleRemappedNeoForgeTest extends Specification implements GradleProjectT
 
 		where:
 		mcVersion   | forgeNotation                                      | mappings                                             | mappingsPatches                                                                     | intermediary
+		// "1.20.1" | "net.minecraftforge:forge:1.20.1-47.4.20:userdev"  | "\"net.fabricmc:yarn:1.20.1+build.9:v2\""            | ""                                                                                  | ""
 		"1.21.1"    | "net.minecraftforge:forge:1.21.1-52.1.14:userdev"  | "\"net.fabricmc:yarn:1.21.1+build.3:v2\""            | ""                                                                                  | ""
 		"1.21.1"    | "net.neoforged:neoforge:21.1.233:userdev"          | "\"net.fabricmc:yarn:1.21.1+build.3:v2\""            | "it.mappings \"dev.architectury:yarn-mappings-patch-neoforge:1.21+build.4\""        | ""
 		"1.21.11"   | "net.minecraftforge:forge:1.21.11-61.1.0:userdev"  | "\"net.fabricmc:yarn:1.21.11+build.6:v2\""           | "it.mappings \"dev.architectury:yarn-mappings-patch-forge:1.21.9+build.6\""         | ""
