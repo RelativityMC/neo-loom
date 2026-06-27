@@ -109,6 +109,7 @@ public class NFRTMinecraftLibraryProvider extends MinecraftLibraryProvider {
 				.anyMatch(library -> FANCYML_LOADER_GROUP.equals(library.group()) && FANCYML_LOADER_NAME.equals(library.name()) && Version.parse(library.version()).compareTo(FANCYML_LOADER_UNPROTECT_BACKEND_VERSION) >= 0);
 
 		List<Library> libraries = this.forgeUserdevConfiguration.librariesNotations().stream()
+				.map(notation -> notation.endsWith("@jar") ? notation.substring(0, notation.length() - "@jar".length()) : notation)
 				.map(notation -> Library.fromMaven(notation, Library.Target.COMPILE))
 				.toList();
 		List<Library> processedLibraries = this.processLibraries(libraries);
