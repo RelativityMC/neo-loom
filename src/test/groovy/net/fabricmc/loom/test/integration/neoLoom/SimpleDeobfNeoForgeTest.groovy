@@ -38,6 +38,7 @@ class SimpleDeobfNeoForgeTest extends Specification implements GradleProjectTest
 	def "build"() {
 		setup:
 		def gradle = gradleProject(project: "minimalBaseNoRemap", version: PRE_RELEASE_GRADLE)
+		gradle.buildSrc("devServerTest")
 		gradle.buildGradle << """
 				repositories {
 					maven {
@@ -66,20 +67,85 @@ class SimpleDeobfNeoForgeTest extends Specification implements GradleProjectTest
 		"""
 		sourceFile.text = src
 
+		def neoforgeModsToml = new File(gradle.projectDir, "src/main/resources/META-INF/neoforge.mods.toml")
+		neoforgeModsToml.parentFile.mkdirs()
+		@Language("TOML") String neoforgeModsTomlSrc = """
+		modLoader="lowcodefml"
+		loaderVersion="*"
+		license="MIT"
+		[[mods]]
+		modId="testmod"
+		version="1.0.0"
+		displayName="testmod"
+		description='''
+		Example mod description.
+		'''
+
+		[[dependencies.testmod]]
+		modId="neoforge"
+		type="required"
+		versionRange="*"
+		ordering="NONE"
+		side="BOTH"
+
+		[[dependencies.testmod]]
+		modId="minecraft"
+		type="required"
+		versionRange="*"
+		ordering="NONE"
+		side="BOTH"
+		"""
+		neoforgeModsToml.text = neoforgeModsTomlSrc
+
+		def forgeModsToml = new File(gradle.projectDir, "src/main/resources/META-INF/forge.mods.toml")
+		forgeModsToml.parentFile.mkdirs()
+		@Language("TOML") String forgeModsTomlSrc = """
+		modLoader="lowcodefml"
+		loaderVersion="*"
+		license="MIT"
+
+		[[mods]]
+		modId="testmod"
+		version="1.0.0"
+		displayName="Test Mod"
+		description='''Example mod description.
+		Newline characters can be used like this, and rendered on the mods screen properly.'''
+
+		[[dependencies.testmod]]
+		modId="forge"
+		mandatory=true
+		versionRange="*"
+		ordering="NONE"
+		side="BOTH"
+
+		[[dependencies.testmod]]
+		modId="minecraft"
+		mandatory=true
+		versionRange="*"
+		ordering="NONE"
+		side="BOTH"
+		"""
+		forgeModsToml.text = forgeModsTomlSrc
+
 		when:
 		def result = gradle.run(tasks: [
 			"build",
 			"configureClientLaunch"
 		])
 
+		// custom stdio isn't supported in configuration cache: https://github.com/gradle/gradle/issues/33858
+		def resultRunServer = gradle.run(tasks: ["runServer"], configurationCache: false)
+
 		then:
 		result.task(":build").outcome == SUCCESS
 		result.task(":configureClientLaunch").outcome == SUCCESS
+		resultRunServer.task(":runServer").outcome == SUCCESS
 
 		where:
-		mcVersion              | forgeNotation
-		"1.21.11_unobfuscated" | "net.neoforged:neoforge:21.11.42:userdev"
-		"26.1.2"               | "net.neoforged:neoforge:26.1.2.67-beta:userdev"
-		"26.1.2"               | "net.minecraftforge:forge:26.1.2-64.0.8:userdev"
+		mcVersion  | forgeNotation
+		"26.1.2"   | "net.neoforged:neoforge:26.1.2.67-beta:userdev"
+		"26.1.2"   | "net.minecraftforge:forge:26.1.2-64.0.8:userdev"
+		"26.2"     | "net.neoforged:neoforge:26.2.0.7-beta:userdev"
+		"26.2"     | "net.minecraftforge:forge:26.2-65.0.1:userdev"
 	}
 }

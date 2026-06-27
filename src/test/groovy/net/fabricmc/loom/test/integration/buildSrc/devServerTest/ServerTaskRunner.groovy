@@ -53,10 +53,10 @@ class ServerTaskRunner {
 									isStopping = true
 
 									Thread.start {
-										delegatePrintStream.println("Stopping server in 5s")
+										delegatePrintStream.println("Stopping server in 1s")
 
 										try {
-											Thread.sleep(5000)
+											Thread.sleep(1000)
 										} catch (InterruptedException ignored) {
 										}
 
