@@ -38,7 +38,7 @@ pluginManagement {
 In your buildscript, using [Modern Yarn](https://github.com/RelativityMC/yarn):  
 ```gradle
 plugins {
-    id 'org.relativitymc.neo-loom-remap' version '1.16-SNAPSHOT'
+    id 'org.relativitymc.neo-loom-remap' version '1.17-SNAPSHOT'
 }
 
 repositories {
@@ -69,7 +69,7 @@ loom {
 In your buildscript, without any mappings:  
 ```gradle
 plugins {
-    id 'org.relativitymc.neo-loom' version '1.16-SNAPSHOT'
+    id 'org.relativitymc.neo-loom' version '1.17-SNAPSHOT'
 }
 
 dependencies {
