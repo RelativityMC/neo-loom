@@ -161,23 +161,23 @@ public class NFGeneratedMetaDependency {
 				}
 				case PROTECTED -> visitor.visitClass(AccessWidenerVisitor.AccessType.EXTENDABLE, true);
 				case PUBLIC -> visitor.visitClass(AccessWidenerVisitor.AccessType.ACCESSIBLE, true);
-				default -> project.getLogger().warn("At2Aw: {}: unimplemented class access for {}: {}", mavenNotation, className, classValue.get().getAccess());
+				default -> project.getLogger().info("At2Aw: {}: unimplemented class access for {}: {}", mavenNotation, className, classValue.get().getAccess());
 				}
 
 				switch (classValue.get().getFinal()) {
 				case NONE -> {
 				}
 				case REMOVE -> visitor.visitClass(AccessWidenerVisitor.AccessType.EXTENDABLE, true);
-				default -> project.getLogger().warn("At2Aw: {}: unimplemented class final for {}: {}", mavenNotation, className, classValue.get().getFinal());
+				default -> project.getLogger().info("At2Aw: {}: unimplemented class final for {}: {}", mavenNotation, className, classValue.get().getFinal());
 				}
 			}
 
 			if (!classValue.allFields().isEmpty()) {
-				project.getLogger().warn("At2Aw: {}: unimplemented wildcard field widener for {}", mavenNotation, className);
+				project.getLogger().info("At2Aw: {}: unimplemented wildcard field widener for {}", mavenNotation, className);
 			}
 
 			if (!classValue.allMethods().isEmpty()) {
-				project.getLogger().warn("At2Aw: {}: unimplemented wildcard method widener for {}", mavenNotation, className);
+				project.getLogger().info("At2Aw: {}: unimplemented wildcard method widener for {}", mavenNotation, className);
 			}
 
 			for (Map.Entry<String, AccessTransform> fieldEntry : classValue.getFields().entrySet()) {
@@ -185,7 +185,7 @@ public class NFGeneratedMetaDependency {
 				AccessTransform transform = fieldEntry.getValue();
 
 				// impossible without classpath, because AW requires descriptor
-				project.getLogger().warn("At2Aw: {}: unimplemented field widener for {} {} {}", mavenNotation, className, fieldName, transform);
+				project.getLogger().info("At2Aw: {}: unimplemented field widener for {} {} {}", mavenNotation, className, fieldName, transform);
 			}
 
 			for (Map.Entry<MethodSignature, AccessTransform> methodEntry : classValue.getMethods().entrySet()) {
@@ -198,14 +198,14 @@ public class NFGeneratedMetaDependency {
 					}
 					case PROTECTED -> visitor.visitMethod(methodSignature.getName(), methodSignature.getDescriptor().toString(), AccessWidenerVisitor.AccessType.EXTENDABLE, true);
 					case PUBLIC -> visitor.visitMethod(methodSignature.getName(), methodSignature.getDescriptor().toString(), AccessWidenerVisitor.AccessType.ACCESSIBLE, true);
-					default -> project.getLogger().warn("At2Aw: {}: unimplemented method access for {} {}: {}", mavenNotation, className, methodSignature, transform.getAccess());
+					default -> project.getLogger().info("At2Aw: {}: unimplemented method access for {} {}: {}", mavenNotation, className, methodSignature, transform.getAccess());
 					}
 
 					switch (transform.getFinal()) {
 					case NONE -> {
 					}
 					case REMOVE -> visitor.visitMethod(methodSignature.getName(), methodSignature.getDescriptor().toString(), AccessWidenerVisitor.AccessType.EXTENDABLE, true);
-					default -> project.getLogger().warn("At2Aw: {}: unimplemented method final for {} {}: {}", mavenNotation, className, methodSignature, transform.getFinal());
+					default -> project.getLogger().info("At2Aw: {}: unimplemented method final for {} {}: {}", mavenNotation, className, methodSignature, transform.getFinal());
 					}
 				}
 			}
