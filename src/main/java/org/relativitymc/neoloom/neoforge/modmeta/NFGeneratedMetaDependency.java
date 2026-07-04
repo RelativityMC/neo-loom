@@ -116,7 +116,7 @@ public class NFGeneratedMetaDependency {
 
 				for (JsonElement element : elements) {
 					String iface = element.getAsString();
-					classTweaker.visitInjectedInterface(className, iface, true);
+					classTweaker.visitInjectedInterface(className, NeoForgeInterfaceInjectionUtils.neoForge2ClassTweaker(iface), true);
 					hasInjections = true;
 				}
 			}

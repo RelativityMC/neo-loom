@@ -197,7 +197,10 @@ spotless {
 	java {
 		licenseHeaderFile(rootProject.file("HEADER")).yearSeparator("-")
 		targetExclude("**/loom/util/DownloadUtil.java")
-		targetExclude("**/dev/architectury/at/**")
+		targetExclude(
+				"**/dev/architectury/at/**",
+				"**/org/relativitymc/neoloom/neoforge/modmeta/NeoForgeInterfaceInjectionUtils.java"
+				)
 	}
 
 	groovy {
