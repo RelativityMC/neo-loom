@@ -5,7 +5,7 @@ A fork of Fabric Loom that supports the NeoForge and MinecraftForge modding tool
 Feel free to reach out on [our Discord server](https://discord.relativitymc.org/).
 
 ## Currently implemented
-- 1.21.1+
+- NeoForge and MinecraftForge 1.21+
 - Jar-in-Jar
 - ClassTweaker / AccessWidener -> AccessTransformer conversion
 - Devlaunch
@@ -35,50 +35,101 @@ pluginManagement {
 }
 ```
 
+### Using NeoForge 26.1+
+
 In your buildscript, using [Modern Yarn](https://github.com/RelativityMC/yarn):  
 ```gradle
 plugins {
-    id 'org.relativitymc.neo-loom-remap' version '1.17-SNAPSHOT'
+	id 'org.relativitymc.neo-loom-remap' version '1.17-SNAPSHOT'
 }
 
 repositories {
-    maven {
-        url = "https://repo.codemc.io/repository/relativitymc/"
-    }
+	maven {
+		url = "https://repo.codemc.io/repository/relativitymc/"
+	}
 }
 
 dependencies {
-    minecraft "com.mojang:minecraft:${project.minecraft_version}"
+	minecraft "com.mojang:minecraft:${project.minecraft_version}"
 	forgeUserdev "net.neoforged:neoforge:${project.neoforge_version}:userdev"
-    mappings loom.layered {
+	mappings loom.layered {
 		it.mappings "org.relativitymc:modern-yarn:${project.yarn_mappings}:v2"
 		it.mappings "org.relativitymc:modern-yarn-mappings-patch-neoforge:26.1+build.1"
 	}
 }
 
 remapJar {
-    atAccessWideners.add("modid.accesswidener")
+	atAccessWideners.add("modid.accesswidener")
 }
 
 loom {
-    useIntermediateMappings = true
-    intermediaryUrl = 'https://repo.codemc.io/repository/relativitymc/org/relativitymc/intermediary/%1$s/intermediary-%1$s-v2.jar'
+	useIntermediateMappings = true
+	intermediaryUrl = 'https://repo.codemc.io/repository/relativitymc/org/relativitymc/intermediary/%1$s/intermediary-%1$s-v2.jar'
 }
 ```
 
 In your buildscript, without any mappings:  
 ```gradle
 plugins {
-    id 'org.relativitymc.neo-loom' version '1.17-SNAPSHOT'
+	id 'org.relativitymc.neo-loom' version '1.17-SNAPSHOT'
 }
 
 dependencies {
-    minecraft "com.mojang:minecraft:${project.minecraft_version}"
+	minecraft "com.mojang:minecraft:${project.minecraft_version}"
 	forgeUserdev "net.neoforged:neoforge:${project.neoforge_version}:userdev"
 }
 
 loom.convertAw2At(tasks.named("jar"), ["modid.accesswidener"])
 ```
+
+### Using NeoForge 1.21.x
+
+In your buildscript:
+```gradle
+plugins {
+	id 'org.relativitymc.neo-loom-remap' version '1.17-SNAPSHOT'
+}
+
+dependencies {
+	minecraft "com.mojang:minecraft:${project.minecraft_version}"
+	forgeUserdev "net.neoforged:neoforge:${project.neoforge_version}:userdev"
+	mappings loom.layered {
+		it.mappings "net.fabricmc:yarn:${project.yarn_mappings}:v2"
+		it.mappings "dev.architectury:yarn-mappings-patch-neoforge:1.21+build.4"
+	}
+	// or mappings loom.officialMojangMappings()
+}
+
+remapJar {
+	atAccessWideners.add("modid.accesswidener")
+}
+```
+
+### Using MinecraftForge 1.21+
+
+Add the MinecraftForge repository:
+```
+repositories {
+	maven {
+		url = "https://maven.minecraftforge.net/"
+	}
+}
+```
+
+And declare dependencies:
+```
+dependencies {
+	// ...
+	forgeUserdev "net.minecraftforge:forge:${project.neoforge_version}:userdev"
+}
+```
+
+And please refer to NeoForge 26.1+ and 1.21.x setup above.  
+And use `org.relativitymc:modern-yarn-mappings-patch-forge:26.1+build.2` for using Modern Yarn on 26.1+. 
+
+Use `loom.forgeExtraMixinConfigs.add(...)` to add mixin configurations to the manifest automatically.  
+
+### Run configurations
 
 Full NeoForge run configs:
 ```
