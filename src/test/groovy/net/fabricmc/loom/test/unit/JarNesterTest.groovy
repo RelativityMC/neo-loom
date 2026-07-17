@@ -103,7 +103,7 @@ class JarNesterTest extends Specification {
 		}
 
 		when:
-		JarNester.nestJars(nested, target.toFile())
+		JarNester.nestJars(nested, target.toFile(), ModPlatform.FABRIC)
 
 		then:
 		readFmj(target).getAsJsonArray("jars").size() == 50
