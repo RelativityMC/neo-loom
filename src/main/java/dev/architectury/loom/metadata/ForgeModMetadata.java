@@ -79,7 +79,7 @@ public final class ForgeModMetadata implements ModMetadata {
 		try {
 			parsed = new TomlParser().parse(new ByteArrayInputStream(bytes));
 		} catch (ParsingException e) {
-			LOGGER.error("Failed to parse forge mod config for platform {}", platform, e);
+			LOGGER.info("Failed to parse forge mod config for platform {}", platform, e);
 			parsed = CommentedConfig.of(TomlFormat.instance());
 		}
 
