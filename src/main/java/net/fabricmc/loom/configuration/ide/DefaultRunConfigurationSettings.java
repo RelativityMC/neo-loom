@@ -94,7 +94,7 @@ public class DefaultRunConfigurationSettings {
 		LibraryContext context = new LibraryContext(extension.getMinecraftProvider().getVersionInfo(), JavaVersion.current());
 		MinecraftVersionMeta.JavaVersion javaVersion = extension.getMinecraftProvider().getVersionInfo().javaVersion();
 
-		String environment = run.getRuntimeEnvironment().get().toLowerCase(Locale.ROOT);
+		String environment = run.getRuntimeEnvironment().get();
 
 		run.getJvmArguments().add("-Dfabric.dli.config=" + encodeEscaped(extension.getFiles().getDevLauncherConfig().getAbsolutePath()));
 		run.getJvmArguments().add("-Dfabric.dli.env=" + NameUtil.mangleLaunchEnvName(environment));
@@ -146,7 +146,7 @@ public class DefaultRunConfigurationSettings {
 	}
 
 	private static boolean isClientRunConfiguration(RunConfiguration run, LoomGradleExtension extension) {
-		String environment = run.getRuntimeEnvironment().get().toLowerCase(Locale.ROOT);
+		String environment = run.getRuntimeEnvironment().get();
 		boolean isClient;
 
 		if (run.getUseForgeRunTemplates().get() && extension.getMinecraftProvider() instanceof NFRTMinecraftProvider provider) {
