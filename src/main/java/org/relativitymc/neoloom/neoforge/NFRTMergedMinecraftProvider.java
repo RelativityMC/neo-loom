@@ -131,7 +131,7 @@ public class NFRTMergedMinecraftProvider extends MinecraftProvider implements NF
 				settings.args("--work-dir", getProject().getLayout().getBuildDirectory().dir("tmp/neoformruntime").get().getAsFile().getAbsolutePath());
 				// settings.args("--java-executable", JavaExecutableFetcher.getJavaToolchainExecutable(getProject(), 21).get()); // was for https://github.com/neoforged/NeoForge/issues/2956
 
-				settings.args("--disable-cache");
+				// settings.args("--disable-cache"); // was blocked on https://github.com/neoforged/NeoFormRuntime/pull/119
 
 				settings.args("--artifact-manifest", artifactManifestFile.getAbsolutePath());
 				settings.args("--warn-on-artifact-manifest-miss");

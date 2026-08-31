@@ -208,7 +208,7 @@ public class Constants {
 	}
 
 	public static final class NeoForge {
-		public static final String DEFAULT_NFRT_VERSION = "2.0.18";
+		public static final String DEFAULT_NFRT_VERSION = "2.0.26";
 		public static final String ACCESS_TRANSFORMER_PATH = "META-INF/accesstransformer.cfg";
 		public static final String MIXIN_CONFIGS_MANIFEST_KEY = "MixinConfigs";
 		public static final String AT_CATEGORY = "accesstransformer";
