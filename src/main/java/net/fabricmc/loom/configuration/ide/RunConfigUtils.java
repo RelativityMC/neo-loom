@@ -45,6 +45,8 @@ import net.fabricmc.loom.configuration.InstallerData;
 import net.fabricmc.loom.util.Constants;
 import net.fabricmc.loom.util.gradle.GradleUtils;
 
+import org.relativitymc.neoloom.neoforge.NFRTMinecraftProvider;
+
 public class RunConfigUtils {
 	private static final Logger LOGGER = LoggerFactory.getLogger(RunConfigUtils.class);
 
@@ -59,7 +61,15 @@ public class RunConfigUtils {
 	}
 
 	@Nullable
-	public static String getMainClass(String side, LoomGradleExtension extension) {
+	public static String getMainClass(String side, LoomGradleExtension extension, boolean useForgeRunTemplates) {
+		if (extension.getMinecraftProvider() instanceof NFRTMinecraftProvider provider) {
+			if (useForgeRunTemplates) {
+				return provider.getLaunchConfigurationOrThrow(side).main();
+			} else {
+				return null;
+			}
+		}
+
 		InstallerData installerData = extension.getInstallerData();
 
 		if (installerData == null) {

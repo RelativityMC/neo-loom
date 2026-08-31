@@ -1,3 +1,193 @@
+# Neo Loom
+
+A fork of Fabric Loom that supports the NeoForge and MinecraftForge modding toolchain. Heavily based on Architectury Loom. 
+
+Feel free to reach out on [our Discord server](https://discord.relativitymc.org/).
+
+## Currently implemented
+- NeoForge and MinecraftForge 1.21+
+- Jar-in-Jar
+- ClassTweaker / AccessWidener -> AccessTransformer conversion
+- Devlaunch
+- Publishing and consuming MDG-compatible Access Transformer and Interface Injection
+
+## Current to-dos
+- JUnit
+- Production launch tasks
+- split-sources, client-only, server-only setups for (Neo)Forge
+
+## Using Neo Loom
+
+Add this to `settings.gradle`:  
+```gradle
+pluginManagement {
+	repositories {
+		maven {
+			name = 'Fabric'
+			url = 'https://maven.fabricmc.net/'
+		}
+		maven {
+			name = 'RelativityMC'
+			url = 'https://repo.codemc.io/repository/relativitymc/'
+		}
+		gradlePluginPortal()
+	}
+}
+```
+
+### Using NeoForge 26.1+
+
+In your buildscript, using [Modern Yarn](https://github.com/RelativityMC/yarn):  
+```gradle
+plugins {
+	id 'org.relativitymc.neo-loom-remap' version '1.17-SNAPSHOT'
+}
+
+repositories {
+	maven {
+		url = "https://repo.codemc.io/repository/relativitymc/"
+	}
+}
+
+dependencies {
+	minecraft "com.mojang:minecraft:${project.minecraft_version}"
+	forgeUserdev "net.neoforged:neoforge:${project.neoforge_version}:userdev"
+	mappings loom.layered {
+		it.mappings "org.relativitymc:modern-yarn:${project.yarn_mappings}:v2"
+		it.mappings "org.relativitymc:modern-yarn-mappings-patch-neoforge:26.1+build.1"
+	}
+}
+
+remapJar {
+	atAccessWideners.add("modid.accesswidener")
+}
+
+loom {
+	useIntermediateMappings = true
+	intermediaryUrl = 'https://repo.codemc.io/repository/relativitymc/org/relativitymc/intermediary/%1$s/intermediary-%1$s-v2.jar'
+}
+```
+
+In your buildscript, without any mappings:  
+```gradle
+plugins {
+	id 'org.relativitymc.neo-loom' version '1.17-SNAPSHOT'
+}
+
+dependencies {
+	minecraft "com.mojang:minecraft:${project.minecraft_version}"
+	forgeUserdev "net.neoforged:neoforge:${project.neoforge_version}:userdev"
+}
+
+loom.convertAw2At(tasks.named("jar"), ["modid.accesswidener"])
+```
+
+### Using NeoForge 1.21.x
+
+In your buildscript:
+```gradle
+plugins {
+	id 'org.relativitymc.neo-loom-remap' version '1.17-SNAPSHOT'
+}
+
+dependencies {
+	minecraft "com.mojang:minecraft:${project.minecraft_version}"
+	forgeUserdev "net.neoforged:neoforge:${project.neoforge_version}:userdev"
+	mappings loom.layered {
+		it.mappings "net.fabricmc:yarn:${project.yarn_mappings}:v2"
+		it.mappings "dev.architectury:yarn-mappings-patch-neoforge:1.21+build.4"
+	}
+	// or mappings loom.officialMojangMappings()
+}
+
+remapJar {
+	atAccessWideners.add("modid.accesswidener")
+}
+```
+
+### Using MinecraftForge 1.21+
+
+Add the MinecraftForge repository:
+```
+repositories {
+	maven {
+		url = "https://maven.minecraftforge.net/"
+	}
+}
+```
+
+And declare dependencies:
+```
+dependencies {
+	// ...
+	forgeUserdev "net.minecraftforge:forge:${project.neoforge_version}:userdev"
+}
+```
+
+And please refer to NeoForge 26.1+ and 1.21.x setup above.  
+And use `org.relativitymc:modern-yarn-mappings-patch-forge:26.1+build.2` for using Modern Yarn on 26.1+. 
+
+Use `loom.forgeExtraMixinConfigs.add(...)` to add mixin configurations to the manifest automatically.  
+
+### Run configurations
+
+Full NeoForge run configs:
+```
+loom {
+	runs {
+		serverData {
+			environment("serverData")
+		}
+		clientData {
+			environment("clientData")
+		}
+		gameTestServer {
+			environment("gameTestServer")
+		}
+	}
+}
+```
+
+Full MinecraftForge run configs:
+```
+loom {
+	runs {
+		data {
+			environment("data")
+		}
+		clientData {
+			environment("clientData")
+		}
+		gameTestServer {
+			environment("gameTestServer")
+		}
+	}
+}
+```
+
+## Using published Access Transformer and Interface Injection
+
+Neo Loom supports consuming access transformers and interface injections published by ModDevGradle:  
+```
+dependencies {
+	neoForgeAccessTransformers "group:artifact:ver"
+	neoForgeInterfaceInjections "group:artifact:ver"
+}
+```
+
+It also supports publishing access transformers and interface injections for use in ModDevGradle:
+```
+loom.publishTransitiveCTNeoForge(files("src/main/resources/modid.accesswidener"))
+```
+
+## Migration
+
+### From Neo Loom 1.15
+- `neoForge` dependency have been replaced with `forgeUserdev`
+- `client()` and `server()` is no longer required in run config settings for forge configs
+
+# Original README below
+
 # Fabric Loom
 
 A [Gradle](https://gradle.org/) plugin to setup a deobfuscated development environment for Minecraft mods. Primarily used in the Fabric toolchain.

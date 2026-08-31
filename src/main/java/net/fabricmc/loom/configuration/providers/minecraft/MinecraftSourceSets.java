@@ -49,7 +49,7 @@ public abstract sealed class MinecraftSourceSets permits MinecraftSourceSets.Sin
 
 	public abstract String getSourceSetForEnv(String env);
 
-	protected abstract List<ConfigurationName> getConfigurations();
+	public abstract List<ConfigurationName> getConfigurations();
 
 	public void evaluateSplit(Project project) {
 		final LoomGradleExtension extension = LoomGradleExtension.get(project);
@@ -111,7 +111,7 @@ public abstract sealed class MinecraftSourceSets permits MinecraftSourceSets.Sin
 		}
 
 		@Override
-		protected List<ConfigurationName> getConfigurations() {
+		public List<ConfigurationName> getConfigurations() {
 			return List.of(MINECRAFT_NAMED);
 		}
 
@@ -165,7 +165,7 @@ public abstract sealed class MinecraftSourceSets permits MinecraftSourceSets.Sin
 		}
 
 		@Override
-		protected List<ConfigurationName> getConfigurations() {
+		public List<ConfigurationName> getConfigurations() {
 			return List.of(MINECRAFT_COMMON_NAMED, MINECRAFT_CLIENT_ONLY_NAMED);
 		}
 
@@ -248,12 +248,12 @@ public abstract sealed class MinecraftSourceSets permits MinecraftSourceSets.Sin
 		}
 	}
 
-	private record ConfigurationName(String baseName, String mcLibsCompileName, String mcLibsRuntimeName) {
-		private String runtime() {
+	public record ConfigurationName(String baseName, String mcLibsCompileName, String mcLibsRuntimeName) {
+		public String runtime() {
 			return baseName + "Runtime";
 		}
 
-		private String compile() {
+		public String compile() {
 			return baseName + "Compile";
 		}
 	}

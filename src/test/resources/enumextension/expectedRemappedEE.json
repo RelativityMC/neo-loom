@@ -1,0 +1,13 @@
+{
+  "entries": [
+    {
+      "enum": "net/minecraft/world/item/ItemDisplayContext",
+      "name": "EXAMPLEMOD_STANDING",
+      "constructor": "(ILjava/lang/String;)V",
+      "parameters": [
+        -1,
+        "examplemod:standing"
+      ]
+    }
+  ]
+}

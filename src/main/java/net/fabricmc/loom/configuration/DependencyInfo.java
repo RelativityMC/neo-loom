@@ -48,18 +48,26 @@ public class DependencyInfo {
 		return create(project, project.getConfigurations().getByName(configuration));
 	}
 
+	public static Optional<DependencyInfo> createOptional(Project project, String configuration) {
+		return createOptional(project, project.getConfigurations().getByName(configuration));
+	}
+
 	public static DependencyInfo create(Project project, Configuration configuration) {
+		return createOptional(project, configuration).orElseThrow(() -> new IllegalArgumentException(String.format("Configuration '%s' has no dependencies", configuration.getName())));
+	}
+
+	public static Optional<DependencyInfo> createOptional(Project project, Configuration configuration) {
 		DependencySet dependencies = configuration.getDependencies();
 
 		if (dependencies.isEmpty()) {
-			throw new IllegalArgumentException(String.format("Configuration '%s' has no dependencies", configuration.getName()));
+			return Optional.empty();
 		}
 
 		if (dependencies.size() != 1) {
 			throw new IllegalArgumentException(String.format("Configuration '%s' must only have 1 dependency", configuration.getName()));
 		}
 
-		return create(project, dependencies.iterator().next(), configuration);
+		return Optional.of(create(project, dependencies.iterator().next(), configuration));
 	}
 
 	public static DependencyInfo create(Project project, Dependency dependency, Configuration sourceConfiguration) {

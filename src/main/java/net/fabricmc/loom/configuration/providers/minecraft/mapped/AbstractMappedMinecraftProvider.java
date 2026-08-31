@@ -203,7 +203,7 @@ public abstract class AbstractMappedMinecraftProvider<M extends MinecraftProvide
 			sj.add(getTargetNamespace().name());
 		}
 
-		return sj.toString().toLowerCase(Locale.ROOT);
+		return minecraftProvider.getJarPrefix() + sj.toString().toLowerCase(Locale.ROOT);
 	}
 
 	protected String getVersion() {

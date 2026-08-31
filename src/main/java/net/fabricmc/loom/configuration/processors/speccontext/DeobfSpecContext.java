@@ -70,8 +70,9 @@ public record DeobfSpecContext(List<FabricModJson> modDependencies,
 		FileCollection mainCompileClasspath = projectView.getDependencies(DebofConfiguration.COMPILE, DebofConfiguration.TargetSourceSet.MAIN);
 
 		// All mods in both [runtimeClasspath, compileClasspath]
-		List<FabricModJson> mainRuntimeMods = getModsFromConfiguration(mainRuntimeClasspath, fmjCache);
-		List<FabricModJson> mainCompileMods = getModsFromConfiguration(mainCompileClasspath, fmjCache);
+		List<FabricModJson> extraTransformingMods = projectView.getExtraTransformingMods();
+		List<FabricModJson> mainRuntimeMods = SpecContext.distinctSorted(Stream.concat(getModsFromConfiguration(mainRuntimeClasspath, fmjCache).stream(), extraTransformingMods.stream()).toList());
+		List<FabricModJson> mainCompileMods = SpecContext.distinctSorted(Stream.concat(getModsFromConfiguration(mainCompileClasspath, fmjCache).stream(), extraTransformingMods.stream()).toList());
 
 		Set<String> mainRuntimeModIds = toModIdSet(mainRuntimeMods);
 		Set<String> mainCompileModIds = toModIdSet(mainCompileMods);

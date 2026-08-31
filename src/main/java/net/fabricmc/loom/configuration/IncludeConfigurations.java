@@ -95,6 +95,7 @@ public final class IncludeConfigurations {
 			task.from(internalConfiguration.get());
 			task.getOutputDirectory().set(project.getLayout().getBuildDirectory().dir(task.getName()));
 			task.getUncompressNestedJars().set(extension.getUncompressNestedJars());
+			task.getModPlatform().set(extension.getMinecraftProvider().getModPlatform());
 		});
 	}
 

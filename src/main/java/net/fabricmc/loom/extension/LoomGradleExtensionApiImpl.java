@@ -78,11 +78,15 @@ import net.fabricmc.loom.configuration.providers.minecraft.MinecraftSourceSets;
 import net.fabricmc.loom.task.GenerateSourcesTask;
 import net.fabricmc.loom.task.NestJarsAction;
 import net.fabricmc.loom.task.RemapJarTask;
+import net.fabricmc.loom.task.Aw2AtAction;
 import net.fabricmc.loom.util.DeprecationHelper;
 import net.fabricmc.loom.util.MirrorUtil;
 import net.fabricmc.loom.util.fmj.FabricModJson;
 import net.fabricmc.loom.util.fmj.FabricModJsonHelpers;
 import net.fabricmc.loom.util.gradle.SourceSetHelper;
+
+import org.relativitymc.neoloom.neoforge.NFRTMergedMinecraftProvider;
+import org.relativitymc.neoloom.neoforge.task.GenerateNeoForgePublishingDataTask;
 
 /**
  * This class implements the public extension api.
@@ -112,6 +116,8 @@ public abstract class LoomGradleExtensionApiImpl implements LoomGradleExtensionA
 	private final Property<MinecraftJarConfiguration<?, ?, ?>> minecraftJarConfiguration;
 	private final Property<Boolean> splitEnvironmentalSourceSet;
 	private final InterfaceInjectionExtensionAPI interfaceInjectionExtension;
+
+	private final ListProperty<String> forgeExtraMixinConfigs;
 
 	private final NamedDomainObjectContainer<RunConfigSettings> runConfigs;
 	private final NamedDomainObjectContainer<DecompilerOptions> decompilers;
@@ -152,17 +158,36 @@ public abstract class LoomGradleExtensionApiImpl implements LoomGradleExtensionA
 		this.intermediary = project.getObjects().property(String.class)
 				.convention(DEFAULT_INTERMEDIARY_URL);
 		this.productionNamespace = project.getObjects().property(String.class);
-		this.productionNamespace.convention(project.provider(() -> LoomGradleExtension.get(project).getMetadataProvider().isUnobfuscated() ? MappingsNamespace.OFFICIAL.toString() : MappingsNamespace.INTERMEDIARY.toString()));
+		this.productionNamespace.convention(project.provider(() -> {
+			LoomGradleExtension extension = LoomGradleExtension.get(project);
+
+			if (extension.getMinecraftProvider() instanceof NFRTMergedMinecraftProvider provider) {
+				return provider.getCapabilities().productionNamespace.toString();
+			}
+
+			return extension.getMetadataProvider().isUnobfuscated() ? MappingsNamespace.OFFICIAL.toString() : MappingsNamespace.INTERMEDIARY.toString();
+		}));
 		this.productionNamespace.finalizeValueOnRead();
 		this.useIntermediateMappings = project.getObjects().property(Boolean.class);
 		this.useIntermediateMappings.convention(project.provider(() -> !LoomGradleExtension.get(project).getMetadataProvider().isUnobfuscated()));
 		this.useIntermediateMappings.finalizeValueOnRead();
 		this.defaultMixinRemapType = project.getObjects().property(String.class);
-		this.defaultMixinRemapType.convention(project.provider(() -> LoomGradleExtension.get(project).getMetadataProvider().isUnobfuscated() ? ArtifactMetadata.MixinRemapType.STATIC.name() : ArtifactMetadata.MixinRemapType.MIXIN.name()));
+		this.defaultMixinRemapType.convention(project.provider(() -> {
+			LoomGradleExtension extension = LoomGradleExtension.get(project);
+
+			if (extension.getMinecraftProvider() instanceof NFRTMergedMinecraftProvider) {
+				return ArtifactMetadata.MixinRemapType.STATIC.name();
+			}
+
+			return extension.getMetadataProvider().isUnobfuscated() ? ArtifactMetadata.MixinRemapType.STATIC.name() : ArtifactMetadata.MixinRemapType.MIXIN.name();
+		}));
 		this.defaultMixinRemapType.finalizeValueOnRead();
 
 		this.intermediateMappingsProvider = project.getObjects().property(IntermediateMappingsProvider.class);
 		this.intermediateMappingsProvider.finalizeValueOnRead();
+
+		this.forgeExtraMixinConfigs = project.getObjects().listProperty(String.class);
+		this.forgeExtraMixinConfigs.finalizeValueOnRead();
 
 		this.deprecationHelper = new DeprecationHelper.ProjectBased(project);
 
@@ -183,7 +208,9 @@ public abstract class LoomGradleExtensionApiImpl implements LoomGradleExtensionA
 
 					// if no configuration is selected by the user, attempt to select one
 					// based on the mc version and which sides are present for it
-					if (!metadataProvider.getVersionMeta().hasServer()) {
+					if (metadataProvider.getForgeUserdevDependency() != null) {
+						return MinecraftJarConfiguration.NEOFORGE_MERGED;
+					} else if (!metadataProvider.getVersionMeta().hasServer()) {
 						return MinecraftJarConfiguration.CLIENT_ONLY;
 					} else if (!metadataProvider.getVersionMeta().hasClient()) {
 						return MinecraftJarConfiguration.SERVER_ONLY;
@@ -591,6 +618,29 @@ public abstract class LoomGradleExtensionApiImpl implements LoomGradleExtensionA
 	@Override
 	public void nestJars(TaskProvider<? extends Jar> jarTask, NamedDomainObjectProvider<? extends Configuration> configuration) {
 		IncludeConfigurations.nestJars(getProject(), jarTask, configuration);
+	}
+
+	@Override
+	public void convertAw2At(TaskProvider<? extends Jar> jarTask, List<String> atAccessWideners) {
+		jarTask.configure(task -> {
+			if (task instanceof RemapJarTask remapJarTask) {
+				// For RemapJarTask, add to the atAccwssWideners property
+				remapJarTask.getAtAccessWideners().addAll(atAccessWideners);
+			} else {
+				// For regular Jar tasks (non-remap mode), add an Aw2AtAction
+				Aw2AtAction.addToTask(task, atAccessWideners);
+			}
+		});
+	}
+
+	@Override
+	public void publishTransitiveCTNeoForge(ConfigurableFileCollection classTweakers) {
+		GenerateNeoForgePublishingDataTask.setup(getProject(), classTweakers);
+	}
+
+	@Override
+	public ListProperty<String> getForgeExtraMixinConfigs() {
+		return forgeExtraMixinConfigs;
 	}
 
 	private boolean notObfuscated() {
