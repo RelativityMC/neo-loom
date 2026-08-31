@@ -118,6 +118,9 @@ public class DefaultRunConfigurationSettings {
 		}
 
 		if (isClient) {
+			// Required since 26.3-snapshot-10
+			run.getJvmArguments().add("-XX:StackShadowPages=32");
+
 			if (context.usesLWJGL3() && Platform.CURRENT.getOperatingSystem().isMacOS()) {
 				run.getJvmArguments().add("-XstartOnFirstThread");
 			}
