@@ -9,7 +9,7 @@ pipeline {
         }
         stage('Build') {
             tools {
-                jdk "OpenJDK 21"
+                jdk "OpenJDK 25"
             }
             environment {
                 MAVEN_URL = "https://repo.codemc.io/repository/relativitymc/"
