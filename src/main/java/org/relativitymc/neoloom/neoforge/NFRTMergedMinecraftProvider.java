@@ -38,6 +38,7 @@ import org.gradle.api.GradleException;
 import org.gradle.api.artifacts.ExternalModuleDependency;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.provider.Provider;
+import org.gradle.internal.jvm.Jvm;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 
@@ -119,7 +120,14 @@ public class NFRTMergedMinecraftProvider extends MinecraftProvider implements NF
 				Provider<String> javaToolchainExecutable;
 
 				if (javaVersion != null) {
-					javaToolchainExecutable = JavaExecutableFetcher.getJavaToolchainExecutable(getProject(), Math.max(javaVersion.majorVersion(), 21));
+					Integer currentMajor = Jvm.current().getJavaVersionMajor();
+
+					if (currentMajor == null) {
+						getProject().getLogger().warn("org.gradle.internal.jvm.Jvm.current().getJavaVersionMajor() returned null, assuming current version to be {}", javaVersion.majorVersion());
+						currentMajor = javaVersion.majorVersion();
+					}
+
+					javaToolchainExecutable = JavaExecutableFetcher.getJavaToolchainExecutable(getProject(), Math.max(javaVersion.majorVersion(), currentMajor));
 				} else {
 					javaToolchainExecutable = JavaExecutableFetcher.getJavaToolchainExecutable(getProject());
 				}
