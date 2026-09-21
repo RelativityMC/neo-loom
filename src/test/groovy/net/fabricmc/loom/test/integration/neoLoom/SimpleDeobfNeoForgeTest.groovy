@@ -143,9 +143,11 @@ class SimpleDeobfNeoForgeTest extends Specification implements GradleProjectTest
 
 		where:
 		mcVersion  | forgeNotation
-		"26.1.2"   | "net.neoforged:neoforge:26.1.2.67-beta:userdev"
-		"26.1.2"   | "net.minecraftforge:forge:26.1.2-64.0.8:userdev"
-		"26.2"     | "net.neoforged:neoforge:26.2.0.7-beta:userdev"
-		"26.2"     | "net.minecraftforge:forge:26.2-65.0.1:userdev"
+		"26.1.2"   | "net.neoforged:neoforge:26.1.2.109:userdev"
+		"26.1.2"   | "net.minecraftforge:forge:26.1.2-64.1.3:userdev"
+		"26.2"     | "net.neoforged:neoforge:26.2.0.88:userdev"
+		"26.2"     | "net.minecraftforge:forge:26.2-65.1.3:userdev"
+		"26.3"     | "net.neoforged:neoforge:26.3.0.7-beta:userdev"
+		"26.3"     | "net.minecraftforge:forge:26.3-66.0.2:userdev"
 	}
 }
