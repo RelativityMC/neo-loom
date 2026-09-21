@@ -24,15 +24,10 @@
 
 package dev.architectury.loom.accesstransformer;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-
 import org.cadixdev.bombe.type.signature.MethodSignature;
 import org.jetbrains.annotations.VisibleForTesting;
 
-import net.fabricmc.classtweaker.api.ClassTweakerReader;
 import net.fabricmc.classtweaker.api.visitor.AccessWidenerVisitor;
-import net.fabricmc.classtweaker.api.visitor.ClassTweakerVisitor;
 
 import dev.architectury.at.AccessChange;
 import dev.architectury.at.AccessTransform;
@@ -43,25 +38,6 @@ import dev.architectury.at.ModifierChange;
  * Converts AW files to AT files.
  */
 public final class Aw2At {
-	/**
-	 * Converts an access widener file to an access transform set.
-	 *
-	 * @param reader the reader that is used to read the AW
-	 * @return the access transform set
-	 */
-	public static AccessTransformSet toAccessTransformSet(BufferedReader reader) throws IOException {
-		AccessTransformSet atSet = AccessTransformSet.create();
-
-		ClassTweakerReader.create(new ClassTweakerVisitor() {
-			@Override
-			public AccessWidenerVisitor visitAccessWidener(String owner) {
-				return createAccessWidenerVisitor(atSet, owner, false);
-			}
-		}).read(reader);
-
-		return atSet;
-	}
-
 	public static AccessWidenerVisitor createAccessWidenerVisitor(AccessTransformSet atSet, String owner, boolean transitiveOnly) {
 		return new AccessWidenerVisitor() {
 			@Override

@@ -9,6 +9,7 @@ public class ExampleMod {
 		net.minecraft.resources.Identifier identifier = net.minecraft.resources.Identifier.createUntrusted("a", "b");
 		identifier.example$someDefaultMethod(); // interface injection
 		((net.fabricmc.example.ExampleInterface) identifier).example$someMethod(); // removed final
-		// int a = net.minecraft.util.math.BlockPos.BIT_SHIFT_X; // TODO not implemented
+		int a = net.minecraft.core.BlockPos.X_OFFSET; // accessible
+		net.minecraft.SharedConstants.CRASH_EAGERLY = true; // mutable
 	}
 }

@@ -9,6 +9,7 @@ public class ExampleMod {
 		net.minecraft.util.Identifier identifier = net.minecraft.util.Identifier.ofValidated("a", "b");
 		identifier.example$someDefaultMethod(); // interface injection
 		((net.fabricmc.example.ExampleInterface) identifier).example$someMethod(); // removed final
-		// int a = net.minecraft.util.math.BlockPos.BIT_SHIFT_X; // TODO not implemented
+		int a = net.minecraft.util.math.BlockPos.BIT_SHIFT_X; // accessible
+		net.minecraft.SharedConstants.CRASH_ON_UNCAUGHT_THREAD_EXCEPTION = true; // mutable
 	}
 }

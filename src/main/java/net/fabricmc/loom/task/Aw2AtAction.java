@@ -92,7 +92,7 @@ public abstract class Aw2AtAction implements Action<Task>, Serializable {
 
 			if (!atAccessWideners.isEmpty()) {
 				try {
-					ModBuildExtensions.convertAwToAt(atAccessWideners, jarFile.toPath(), null, null);
+					ModBuildExtensions.convertAwToAt(atAccessWideners, jarFile.toPath(), null, null, null);
 				} catch (IOException e) {
 					throw new RuntimeException(e);
 				}

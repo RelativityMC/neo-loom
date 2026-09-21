@@ -32,7 +32,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 import javax.inject.Inject;
 
@@ -46,7 +45,6 @@ import org.gradle.api.component.AdhocComponentWithVariants;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.provider.Property;
-import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.Optional;
@@ -59,16 +57,15 @@ import org.gradle.work.DisableCachingByDefault;
 import net.fabricmc.classtweaker.api.ClassTweakerReader;
 import net.fabricmc.classtweaker.api.visitor.AccessWidenerVisitor;
 import net.fabricmc.classtweaker.api.visitor.ClassTweakerVisitor;
+import net.fabricmc.classtweaker.visitors.ClassTweakerRemapperVisitor;
 import net.fabricmc.loom.LoomGradlePlugin;
 import net.fabricmc.loom.LoomGradleExtension;
 import net.fabricmc.loom.api.mappings.layered.MappingsNamespace;
 import net.fabricmc.loom.task.AbstractLoomTask;
-import net.fabricmc.loom.task.service.MappingsService;
 import net.fabricmc.loom.task.service.TinyRemapperService;
 import net.fabricmc.loom.util.Constants;
 import net.fabricmc.loom.util.service.ScopedServiceFactory;
-import net.fabricmc.mappingio.tree.MappingTreeView;
-import net.fabricmc.mappingio.tree.MemoryMappingTree;
+import net.fabricmc.tinyremapper.TinyRemapper;
 
 import dev.architectury.at.AccessTransformSet;
 import dev.architectury.at.io.AccessTransformFormats;
@@ -91,7 +88,7 @@ public abstract class GenerateNeoForgePublishingDataTask extends AbstractLoomTas
 
 	@Nested
 	@Optional
-	public abstract Property<TinyRemapperService.Options> getTinyRemapper();
+	public abstract Property<TinyRemapperService.Options> getTinyRemapperServiceOptions();
 
 	@Inject
 	public GenerateNeoForgePublishingDataTask() {
@@ -120,7 +117,7 @@ public abstract class GenerateNeoForgePublishingDataTask extends AbstractLoomTas
 			LoomGradleExtension extension = LoomGradleExtension.get(project);
 
 			if (!extension.disableObfuscation()) {
-				task.getTinyRemapper().set(TinyRemapperService.createSimple(
+				task.getTinyRemapperServiceOptions().set(TinyRemapperService.createSimple(
 						project,
 						project.provider(MappingsNamespace.NAMED::toString),
 						extension.getProductionNamespace(),
@@ -175,7 +172,7 @@ public abstract class GenerateNeoForgePublishingDataTask extends AbstractLoomTas
 			try (var reader = Files.newBufferedReader(ctFile.toPath())) {
 				Map<String, Set<String>> finalInterfaceInjections = interfaceInjections;
 				AccessTransformSet finalAtSet = atSet;
-				ClassTweakerReader.create(new ClassTweakerVisitor() {
+				ClassTweakerVisitor classTweakerVisitor = new ClassTweakerVisitor() {
 					@Override
 					public AccessWidenerVisitor visitAccessWidener(String owner) {
 						return Aw2At.createAccessWidenerVisitor(finalAtSet, owner, true);
@@ -187,43 +184,23 @@ public abstract class GenerateNeoForgePublishingDataTask extends AbstractLoomTas
 
 						finalInterfaceInjections.computeIfAbsent(owner, unused -> new HashSet<>()).add(iface);
 					}
-				}).read(reader);
-			}
-		}
+				};
 
-		if (getTinyRemapper().isPresent()) {
-			final Provider<MappingsService.Options> mappingsServiceOptions = getTinyRemapper()
-					.flatMap(TinyRemapperService.Options::getMappings)
-					.map(mappingsOptions -> mappingsOptions.get(0));
+				if (getTinyRemapperServiceOptions().isPresent()) {
+					try (var serviceFactory = new ScopedServiceFactory()) {
+						TinyRemapperService tinyRemapperService = serviceFactory.get(getTinyRemapperServiceOptions().get());
+						TinyRemapper tinyRemapper = tinyRemapperService.getTinyRemapperForRemapping();
 
-			try (var serviceFactory = new ScopedServiceFactory()) {
-				MappingsService service = serviceFactory.get(mappingsServiceOptions);
-
-				MemoryMappingTree mappings = service.getMemoryMappingTree();
-				String from = service.getFrom();
-				String to = service.getTo();
-
-				atSet = atSet.remap(mappings, from, to);
-
-				{
-					int fromNs = mappings.getNamespaceId(from);
-					int toNs = mappings.getNamespaceId(to);
-
-					if (fromNs == MappingTreeView.NULL_NAMESPACE_ID) {
-						throw new IllegalArgumentException("Source namespace '" + from + "' is not present in the mapping tree");
-					} else if (toNs == MappingTreeView.NULL_NAMESPACE_ID) {
-						throw new IllegalArgumentException("Target namespace '" + to + "' is not present in the mapping tree");
+						classTweakerVisitor = new ClassTweakerRemapperVisitor(
+								classTweakerVisitor,
+								tinyRemapper.getEnvironment().getRemapper(),
+								getTinyRemapperServiceOptions().get().getFrom().get(),
+								getTinyRemapperServiceOptions().get().getTo().get()
+						);
 					}
-
-					interfaceInjections = interfaceInjections.entrySet().stream()
-							.map(entry -> Map.entry(
-									mappings.mapClassName(entry.getKey(), fromNs, toNs),
-									entry.getValue().stream()
-											.map(ifaceName -> mappings.mapClassName(ifaceName, fromNs, toNs))
-											.collect(Collectors.toSet())
-							))
-							.collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
 				}
+
+				ClassTweakerReader.create(classTweakerVisitor).read(reader);
 			}
 		}
 

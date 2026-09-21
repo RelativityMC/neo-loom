@@ -41,13 +41,15 @@ import java.util.jar.Attributes;
 import java.util.jar.JarFile;
 import java.util.jar.Manifest;
 
-import org.gradle.api.provider.Provider;
 import org.jspecify.annotations.Nullable;
 
-import net.fabricmc.loom.task.service.MappingsService;
+import net.fabricmc.classtweaker.api.ClassTweakerReader;
+import net.fabricmc.classtweaker.api.visitor.AccessWidenerVisitor;
+import net.fabricmc.classtweaker.api.visitor.ClassTweakerVisitor;
+import net.fabricmc.classtweaker.visitors.ClassTweakerRemapperVisitor;
+import net.fabricmc.tinyremapper.TinyRemapper;
 import net.fabricmc.loom.util.Constants;
 import net.fabricmc.loom.util.FileSystemUtil;
-import net.fabricmc.loom.util.service.ServiceFactory;
 
 import dev.architectury.at.AccessTransformSet;
 import dev.architectury.at.io.AccessTransformFormats;
@@ -74,7 +76,7 @@ public final class ModBuildExtensions {
 		}
 	}
 
-	public static void convertAwToAt(Set<String> atAccessWideners, Path outputFile, @Nullable ServiceFactory serviceFactory, @Nullable Provider<MappingsService.Options> options) throws IOException {
+	public static void convertAwToAt(Set<String> atAccessWideners, Path outputFile, @Nullable TinyRemapper tinyRemapper, @Nullable String sourceNamespace, @Nullable String targetNamespace) throws IOException {
 		if (atAccessWideners.isEmpty()) {
 			return;
 		}
@@ -97,15 +99,30 @@ public final class ModBuildExtensions {
 				}
 
 				try (BufferedReader reader = Files.newBufferedReader(awPath, StandardCharsets.UTF_8)) {
-					at.merge(Aw2At.toAccessTransformSet(reader));
+					AccessTransformSet atSet = AccessTransformSet.create();
+
+					ClassTweakerVisitor visitor = new ClassTweakerVisitor() {
+						@Override
+						public AccessWidenerVisitor visitAccessWidener(String owner) {
+							return Aw2At.createAccessWidenerVisitor(atSet, owner, false);
+						}
+					};
+
+					if (tinyRemapper != null && sourceNamespace != null && targetNamespace != null) {
+						visitor = new ClassTweakerRemapperVisitor(
+								visitor,
+								tinyRemapper.getEnvironment().getRemapper(),
+								sourceNamespace,
+								targetNamespace
+						);
+					}
+
+					ClassTweakerReader.create(visitor).read(reader);
+
+					at.merge(atSet);
 				}
 
 				Files.delete(awPath);
-			}
-
-			if (serviceFactory != null && options != null) {
-				MappingsService service = serviceFactory.get(options);
-				at = at.remap(service.getMemoryMappingTree(), service.getFrom(), service.getTo());
 			}
 
 			try (Writer writer = new LfWriter(Files.newBufferedWriter(atPath))) {
