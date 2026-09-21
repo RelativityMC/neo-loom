@@ -170,19 +170,17 @@ public abstract class GenerateNeoForgePublishingDataTask extends AbstractLoomTas
 
 		for (File ctFile : getInputClassTweakers().getFiles()) {
 			try (var reader = Files.newBufferedReader(ctFile.toPath())) {
-				Map<String, Set<String>> finalInterfaceInjections = interfaceInjections;
-				AccessTransformSet finalAtSet = atSet;
 				ClassTweakerVisitor classTweakerVisitor = new ClassTweakerVisitor() {
 					@Override
 					public AccessWidenerVisitor visitAccessWidener(String owner) {
-						return Aw2At.createAccessWidenerVisitor(finalAtSet, owner, true);
+						return Aw2At.createAccessWidenerVisitor(atSet, owner, true);
 					}
 
 					@Override
 					public void visitInjectedInterface(String owner, String iface, boolean transitive) {
 						if (!transitive) return;
 
-						finalInterfaceInjections.computeIfAbsent(owner, unused -> new HashSet<>()).add(iface);
+						interfaceInjections.computeIfAbsent(owner, unused -> new HashSet<>()).add(iface);
 					}
 				};
 
