@@ -33,7 +33,7 @@ import net.fabricmc.loom.test.util.GradleProjectTestTrait
 import static net.fabricmc.loom.test.LoomTestConstants.PRE_RELEASE_GRADLE
 import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
 
-class SimpleRemappedNeoForgeTest extends Specification implements GradleProjectTestTrait {
+class LegacyNeoForgeTest extends Specification implements GradleProjectTestTrait {
 	@Unroll
 	def "build"() {
 		setup:
@@ -74,7 +74,7 @@ class SimpleRemappedNeoForgeTest extends Specification implements GradleProjectT
 
 		public class Test {
 			public static void main(String[] args) {
-			    Identifier id = Identifier.of("loom", "test");
+			    Identifier id = Identifier.tryParse("loom:test");
 			}
 		}
 		"""
@@ -156,11 +156,13 @@ class SimpleRemappedNeoForgeTest extends Specification implements GradleProjectT
 
 		where:
 		mcVersion   | forgeNotation                                      | mappings                                             | mappingsPatches                                                                     | intermediary
-		"26.1.2"    | "net.neoforged:neoforge:26.1.2.109:userdev"        | "\"org.relativitymc:modern-yarn:26.1.2+build.3:v2\"" | "it.mappings \"org.relativitymc:modern-yarn-mappings-patch-neoforge:26.1+build.1\"" | "intermediaryUrl = 'https://repo.codemc.io/repository/relativitymc/org/relativitymc/intermediary/%1\\\$s/intermediary-%1\\\$s-v2.jar'"
-		"26.1.2"    | "net.minecraftforge:forge:26.1.2-64.1.3:userdev"   | "\"org.relativitymc:modern-yarn:26.1.2+build.3:v2\"" | "it.mappings \"org.relativitymc:modern-yarn-mappings-patch-forge:26.1+build.2\""    | "intermediaryUrl = 'https://repo.codemc.io/repository/relativitymc/org/relativitymc/intermediary/%1\\\$s/intermediary-%1\\\$s-v2.jar'"
-		"26.2"      | "net.neoforged:neoforge:26.2.0.88:userdev"         | "\"org.relativitymc:modern-yarn:26.2+build.1:v2\""   | "it.mappings \"org.relativitymc:modern-yarn-mappings-patch-neoforge:26.1+build.1\"" | "intermediaryUrl = 'https://repo.codemc.io/repository/relativitymc/org/relativitymc/intermediary/%1\\\$s/intermediary-%1\\\$s-v2.jar'"
-		"26.2"      | "net.minecraftforge:forge:26.2-65.1.3:userdev"     | "\"org.relativitymc:modern-yarn:26.2+build.1:v2\""   | "it.mappings \"org.relativitymc:modern-yarn-mappings-patch-forge:26.1+build.2\""    | "intermediaryUrl = 'https://repo.codemc.io/repository/relativitymc/org/relativitymc/intermediary/%1\\\$s/intermediary-%1\\\$s-v2.jar'"
-		"26.3"      | "net.neoforged:neoforge:26.3.0.7-beta:userdev"     | "\"org.relativitymc:modern-yarn:26.3+build.1:v2\""   | "it.mappings \"org.relativitymc:modern-yarn-mappings-patch-neoforge:26.3+build.6\"" | "intermediaryUrl = 'https://repo.codemc.io/repository/relativitymc/org/relativitymc/intermediary/%1\\\$s/intermediary-%1\\\$s-v2.jar'"
-		"26.3"      | "net.minecraftforge:forge:26.3-66.0.2:userdev"     | "\"org.relativitymc:modern-yarn:26.3+build.1:v2\""   | "it.mappings \"org.relativitymc:modern-yarn-mappings-patch-forge:26.1+build.2\""    | "intermediaryUrl = 'https://repo.codemc.io/repository/relativitymc/org/relativitymc/intermediary/%1\\\$s/intermediary-%1\\\$s-v2.jar'"
+		// "1.17.1" | "net.minecraftforge:forge:1.17.1-37.1.1:userdev"   | "\"net.fabricmc:yarn:1.17.1+build.65:v2\""           | ""                                                                                  | ""
+		// "1.18.2" | "net.minecraftforge:forge:1.18.2-40.3.12:userdev"  | "\"net.fabricmc:yarn:1.18.2+build.4:v2\""            | ""                                                                                  | ""
+		// "1.19.2" | "net.minecraftforge:forge:1.19.2-43.5.2:userdev"   | "\"net.fabricmc:yarn:1.19.2+build.28:v2\""           | ""                                                                                  | ""
+		"1.20.1"    | "net.minecraftforge:forge:1.20.1-47.4.23:userdev"  | "\"net.fabricmc:yarn:1.20.1+build.9:v2\""            | ""                                                                                  | ""
+		"1.21.1"    | "net.minecraftforge:forge:1.21.1-52.1.14:userdev"  | "\"net.fabricmc:yarn:1.21.1+build.3:v2\""            | ""                                                                                  | ""
+		"1.21.1"    | "net.neoforged:neoforge:21.1.233:userdev"          | "\"net.fabricmc:yarn:1.21.1+build.3:v2\""            | "it.mappings \"dev.architectury:yarn-mappings-patch-neoforge:1.21+build.4\""        | ""
+		"1.21.11"   | "net.minecraftforge:forge:1.21.11-61.1.0:userdev"  | "\"net.fabricmc:yarn:1.21.11+build.6:v2\""           | "it.mappings \"dev.architectury:yarn-mappings-patch-forge:1.21.9+build.6\""         | ""
+		"1.21.11"   | "net.neoforged:neoforge:21.11.42:userdev"          | "\"net.fabricmc:yarn:1.21.11+build.6:v2\""           | "it.mappings \"dev.architectury:yarn-mappings-patch-neoforge:1.21+build.4\""        | ""
 	}
 }
