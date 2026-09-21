@@ -24,15 +24,20 @@
 
 package org.relativitymc.neoloom.neoforge.remap;
 
+import java.nio.file.Path;
+
+import org.jetbrains.annotations.UnknownNullability;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
+import org.objectweb.asm.Type;
 import org.objectweb.asm.tree.AbstractInsnNode;
 import org.objectweb.asm.tree.InsnList;
 import org.objectweb.asm.tree.InsnNode;
 import org.objectweb.asm.tree.LdcInsnNode;
 import org.objectweb.asm.tree.MethodInsnNode;
 import org.objectweb.asm.tree.MethodNode;
+import org.objectweb.asm.tree.TypeInsnNode;
 import org.objectweb.asm.tree.analysis.Analyzer;
 import org.objectweb.asm.tree.analysis.AnalyzerException;
 import org.objectweb.asm.tree.analysis.Frame;
@@ -62,67 +67,90 @@ public class ForgeOldDevLaunchHandlerPatcher extends ClassVisitor {
 	public MethodVisitor visitMethod(int access, String name, String descriptor, String signature, String[] exceptions) {
 		MethodVisitor methodVisitor = super.visitMethod(access, name, descriptor, signature, exceptions);
 
-		if ("getMinecraftPaths".equals(name) && "()Ljava/util/List;".equals(descriptor)) {
-			MethodNode methodNode = new MethodNode(access, name, descriptor, signature, exceptions);
-			return new MethodVisitor(api, methodNode) {
-				@Override
-				public void visitEnd() {
-					super.visitEnd();
-
-					Analyzer<SourceValue> analyzer = new Analyzer<>(new SourceInterpreter());
-					Frame<SourceValue>[] frames;
-
-					try {
-						frames = analyzer.analyze(ForgeOldDevLaunchHandlerPatcher.this.className, methodNode);
-					} catch (AnalyzerException e) {
-						throw new RuntimeException(e);
-					}
-
-					InsnList insns = methodNode.instructions;
-
-					insn_loop: for (int i = 0; i < insns.size(); i++) {
-						AbstractInsnNode insn = insns.get(i);
-						if (insn.getOpcode() != Opcodes.INVOKESTATIC) continue;
-						MethodInsnNode methodInsn = (MethodInsnNode) insn;
-
-						if (!"net/minecraftforge/fml/loading/targets/ForgeDevLaunchHandler".equals(methodInsn.owner)
-								|| !"findJarOnClasspath".equals(methodInsn.name)
-								|| !"([Ljava/lang/String;Ljava/lang/String;)Ljava/nio/file/Path;".equals(methodInsn.desc)) {
-							continue;
-						}
-
-						Frame<SourceValue> frame = frames[i];
-						if (frame.getStackSize() < 2) continue;
-						SourceValue stack = frame.getStack(frame.getStackSize() - 1);
-
-						for (AbstractInsnNode source : stack.insns) {
-							if (!(source instanceof LdcInsnNode ldc) || !"client-extra".equals(ldc.cst)) {
-								continue insn_loop;
-							}
-						}
-
-						// now we are sure that it is doing findJarOnClasspath(..., "client-extra")
-						InsnList replacements = new InsnList();
-						replacements.add(new InsnNode(Opcodes.POP2));
-						replacements.add(new LdcInsnNode("assets/.mcassetsroot"));
-						replacements.add(new MethodInsnNode(
-								Opcodes.INVOKESTATIC,
-								"net/minecraftforge/fml/loading/targets/ForgeDevLaunchHandler",
-								"getPathFromResource",
-								"(Ljava/lang/String;)Ljava/nio/file/Path;",
-								false
-						));
-
-						insns.insertBefore(insn, replacements);
-						insns.remove(insn);
-						break; // match only once
-					}
-
-					methodNode.accept(methodVisitor);
-				}
-			};
+		if ("getMinecraftPaths".equals(name) && ("()Ljava/util/List;".equals(descriptor) || "()Lnet/minecraftforge/fml/loading/targets/CommonLaunchHandler$LocatedPaths;".equals(descriptor))) {
+			return patchClientExtraPath(access, name, descriptor, signature, exceptions, methodVisitor);
 		}
 
 		return methodVisitor;
+	}
+
+	private MethodVisitor patchClientExtraPath(int access, String name, String descriptor, String signature, String[] exceptions, @UnknownNullability MethodVisitor methodVisitor) {
+		MethodNode methodNode = new MethodNode(access, name, descriptor, signature, exceptions);
+		return new MethodVisitor(api, methodNode) {
+			@Override
+			public void visitEnd() {
+				super.visitEnd();
+
+				Analyzer<SourceValue> analyzer = new Analyzer<>(new SourceInterpreter());
+				Frame<SourceValue>[] frames;
+
+				try {
+					frames = analyzer.analyze(ForgeOldDevLaunchHandlerPatcher.this.className, methodNode);
+				} catch (AnalyzerException e) {
+					throw new RuntimeException(e);
+				}
+
+				InsnList insns = methodNode.instructions;
+
+				insn_loop: for (int i = 0; i < insns.size(); i++) {
+					AbstractInsnNode insn = insns.get(i);
+					if (insn.getOpcode() != Opcodes.INVOKESTATIC) continue;
+					MethodInsnNode methodInsn = (MethodInsnNode) insn;
+
+					// 1.20.1:
+					// INVOKESTATIC net/minecraftforge/fml/loading/targets/CommonDevLaunchHandler.findJarOnClasspath ([Ljava/lang/String;Ljava/lang/String;)Ljava/nio/file/Path;
+					if ((!"net/minecraftforge/fml/loading/targets/ForgeDevLaunchHandler".equals(methodInsn.owner) && !"net/minecraftforge/fml/loading/targets/CommonDevLaunchHandler".equals(methodInsn.owner) && !"net/minecraftforge/fml/loading/targets/CommonUserdevLaunchHandler".equals(methodInsn.owner))
+							|| !"findJarOnClasspath".equals(methodInsn.name)
+							|| !"([Ljava/lang/String;Ljava/lang/String;)Ljava/nio/file/Path;".equals(methodInsn.desc)) {
+						continue;
+					}
+
+					Frame<SourceValue> frame = frames[i];
+					if (frame.getStackSize() < 2) continue;
+					SourceValue stack = frame.getStack(frame.getStackSize() - 1);
+
+					for (AbstractInsnNode source : stack.insns) {
+						if (!(source instanceof LdcInsnNode ldc) || !"client-extra".equals(ldc.cst)) {
+							continue insn_loop;
+						}
+					}
+
+					// now we are sure that it is doing findJarOnClasspath(..., "client-extra")
+					InsnList replacements = new InsnList();
+					replacements.add(new InsnNode(Opcodes.POP2));
+					// replacements.add(new LdcInsnNode("assets/.mcassetsroot"));
+					// replacements.add(new MethodInsnNode(
+					// 		Opcodes.INVOKESTATIC,
+					// 		"net/minecraftforge/fml/loading/targets/ForgeDevLaunchHandler",
+					// 		"getPathFromResource",
+					// 		"(Ljava/lang/String;)Ljava/nio/file/Path;",
+					// 		false
+					// ));
+					replacements.add(new LdcInsnNode(Constants.NeoForge.PROP_GAME_RESOURCES_JAR));
+					replacements.add(new MethodInsnNode(
+							Opcodes.INVOKESTATIC,
+							Type.getInternalName(System.class),
+							"getProperty",
+							Type.getMethodDescriptor(Type.getType(String.class), Type.getType(String.class)),
+							false
+					));
+					replacements.add(new InsnNode(Opcodes.ICONST_0));
+					replacements.add(new TypeInsnNode(Opcodes.ANEWARRAY, Type.getInternalName(String.class)));
+					replacements.add(new MethodInsnNode(
+							Opcodes.INVOKESTATIC,
+							Type.getInternalName(Path.class),
+							"of",
+							Type.getMethodDescriptor(Type.getType(Path.class), Type.getType(String.class), Type.getType(String[].class)),
+							true
+					));
+
+					insns.insertBefore(insn, replacements);
+					insns.remove(insn);
+					break; // match only once
+				}
+
+				methodNode.accept(methodVisitor);
+			}
+		};
 	}
 }

@@ -31,6 +31,8 @@ import org.gradle.api.file.FileCollection;
 import org.relativitymc.neoloom.neoforge.meta.ForgeUserdevConfiguration;
 
 public interface NFRTMinecraftProvider {
+	NFRTMergedMinecraftProvider.VersionCapabilities getCapabilities();
+
 	ForgeUserdevConfiguration getForgeUserdevConfiguration();
 
 	default ForgeUserdevConfiguration.LaunchConfiguration getLaunchConfigurationOrThrow(String environment) {

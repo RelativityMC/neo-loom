@@ -27,11 +27,15 @@ package org.relativitymc.neoloom.neoforge.remap;
 import net.fabricmc.tinyremapper.TinyRemapper;
 import net.fabricmc.tinyremapper.api.TrRemapper;
 
-public class FMLRemap {
+public class ForgeRemap {
 	private static final String FORGE_OBJECT_HOLDER = "net/minecraftforge/fml/common/asm/ObjectHolderDefinalize";
 	private static final String FORGE_MOD_DIR_TRANSFORMER_DISCOVERER = "net/minecraftforge/fml/loading/ModDirTransformerDiscoverer";
 	private static final String FORGE_DEV_LOCATOR = "net/minecraftforge/fml/loading/targets/ForgeDevLocator";
 	private static final String FORGE_DEV_LAUNCH_HANDLER = "net/minecraftforge/fml/loading/targets/ForgeDevLaunchHandler";
+	private static final String FORGE_USERDEV_LAUNCH_HANDLER = "net/minecraftforge/fml/loading/targets/ForgeUserdevLaunchHandler";
+	private static final String FORGE_COMMON_USERDEV_LAUNCH_HANDLER = "net/minecraftforge/fml/loading/targets/CommonUserdevLaunchHandler"; // 1.20.1
+	private static final String FORGE_COMMON_DEV_LAUNCH_HANDLER = "net/minecraftforge/fml/loading/targets/CommonDevLaunchHandler"; // 1.20.1
+	private static final String FORGE_OBJECT_HOLDER_REGISTRY = "net/minecraftforge/registries/ObjectHolderRegistry";
 	private static final String NEOFORGE_OBJECT_HOLDER = "net/neoforged/fml/common/asm/ObjectHolderDefinalize";
 	private static final String NEOFORGE_LAUNCH_HANDLER = "net/neoforged/fml/loading/targets/CommonUserdevLaunchHandler";
 	private static final String NEOFORGE_LOADER = "net/neoforged/fml/loading/FMLLoader";
@@ -39,7 +43,7 @@ public class FMLRemap {
 	private static final String NEOFORGE_REQUIRED_SYSTEM_FILES = "net/neoforged/fml/loading/moddiscovery/locators/RequiredSystemFiles";
 	private static final String NEOFORGE_BUILTIN_LANGUAGE_LOADER = "net/neoforged/fml/loading/BuiltInLanguageLoader";
 
-	public static void configureRemapper(TinyRemapper.Builder tinyRemapperBuilder) {
+	public static void configureFMLRemapper(TinyRemapper.Builder tinyRemapperBuilder) {
 		tinyRemapperBuilder.extraPostApplyVisitor((cls, next) -> {
 			TrRemapper remapper = cls.getEnvironment().getRemapper();
 
@@ -55,8 +59,14 @@ public class FMLRemap {
 				return StringConstantPatcher.forGameLocator(next, remapper);
 			}
 
-			if (cls.getName().equals(FORGE_DEV_LAUNCH_HANDLER)) {
+			if (cls.getName().equals(FORGE_DEV_LAUNCH_HANDLER)
+					|| cls.getName().equals(FORGE_COMMON_USERDEV_LAUNCH_HANDLER)
+					|| cls.getName().equals(FORGE_COMMON_DEV_LAUNCH_HANDLER)) {
 				return StringConstantPatcher.forGameLocator(new ForgeOldDevLaunchHandlerPatcher(next), remapper);
+			}
+
+			if (cls.getName().equals(FORGE_USERDEV_LAUNCH_HANDLER)) {
+				return new ForgeOldUserdevLaunchHandlerPatcher(next);
 			}
 
 			if (cls.getName().equals(NEOFORGE_LAUNCH_HANDLER)) {
@@ -77,6 +87,18 @@ public class FMLRemap {
 
 			if (cls.getName().equals(NEOFORGE_BUILTIN_LANGUAGE_LOADER)) {
 				return new NeoForgeBuiltInLanguageLoaderPatcher(next);
+			}
+
+			return next;
+		});
+	}
+
+	public static void configureForgeRemapper(TinyRemapper.Builder tinyRemapperBuilder) {
+		tinyRemapperBuilder.extraPostApplyVisitor((cls, next) -> {
+			TrRemapper remapper = cls.getEnvironment().getRemapper();
+
+			if (cls.getName().equals(FORGE_OBJECT_HOLDER_REGISTRY)) {
+				return new RemapObjectHolderVisitor(next, remapper);
 			}
 
 			return next;

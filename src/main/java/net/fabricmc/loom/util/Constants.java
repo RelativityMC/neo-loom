@@ -215,5 +215,8 @@ public class Constants {
 		public static final String IJ_CATEGORY = "interfaceinjection";
 		public static final String AT_ELEMENTS = "accessTransformersElements";
 		public static final String IJ_ELEMENTS = "interfaceInjectionsElements";
+
+		public static final String PROP_GAME_RESOURCES_JAR = "org.relativitymc.neoloom.launch.gameResourcesJar";
+		public static final String PROP_MERGED_JAR = "org.relativitymc.neoloom.launch.mergedJar";
 	}
 }

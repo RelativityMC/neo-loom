@@ -38,9 +38,10 @@ import net.fabricmc.loom.configuration.providers.minecraft.SingleJarEnvType;
 import net.fabricmc.loom.configuration.providers.minecraft.SingleJarMinecraftProvider;
 import net.fabricmc.loom.configuration.providers.minecraft.SplitMinecraftProvider;
 import net.fabricmc.tinyremapper.TinyRemapper;
+import net.fabricmc.tinyremapper.extension.mixin.MixinExtension;
 
 import org.relativitymc.neoloom.neoforge.NFRTMergedMinecraftProvider;
-import org.relativitymc.neoloom.neoforge.remap.FMLRemap;
+import org.relativitymc.neoloom.neoforge.remap.ForgeRemap;
 
 public abstract sealed class IntermediaryMinecraftProvider<M extends MinecraftProvider> extends AbstractMappedMinecraftProvider<M> permits IntermediaryMinecraftProvider.LegacyMergedImpl, IntermediaryMinecraftProvider.MergedImpl, IntermediaryMinecraftProvider.NeoForgeMergedImpl, IntermediaryMinecraftProvider.SingleJarImpl, IntermediaryMinecraftProvider.SplitImpl {
 	public IntermediaryMinecraftProvider(Project project, M minecraftProvider) {
@@ -231,7 +232,18 @@ public abstract sealed class IntermediaryMinecraftProvider<M extends MinecraftPr
 		@Override
 		protected void configureRemapper(RemappedJars remappedJars, TinyRemapper.Builder tinyRemapperBuilder) {
 			super.configureRemapper(remappedJars, tinyRemapperBuilder);
-			FMLRemap.configureRemapper(tinyRemapperBuilder);
+
+			if (remappedJars.outputJar().getType() == MinecraftJar.Type.FML) {
+				ForgeRemap.configureFMLRemapper(tinyRemapperBuilder);
+			}
+
+			if (remappedJars.outputJar().getType() == MinecraftJar.Type.MERGED) {
+				ForgeRemap.configureForgeRemapper(tinyRemapperBuilder);
+			}
+
+			if (remappedJars.outputJar().getType() == MinecraftJar.Type.NEOFORGE_UNIVERSAL || remappedJars.outputJar().getType() == MinecraftJar.Type.MERGED) {
+				tinyRemapperBuilder.extension(new MixinExtension()); // Remap mixins in neoforge
+			}
 		}
 	}
 }

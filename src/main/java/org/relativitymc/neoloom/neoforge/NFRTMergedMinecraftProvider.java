@@ -193,6 +193,7 @@ public class NFRTMergedMinecraftProvider extends MinecraftProvider implements NF
 		return this.capabilities.rawJarNamespace;
 	}
 
+	@Override
 	public VersionCapabilities getCapabilities() {
 		return this.capabilities;
 	}

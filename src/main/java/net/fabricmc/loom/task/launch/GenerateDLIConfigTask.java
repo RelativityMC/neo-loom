@@ -68,10 +68,12 @@ import net.fabricmc.loom.api.mappings.layered.MappingsNamespace;
 import net.fabricmc.loom.configuration.classpathgroups.ClasspathGroup;
 import net.fabricmc.loom.configuration.providers.minecraft.MinecraftVersionMeta;
 import net.fabricmc.loom.configuration.providers.minecraft.mapped.MappedMinecraftProvider;
+import net.fabricmc.loom.configuration.providers.minecraft.MinecraftJar;
 import net.fabricmc.loom.task.AbstractLoomTask;
 import net.fabricmc.loom.task.service.ClasspathGroupService;
 import net.fabricmc.loom.util.service.ScopedServiceFactory;
 import net.fabricmc.loom.util.ZipUtils;
+import net.fabricmc.loom.util.Constants;
 
 import dev.architectury.loom.util.collection.Multimap;
 import dev.architectury.loom.metadata.ForgeModMetadata;
@@ -131,6 +133,16 @@ public abstract class GenerateDLIConfigTask extends AbstractLoomTask {
 	@InputFile
 	@PathSensitive(PathSensitivity.ABSOLUTE)
 	@Optional
+	protected abstract RegularFileProperty getForgeGameResourcesJar();
+
+	@InputFile
+	@PathSensitive(PathSensitivity.ABSOLUTE)
+	@Optional
+	protected abstract RegularFileProperty getForgeMergedJar();
+
+	@InputFile
+	@PathSensitive(PathSensitivity.ABSOLUTE)
+	@Optional
 	public abstract RegularFileProperty getRemapClasspathFile();
 
 	@OutputFile
@@ -175,6 +187,15 @@ public abstract class GenerateDLIConfigTask extends AbstractLoomTask {
 
 		if (getExtension().getMinecraftProvider() instanceof NFRTMinecraftProvider provider) {
 			String mergedJarName = getExtension().getMinecraftProvider().getJarPrefix() + "minecraft-merged";
+
+			if (provider.getCapabilities().requireGameResources) {
+				getForgeGameResourcesJar().set(getExtension().getNamedMinecraftProvider().getJar(MinecraftJar.Type.GAME_RESOURCES).toFile());
+			}
+
+			// TODO split sources
+			if (provider.getCapabilities().useMergedJar) {
+				getForgeMergedJar().set(getExtension().getNamedMinecraftProvider().getJar(MinecraftJar.Type.MERGED).toFile());
+			}
 
 			getForgeLegacyClasspathFile().set(new File(getExtension().getFiles().getProjectPersistentCache(), "forge_minecraft_classpath.txt"));
 			boolean[] requiresLegacyClasspath = new boolean[1];
@@ -275,6 +296,14 @@ public abstract class GenerateDLIConfigTask extends AbstractLoomTask {
 					launchConfig.argument(id, arg);
 				}
 			}
+		}
+
+		if (getForgeGameResourcesJar().isPresent()) {
+			launchConfig.property(Constants.NeoForge.PROP_GAME_RESOURCES_JAR, getForgeGameResourcesJar().get().getAsFile().getAbsolutePath());
+		}
+
+		if (getForgeMergedJar().isPresent()) {
+			launchConfig.property(Constants.NeoForge.PROP_MERGED_JAR, getForgeMergedJar().get().getAsFile().getAbsolutePath());
 		}
 
 		if (getForgeExtraMixinConfigs().isPresent() && !getForgeExtraMixinConfigs().get().isEmpty()) {

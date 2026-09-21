@@ -42,7 +42,7 @@ import net.fabricmc.loom.configuration.providers.minecraft.SplitMinecraftProvide
 import net.fabricmc.tinyremapper.TinyRemapper;
 
 import org.relativitymc.neoloom.neoforge.NFRTMergedMinecraftProvider;
-import org.relativitymc.neoloom.neoforge.remap.FMLRemap;
+import org.relativitymc.neoloom.neoforge.remap.ForgeRemap;
 
 public abstract class NamedMinecraftProvider<M extends MinecraftProvider> extends AbstractMappedMinecraftProvider<M> {
 	public NamedMinecraftProvider(Project project, M minecraftProvider) {
@@ -269,7 +269,11 @@ public abstract class NamedMinecraftProvider<M extends MinecraftProvider> extend
 			super.configureRemapper(remappedJars, tinyRemapperBuilder);
 
 			if (remappedJars.outputJar().getType() == MinecraftJar.Type.FML) {
-				FMLRemap.configureRemapper(tinyRemapperBuilder);
+				ForgeRemap.configureFMLRemapper(tinyRemapperBuilder);
+			}
+
+			if (remappedJars.outputJar().getType() == MinecraftJar.Type.MERGED) {
+				ForgeRemap.configureForgeRemapper(tinyRemapperBuilder);
 			}
 
 			if (remappedJars.outputJar().getType() == MinecraftJar.Type.NEOFORGE_UNIVERSAL || remappedJars.outputJar().getType() == MinecraftJar.Type.MERGED) {
