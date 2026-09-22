@@ -53,6 +53,7 @@ import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.work.DisableCachingByDefault;
+import org.objectweb.asm.signature.SignatureReader;
 
 import net.fabricmc.classtweaker.api.ClassTweakerReader;
 import net.fabricmc.classtweaker.api.visitor.AccessWidenerVisitor;
@@ -71,6 +72,8 @@ import dev.architectury.at.AccessTransformSet;
 import dev.architectury.at.io.AccessTransformFormats;
 import dev.architectury.loom.accesstransformer.Aw2At;
 import dev.architectury.loom.util.LfWriter;
+
+import org.relativitymc.neoloom.neoforge.util.TypeSignatureToStringVisitor;
 
 @DisableCachingByDefault
 public abstract class GenerateNeoForgePublishingDataTask extends AbstractLoomTask {
@@ -189,7 +192,21 @@ public abstract class GenerateNeoForgePublishingDataTask extends AbstractLoomTas
 						public void visitInjectedInterface(String owner, String iface, boolean transitive) {
 							if (!transitive) return;
 
-							interfaceInjections.computeIfAbsent(owner, unused -> new HashSet<>()).add(iface);
+							SignatureReader signatureReader = new SignatureReader("L" + iface + ";");
+							TypeSignatureToStringVisitor typeSignatureToStringVisitor = new TypeSignatureToStringVisitor(Constants.ASM_VERSION);
+							signatureReader.accept(typeSignatureToStringVisitor);
+							String literal = typeSignatureToStringVisitor.getString();
+							int firstTypeParamBracket = literal.indexOf('<');
+							String converted;
+
+							if (firstTypeParamBracket == -1) {
+								converted = literal.replace('.', '/');
+							} else {
+								converted = literal.substring(0, firstTypeParamBracket).replace('.', '/')
+										+ literal.substring(firstTypeParamBracket);
+							}
+
+							interfaceInjections.computeIfAbsent(owner, unused -> new HashSet<>()).add(converted);
 						}
 					};
 

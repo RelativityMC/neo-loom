@@ -1,4 +1,7 @@
 {
+  "net/minecraft/data/tags/TagAppender": [
+    "net/fabricmc/example/ExampleInterfaceTypeArgs\u003cE, T\u003e"
+  ],
   "net/minecraft/resources/Identifier": [
     "net/fabricmc/example/ExampleInterface"
   ]

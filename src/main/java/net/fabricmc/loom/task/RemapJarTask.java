@@ -62,7 +62,6 @@ import net.fabricmc.loom.build.nesting.JarNester;
 import net.fabricmc.loom.configuration.accesswidener.AccessWidenerFile;
 import net.fabricmc.loom.configuration.mods.ArtifactMetadata;
 import net.fabricmc.loom.task.service.ClientEntriesService;
-import net.fabricmc.loom.task.service.MappingsService;
 import net.fabricmc.loom.task.service.MixinRefmapService;
 import net.fabricmc.loom.task.service.TinyRemapperService;
 import net.fabricmc.loom.util.Constants;

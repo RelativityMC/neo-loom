@@ -94,3 +94,4 @@ transitive-accessible    field     net/minecraft/world/gen/chunk/AquiferSampler$
 
 transitive-inject-interface net/minecraft/util/Identifier net/fabricmc/example/ExampleInterface
 inject-interface net/minecraft/util/Identifier net/fabricmc/example/ExampleInterface2
+transitive-inject-interface net/minecraft/data/tag/ProvidedTagBuilder net/fabricmc/example/ExampleInterfaceTypeArgs<TE;TT;>

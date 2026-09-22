@@ -87,3 +87,4 @@ transitive-accessible	field	net/minecraft/world/level/levelgen/Aquifer$FluidStat
 transitive-accessible	field	net/minecraft/world/level/levelgen/Aquifer$FluidStatus	fluidType	Lnet/minecraft/world/level/block/state/BlockState;
 transitive-inject-interface net/minecraft/resources/Identifier net/fabricmc/example/ExampleInterface
 inject-interface net/minecraft/resources/Identifier net/fabricmc/example/ExampleInterface2
+transitive-inject-interface net/minecraft/data/tags/TagAppender net/fabricmc/example/ExampleInterfaceTypeArgs<TE;TT;>
