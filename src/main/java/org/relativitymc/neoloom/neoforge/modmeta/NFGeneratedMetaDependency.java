@@ -52,11 +52,12 @@ import org.cadixdev.bombe.type.signature.MethodSignature;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.ResolvedArtifact;
+import org.gradle.api.provider.Provider;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 import org.objectweb.asm.ClassReader;
-import org.objectweb.asm.tree.ClassNode;
-import org.objectweb.asm.tree.FieldNode;
+import org.objectweb.asm.ClassVisitor;
+import org.objectweb.asm.FieldVisitor;
 
 import net.fabricmc.classtweaker.api.ClassTweaker;
 import net.fabricmc.classtweaker.api.ClassTweakerWriter;
@@ -71,6 +72,11 @@ import net.fabricmc.loom.util.ZipUtils;
 import net.fabricmc.loom.util.fmj.FabricModJson;
 import net.fabricmc.loom.util.fmj.FabricModJsonSource;
 import net.fabricmc.loom.util.fmj.ModMetadataFabricModJson;
+import net.fabricmc.loom.util.service.ScopedServiceFactory;
+import net.fabricmc.loom.util.service.ServiceFactory;
+import net.fabricmc.loom.task.service.MappingsService;
+import net.fabricmc.mappingio.tree.MappingTree;
+import net.fabricmc.mappingio.tree.MemoryMappingTree;
 
 import dev.architectury.at.AccessTransform;
 import dev.architectury.at.AccessTransformSet;
@@ -85,134 +91,171 @@ public class NFGeneratedMetaDependency {
 	private static final String IJ_KEY = "ij-v0-";
 
 	public static List<FabricModJson> create(Project project) {
-		List<FabricModJson> result = new ArrayList<>();
-		LoomGradleExtension extension = LoomGradleExtension.get(project);
-		MappingsNamespace productionNamespace = extension.getProductionNamespaceEnum().get();
+		try (var serviceFactory = new ScopedServiceFactory()) {
+			List<FabricModJson> result = new ArrayList<>();
+			LoomGradleExtension extension = LoomGradleExtension.get(project);
+			MappingsNamespace productionNamespace = extension.getProductionNamespaceEnum().get();
 
-		File cacheDir = new File(extension.getFiles().getRootProjectPersistentCache(), "neo-loom-generated-ct");
-		cacheDir.mkdirs();
+			File cacheDir = new File(extension.getFiles().getRootProjectPersistentCache(), "neo-loom-generated-ct");
+			cacheDir.mkdirs();
 
-		Function<String, @Nullable ClassNode> classesCache = getClassesCache(project);
+			Function<String, @Nullable ClassMeta> classesCache = null;
 
-		for (ResolvedArtifact artifact : project.getConfigurations().getByName(Constants.Configurations.NEOFORGE_ACCESS_TRANSFORMERS).getResolvedConfiguration().getResolvedArtifacts()) {
-			String mavenNotation = getMavenNotation(artifact);
+			for (ResolvedArtifact artifact : project.getConfigurations().getByName(Constants.Configurations.NEOFORGE_ACCESS_TRANSFORMERS).getResolvedConfiguration().getResolvedArtifacts()) {
+				String mavenNotation = getMavenNotation(artifact);
 
-			byte[] atBytes;
+				byte[] atBytes;
 
-			try {
-				atBytes = Files.readAllBytes(artifact.getFile().toPath());
-			} catch (IOException e) {
-				throw new UncheckedIOException(e);
+				try {
+					atBytes = Files.readAllBytes(artifact.getFile().toPath());
+				} catch (IOException e) {
+					throw new UncheckedIOException(e);
+				}
+
+				byte[] cachedCt = tryReadFromCache(cacheDir, AT_KEY, atBytes);
+
+				if (cachedCt != null) {
+					result.add(new ModMetadataFabricModJson(
+							new MetaModMetadata(MOD_ID_PREFIX_AT + mavenNotation),
+							new MetaModSource(cachedCt)
+					));
+				} else {
+					ClassTweakerWriter classTweaker = ClassTweakerWriter.create(ClassTweaker.CT_LATEST);
+					classTweaker.visitHeader(productionNamespace.toString());
+					AccessTransformSet set;
+
+					try (var reader = new InputStreamReader(new ByteArrayInputStream(atBytes))) {
+						set = AccessTransformFormats.FML.read(reader);
+					} catch (IOException e) {
+						throw new RuntimeException(e);
+					}
+
+					if (!set.getClasses().isEmpty()) {
+						if (classesCache == null) {
+							classesCache = getClassesCache(project, serviceFactory);
+						}
+
+						convertAt2Aw(project, set, classTweaker, mavenNotation, classesCache);
+						byte[] awContent = classTweaker.getOutputAsString().getBytes(StandardCharsets.UTF_8);
+						result.add(new ModMetadataFabricModJson(
+								new MetaModMetadata(MOD_ID_PREFIX_AT + mavenNotation),
+								new MetaModSource(awContent)
+						));
+						storeCache(cacheDir, AT_KEY, atBytes, awContent);
+					}
+				}
 			}
 
-			byte[] cachedCt = tryReadFromCache(cacheDir, AT_KEY, atBytes);
+			for (ResolvedArtifact artifact : project.getConfigurations().getByName(Constants.Configurations.NEOFORGE_INTERFACE_INJECTIONS).getResolvedConfiguration().getResolvedArtifacts()) {
+				String mavenNotation = getMavenNotation(artifact);
 
-			if (cachedCt != null) {
-				result.add(new ModMetadataFabricModJson(
-						new MetaModMetadata(MOD_ID_PREFIX_AT + mavenNotation),
-						new MetaModSource(cachedCt)
-				));
-			} else {
+				byte[] ijBytes;
+
+				try {
+					ijBytes = Files.readAllBytes(artifact.getFile().toPath());
+				} catch (IOException e) {
+					throw new UncheckedIOException(e);
+				}
+
+				byte[] cachedCt = tryReadFromCache(cacheDir, IJ_KEY, ijBytes);
+
 				ClassTweakerWriter classTweaker = ClassTweakerWriter.create(ClassTweaker.CT_LATEST);
 				classTweaker.visitHeader(productionNamespace.toString());
-				AccessTransformSet set;
 
-				try (var reader = new InputStreamReader(new ByteArrayInputStream(atBytes))) {
-					set = AccessTransformFormats.FML.read(reader);
+				JsonObject json;
+
+				try (var reader = new InputStreamReader(new ByteArrayInputStream(ijBytes))) {
+					json = LoomGradlePlugin.GSON.fromJson(reader, JsonObject.class);
 				} catch (IOException e) {
 					throw new RuntimeException(e);
 				}
 
-				if (!set.getClasses().isEmpty()) {
-					convertAt2Aw(project, set, classTweaker, mavenNotation, classesCache);
-					byte[] awContent = classTweaker.getOutputAsString().getBytes(StandardCharsets.UTF_8);
-					result.add(new ModMetadataFabricModJson(
-							new MetaModMetadata(MOD_ID_PREFIX_AT + mavenNotation),
-							new MetaModSource(awContent)
-					));
-					storeCache(cacheDir, AT_KEY, atBytes, awContent);
-				}
-			}
-		}
-
-		for (ResolvedArtifact artifact : project.getConfigurations().getByName(Constants.Configurations.NEOFORGE_INTERFACE_INJECTIONS).getResolvedConfiguration().getResolvedArtifacts()) {
-			String mavenNotation = getMavenNotation(artifact);
-
-			byte[] ijBytes;
-
-			try {
-				ijBytes = Files.readAllBytes(artifact.getFile().toPath());
-			} catch (IOException e) {
-				throw new UncheckedIOException(e);
-			}
-
-			byte[] cachedCt = tryReadFromCache(cacheDir, IJ_KEY, ijBytes);
-
-			ClassTweakerWriter classTweaker = ClassTweakerWriter.create(ClassTweaker.CT_LATEST);
-			classTweaker.visitHeader(productionNamespace.toString());
-
-			JsonObject json;
-
-			try (var reader = new InputStreamReader(new ByteArrayInputStream(ijBytes))) {
-				json = LoomGradlePlugin.GSON.fromJson(reader, JsonObject.class);
-			} catch (IOException e) {
-				throw new RuntimeException(e);
-			}
-
-			if (cachedCt != null) {
-				result.add(new ModMetadataFabricModJson(
-						new MetaModMetadata(MOD_ID_PREFIX_IJ + mavenNotation),
-						new MetaModSource(cachedCt)
-				));
-			} else {
-				boolean hasInjections = false;
-
-				for (Map.Entry<String, JsonElement> entry : json.entrySet()) {
-					String className = entry.getKey();
-					JsonArray elements = entry.getValue().getAsJsonArray();
-
-					for (JsonElement element : elements) {
-						String iface = element.getAsString();
-						classTweaker.visitInjectedInterface(className, NeoForgeInterfaceInjectionUtils.neoForge2ClassTweaker(iface), true);
-						hasInjections = true;
-					}
-				}
-
-				if (hasInjections) {
-					byte[] awContent = classTweaker.getOutputAsString().getBytes(StandardCharsets.UTF_8);
+				if (cachedCt != null) {
 					result.add(new ModMetadataFabricModJson(
 							new MetaModMetadata(MOD_ID_PREFIX_IJ + mavenNotation),
-							new MetaModSource(awContent)
+							new MetaModSource(cachedCt)
 					));
-					storeCache(cacheDir, IJ_KEY, ijBytes, awContent);
+				} else {
+					boolean hasInjections = false;
+
+					for (Map.Entry<String, JsonElement> entry : json.entrySet()) {
+						String className = entry.getKey();
+						JsonArray elements = entry.getValue().getAsJsonArray();
+
+						for (JsonElement element : elements) {
+							String iface = element.getAsString();
+							classTweaker.visitInjectedInterface(className, NeoForgeInterfaceInjectionUtils.neoForge2ClassTweaker(iface), true);
+							hasInjections = true;
+						}
+					}
+
+					if (hasInjections) {
+						byte[] awContent = classTweaker.getOutputAsString().getBytes(StandardCharsets.UTF_8);
+						result.add(new ModMetadataFabricModJson(
+								new MetaModMetadata(MOD_ID_PREFIX_IJ + mavenNotation),
+								new MetaModSource(awContent)
+						));
+						storeCache(cacheDir, IJ_KEY, ijBytes, awContent);
+					}
 				}
 			}
-		}
 
-		return List.copyOf(result);
+			return List.copyOf(result);
+		} catch (IOException e) {
+			throw new UncheckedIOException(e);
+		}
 	}
 
-	private static Function<String, @Nullable ClassNode> getClassesCache(Project project) {
-		LinkedHashMap<String, ClassNode> cache = new LinkedHashMap<>() {
+	private static Function<String, @Nullable ClassMeta> getClassesCache(Project project, ServiceFactory factory) {
+		LinkedHashMap<String, ClassMeta> cache = new LinkedHashMap<>() {
 			@Override
-			protected boolean removeEldestEntry(Map.Entry<String, ClassNode> eldest) {
+			protected boolean removeEldestEntry(Map.Entry<String, ClassMeta> eldest) {
 				return this.size() > 256;
 			}
 		};
-		Function<String, ClassNode> readClass0 = readClass0(project);
+		Function<String, @Nullable ClassMeta> readClass0 = readClass0(project, factory);
 		return className -> cache.computeIfAbsent(className, readClass0);
 	}
 
-	private static Function<String, ClassNode> readClass0(Project project) {
+	private static Function<String, @Nullable ClassMeta> readClass0(Project project, ServiceFactory factory) {
 		LoomGradleExtension extension = LoomGradleExtension.get(project);
 		MappingsNamespace productionNamespace = extension.getProductionNamespaceEnum().get();
-		List<Path> minecraftJars = extension.getMinecraftJars(productionNamespace);
+		MappingsNamespace officialNamespace = extension.getMinecraftProvider().getOfficialNamespace();
+		List<Path> minecraftJars = extension.getMinecraftProvider().getMinecraftJars();
+		MemoryMappingTree mappingTree;
+		int prodNs;
+		int officialNs;
+
+		if (productionNamespace != officialNamespace) {
+			Provider<MappingsService.Options> mappingsServiceProvider = MappingsService.createOptionsWithProjectMappings(
+					project,
+					project.provider(officialNamespace::toString),
+					project.provider(productionNamespace::toString)
+			);
+			MappingsService service = factory.get(mappingsServiceProvider);
+			mappingTree = service.getMemoryMappingTree();
+			prodNs = mappingTree.getNamespaceId(productionNamespace.toString());
+			officialNs = mappingTree.getNamespaceId(officialNamespace.toString());
+		} else {
+			mappingTree = null;
+			prodNs = -1;
+			officialNs = -1;
+		}
+
 		return className -> {
 			for (Path minecraftJar : minecraftJars) {
 				byte[] unpacked = null;
 
+				String officialClassName = mappingTree != null
+						? mappingTree.mapClassName(className, prodNs, officialNs)
+						: className;
+
+				MappingTree.ClassMapping classMapping = mappingTree != null
+						? mappingTree.getClass(className, officialNs)
+						: null;
+
 				try {
-					unpacked = ZipUtils.unpack(minecraftJar, className + ".class");
+					unpacked = ZipUtils.unpack(minecraftJar, officialClassName + ".class");
 				} catch (NoSuchFileException e) {
 					// fallthrough
 				} catch (IOException e) {
@@ -222,9 +265,29 @@ public class NFGeneratedMetaDependency {
 				if (unpacked == null) {
 					return null;
 				} else {
-					ClassNode classNode = new ClassNode();
-					new ClassReader(unpacked).accept(classNode, ClassReader.SKIP_CODE | ClassReader.SKIP_DEBUG | ClassReader.SKIP_FRAMES);
-					return classNode;
+					List<FieldMeta> fields = new ArrayList<>();
+					ClassVisitor classVisitor = new ClassVisitor(Constants.ASM_VERSION) {
+						@Override
+						public FieldVisitor visitField(int access, String name, String descriptor, String signature, Object value) {
+							FieldMeta fieldMeta;
+
+							if (classMapping != null) {
+								MappingTree.FieldMapping fieldMapping = classMapping.getField(name, descriptor, officialNs);
+								String prodFieldName = fieldMapping != null ? fieldMapping.getName(prodNs) : name;
+								fieldMeta = new FieldMeta(
+										prodFieldName != null ? prodFieldName : name,
+										mappingTree.mapDesc(descriptor, officialNs, prodNs)
+								);
+							} else {
+								fieldMeta = new FieldMeta(name, descriptor);
+							}
+
+							fields.add(fieldMeta);
+							return super.visitField(access, name, descriptor, signature, value);
+						}
+					};
+					new ClassReader(unpacked).accept(classVisitor, ClassReader.SKIP_CODE | ClassReader.SKIP_DEBUG | ClassReader.SKIP_FRAMES);
+					return new ClassMeta(List.copyOf(fields));
 				}
 			}
 
@@ -315,16 +378,16 @@ public class NFGeneratedMetaDependency {
 		return mavenNotation;
 	}
 
-	private static void convertAt2Aw(Project project, AccessTransformSet set, ClassTweakerVisitor classTweaker, String mavenNotation, Function<String, @Nullable ClassNode> classesCache) {
+	private static void convertAt2Aw(Project project, AccessTransformSet set, ClassTweakerVisitor classTweaker, String mavenNotation, Function<String, @Nullable ClassMeta> classesCache) {
 		for (Map.Entry<String, AccessTransformSet.Class> classEntry : set.getClasses().entrySet()) {
 			String className = classEntry.getKey();
 			AccessTransformSet.Class classValue = classEntry.getValue();
 
 			AccessWidenerVisitor visitor = Objects.requireNonNull(classTweaker.visitAccessWidener(className));
 
-			ClassNode classNode = classesCache.apply(className);
+			ClassMeta classMeta = classesCache.apply(className);
 
-			if (classNode == null) {
+			if (classMeta == null) {
 				project.getLogger().warn("At2Aw: {}: could not find class {}", mavenNotation, className);
 			}
 
@@ -361,23 +424,23 @@ public class NFGeneratedMetaDependency {
 					continue;
 				}
 
-				if (classNode != null) {
-					FieldNode fieldNode1 = classNode.fields.stream()
+				if (classMeta != null) {
+					FieldMeta fieldMeta1 = classMeta.fields.stream()
 							.filter(fieldNode -> fieldName.equals(fieldNode.name))
 							.findAny().orElse(null);
 
-					if (fieldNode1 != null) {
+					if (fieldMeta1 != null) {
 						switch (transform.getAccess()) {
 						case NONE -> {
 						}
-						case PROTECTED, PUBLIC -> visitor.visitField(fieldName, fieldNode1.desc, AccessWidenerVisitor.AccessType.ACCESSIBLE, true);
+						case PROTECTED, PUBLIC -> visitor.visitField(fieldName, fieldMeta1.desc, AccessWidenerVisitor.AccessType.ACCESSIBLE, true);
 						default -> project.getLogger().warn("At2Aw: {}: unimplemented field access for {} {}: {}", mavenNotation, className, fieldName, classValue.get().getAccess());
 						}
 
 						switch (transform.getFinal()) {
 						case NONE -> {
 						}
-						case REMOVE -> visitor.visitField(fieldName, fieldNode1.desc, AccessWidenerVisitor.AccessType.MUTABLE, true);
+						case REMOVE -> visitor.visitField(fieldName, fieldMeta1.desc, AccessWidenerVisitor.AccessType.MUTABLE, true);
 						default -> project.getLogger().warn("At2Aw: {}: unimplemented field final for {} {}: {}", mavenNotation, className, fieldName, classValue.get().getAccess());
 						}
 					} else {
@@ -410,6 +473,12 @@ public class NFGeneratedMetaDependency {
 				}
 			}
 		}
+	}
+
+	private record FieldMeta(String name, String desc) {
+	}
+
+	private record ClassMeta(List<FieldMeta> fields) {
 	}
 
 	public record MetaModMetadata(String modId) implements ModMetadata {
