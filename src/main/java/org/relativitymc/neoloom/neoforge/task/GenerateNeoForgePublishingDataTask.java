@@ -117,11 +117,10 @@ public abstract class GenerateNeoForgePublishingDataTask extends AbstractLoomTas
 			LoomGradleExtension extension = LoomGradleExtension.get(project);
 
 			if (!extension.disableObfuscation()) {
-				task.getTinyRemapperServiceOptions().set(TinyRemapperService.createSimple(
+				task.getTinyRemapperServiceOptions().set(TinyRemapperService.createMinimal(
 						project,
 						project.provider(MappingsNamespace.NAMED::toString),
-						extension.getProductionNamespace(),
-						TinyRemapperService.ClasspathLibraries.EXCLUDE
+						extension.getProductionNamespace()
 				));
 			}
 		});
@@ -168,27 +167,33 @@ public abstract class GenerateNeoForgePublishingDataTask extends AbstractLoomTas
 		AccessTransformSet atSet = AccessTransformSet.create();
 		Map<String, Set<String>> interfaceInjections = new HashMap<>();
 
-		for (File ctFile : getInputClassTweakers().getFiles()) {
-			try (var reader = Files.newBufferedReader(ctFile.toPath())) {
-				ClassTweakerVisitor classTweakerVisitor = new ClassTweakerVisitor() {
-					@Override
-					public AccessWidenerVisitor visitAccessWidener(String owner) {
-						return Aw2At.createAccessWidenerVisitor(atSet, owner, true);
-					}
+		try (var serviceFactory = new ScopedServiceFactory()) {
+			TinyRemapper tinyRemapper;
 
-					@Override
-					public void visitInjectedInterface(String owner, String iface, boolean transitive) {
-						if (!transitive) return;
+			if (getTinyRemapperServiceOptions().isPresent()) {
+				TinyRemapperService tinyRemapperService = serviceFactory.get(getTinyRemapperServiceOptions().get());
+				tinyRemapper = tinyRemapperService.getTinyRemapperForRemapping();
+			} else {
+				tinyRemapper = null;
+			}
 
-						interfaceInjections.computeIfAbsent(owner, unused -> new HashSet<>()).add(iface);
-					}
-				};
+			for (File ctFile : getInputClassTweakers().getFiles()) {
+				try (var reader = Files.newBufferedReader(ctFile.toPath())) {
+					ClassTweakerVisitor classTweakerVisitor = new ClassTweakerVisitor() {
+						@Override
+						public AccessWidenerVisitor visitAccessWidener(String owner) {
+							return Aw2At.createAccessWidenerVisitor(atSet, owner, true);
+						}
 
-				if (getTinyRemapperServiceOptions().isPresent()) {
-					try (var serviceFactory = new ScopedServiceFactory()) {
-						TinyRemapperService tinyRemapperService = serviceFactory.get(getTinyRemapperServiceOptions().get());
-						TinyRemapper tinyRemapper = tinyRemapperService.getTinyRemapperForRemapping();
+						@Override
+						public void visitInjectedInterface(String owner, String iface, boolean transitive) {
+							if (!transitive) return;
 
+							interfaceInjections.computeIfAbsent(owner, unused -> new HashSet<>()).add(iface);
+						}
+					};
+
+					if (tinyRemapper != null) {
 						classTweakerVisitor = new ClassTweakerRemapperVisitor(
 								classTweakerVisitor,
 								tinyRemapper.getEnvironment().getRemapper(),
@@ -196,9 +201,9 @@ public abstract class GenerateNeoForgePublishingDataTask extends AbstractLoomTas
 								getTinyRemapperServiceOptions().get().getTo().get()
 						);
 					}
-				}
 
-				ClassTweakerReader.create(classTweakerVisitor).read(reader);
+					ClassTweakerReader.create(classTweakerVisitor).read(reader);
+				}
 			}
 		}
 

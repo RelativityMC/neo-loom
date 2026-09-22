@@ -133,6 +133,20 @@ public class TinyRemapperService extends Service<TinyRemapperService.Options> im
 		});
 	}
 
+	public static Provider<Options> createMinimal(Project project, Provider<String> from, Provider<String> to) {
+		return TYPE.create(project, options -> {
+			final LoomGradleExtension extension = LoomGradleExtension.get(project);
+
+			options.getFrom().set(from);
+			options.getTo().set(to);
+			options.getMappings().add(MappingsService.createOptionsWithProjectMappings(project, options.getFrom(), options.getTo()));
+			options.getUselegacyMixinAP().set(false);
+			options.getClasspath().from(project.provider(() -> project.files(extension.getMinecraftJars(Objects.requireNonNull(MappingsNamespace.of(from.get()))))));
+			options.getKnownIndyBsms().set(extension.getKnownIndyBsms().get().stream().sorted().toList());
+			options.getRemapperExtensions().set(extension.getRemapperExtensions());
+		});
+	}
+
 	private static FileCollection getRemapClasspath(Project project, Provider<String> from, ClasspathLibraries classpathLibraries) {
 		final LoomGradleExtension extension = LoomGradleExtension.get(project);
 		final ConfigurationContainer configurations = project.getConfigurations();
