@@ -189,12 +189,18 @@ public abstract class GenerateDLIConfigTask extends AbstractLoomTask {
 			String mergedJarName = getExtension().getMinecraftProvider().getJarPrefix() + "minecraft-merged";
 
 			if (provider.getCapabilities().requireGameResources) {
-				getForgeGameResourcesJar().set(getExtension().getNamedMinecraftProvider().getJar(MinecraftJar.Type.GAME_RESOURCES).toFile());
+				getExtension().getNamedMinecraftProvider().getMinecraftJars().stream()
+						.filter(minecraftJar -> minecraftJar instanceof MinecraftJar.GameResources)
+						.findAny()
+						.ifPresent(minecraftJar -> getForgeGameResourcesJar().set(minecraftJar.toFile()));
 			}
 
 			// TODO split sources
 			if (provider.getCapabilities().useMergedJar) {
-				getForgeMergedJar().set(getExtension().getNamedMinecraftProvider().getJar(MinecraftJar.Type.MERGED).toFile());
+				getExtension().getNamedMinecraftProvider().getMinecraftJars().stream()
+						.filter(minecraftJar -> minecraftJar instanceof MinecraftJar.Merged)
+						.findAny()
+						.ifPresent(minecraftJar -> getForgeMergedJar().set(minecraftJar.toFile()));
 			}
 
 			getForgeLegacyClasspathFile().set(new File(getExtension().getFiles().getProjectPersistentCache(), "forge_minecraft_classpath.txt"));
