@@ -5,7 +5,7 @@ A fork of Fabric Loom that supports the NeoForge and MinecraftForge modding tool
 Feel free to reach out on [our Discord server](https://discord.relativitymc.org/).
 
 ## Currently implemented
-- NeoForge and MinecraftForge 1.21+
+- NeoForge 1.21+ and MinecraftForge 1.20.1+
 - Jar-in-Jar
 - ClassTweaker / AccessWidener -> AccessTransformer conversion
 - Devlaunch
@@ -40,7 +40,7 @@ pluginManagement {
 In your buildscript, using [Modern Yarn](https://github.com/RelativityMC/yarn):  
 ```gradle
 plugins {
-	id 'org.relativitymc.neo-loom-remap' version '1.17-SNAPSHOT'
+	id 'org.relativitymc.neo-loom-remap' version '1.18-SNAPSHOT'
 }
 
 repositories {
@@ -54,7 +54,7 @@ dependencies {
 	forgeUserdev "net.neoforged:neoforge:${project.neoforge_version}:userdev"
 	mappings loom.layered {
 		it.mappings "org.relativitymc:modern-yarn:${project.yarn_mappings}:v2"
-		it.mappings "org.relativitymc:modern-yarn-mappings-patch-neoforge:26.1+build.1"
+		it.mappings "org.relativitymc:modern-yarn-mappings-patch-neoforge:26.3+build.6"
 	}
 }
 
@@ -71,7 +71,7 @@ loom {
 In your buildscript, without any mappings:  
 ```gradle
 plugins {
-	id 'org.relativitymc.neo-loom' version '1.17-SNAPSHOT'
+	id 'org.relativitymc.neo-loom' version '1.18-SNAPSHOT'
 }
 
 dependencies {
@@ -87,7 +87,7 @@ loom.convertAw2At(tasks.named("jar"), ["modid.accesswidener"])
 In your buildscript:
 ```gradle
 plugins {
-	id 'org.relativitymc.neo-loom-remap' version '1.17-SNAPSHOT'
+	id 'org.relativitymc.neo-loom-remap' version '1.18-SNAPSHOT'
 }
 
 dependencies {
@@ -105,7 +105,7 @@ remapJar {
 }
 ```
 
-### Using MinecraftForge 1.21+
+### Using MinecraftForge 1.20.1+
 
 Add the MinecraftForge repository:
 ```
