@@ -33,6 +33,7 @@ import java.nio.file.FileSystem;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -70,12 +71,16 @@ public non-sealed class RemapMappingConfiguration extends MappingConfiguration {
 	@Nullable
 	private Map<String, String> signatureFixes;
 
+	private final Path mappingsWorkingDir;
+
 	protected RemapMappingConfiguration(String mappingsIdentifier, Path mappingsWorkingDir, Path inputJar, ServiceFactory serviceFactory) {
 		super(mappingsIdentifier, inputJar);
 		this.serviceFactory = serviceFactory;
 		this.baseTinyMappings = mappingsWorkingDir.resolve("mappings-base.tiny");
 		this.tinyMappings = mappingsWorkingDir.resolve("mappings.tiny");
 		this.tinyMappingsJar = mappingsWorkingDir.resolve("mappings.jar");
+
+		this.mappingsWorkingDir = mappingsWorkingDir;
 	}
 
 	public static RemapMappingConfiguration create(Project project, ServiceFactory serviceFactory, DependencyInfo dependency, MinecraftProvider minecraftProvider) {
@@ -228,6 +233,25 @@ public non-sealed class RemapMappingConfiguration extends MappingConfiguration {
 	@Nullable
 	public Map<String, String> getSignatureFixes() {
 		return signatureFixes;
+	}
+
+	public Path getReplacedTarget(LoomGradleExtension loom, String namespace) {
+		if (namespace.equals(MappingsNamespace.INTERMEDIARY.toString())) return this.tinyMappings;
+
+		Path path = mappingsWorkingDir.resolve("mappings-mixin-" + namespace + ".tiny");
+
+		try {
+			if (Files.notExists(path) || loom.refreshDeps()) {
+				List<String> lines = new ArrayList<>(Files.readAllLines(this.tinyMappings));
+				lines.set(0, lines.get(0).replace("intermediary", "yraidemretni").replace(namespace, "intermediary"));
+				Files.deleteIfExists(path);
+				Files.write(path, lines);
+			}
+
+			return path;
+		} catch (Exception e) {
+			throw new RuntimeException(e);
+		}
 	}
 
 	private static boolean areMappingsV2(Path path) throws IOException {
