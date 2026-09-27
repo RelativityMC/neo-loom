@@ -144,6 +144,21 @@ public final class ForgeModMetadata implements ModMetadata {
 
 	@Override
 	public List<String> getMixinConfigs() {
+		if (this.platform == ModPlatform.NEOFORGE) {
+			final List<? extends Config> mixins = config.get("mixins");
+
+			if (mixins != null) {
+				final List<String> result = new ArrayList<>();
+
+				for (Config atEntry : mixins) {
+					final String file = atEntry.get("config");
+					if (file != null) result.add(file);
+				}
+
+				return result;
+			}
+		}
+
 		return List.of();
 	}
 

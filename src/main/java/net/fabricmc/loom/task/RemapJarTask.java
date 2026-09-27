@@ -228,6 +228,7 @@ public abstract class RemapJarTask extends AbstractRemapJarTask {
 
 				remapAccessWidener();
 				remapNeoForgeEnumExtensions();
+				modifyJarManifest(); // need to be run before refmaps to make sure forge MixinConfigs is read properly
 				addRefmaps(serviceFactory);
 				addNestedJars();
 
@@ -235,7 +236,6 @@ public abstract class RemapJarTask extends AbstractRemapJarTask {
 					ModBuildExtensions.convertAwToAt(getParameters().getAtAccessWideners().get(), outputFile, tinyRemapper, getParameters().getSourceNamespace().get(), getParameters().getTargetNamespace().get());
 				}
 
-				modifyJarManifest();
 				rewriteJar();
 
 				if (getParameters().getOptimizeFmj().get()) {
@@ -344,7 +344,7 @@ public abstract class RemapJarTask extends AbstractRemapJarTask {
 
 			for (MixinRefmapService.Options options : getParameters().getMixinRefmapServiceOptions().get()) {
 				MixinRefmapService mixinRefmapService = serviceFactory.get(options);
-				mixinRefmapService.applyToJar(outputFile);
+				mixinRefmapService.applyToJar(outputFile, getParameters().getModPlatform().get().isForgeLike());
 			}
 		}
 
