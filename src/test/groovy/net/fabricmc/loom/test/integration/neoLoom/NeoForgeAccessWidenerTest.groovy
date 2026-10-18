@@ -34,29 +34,47 @@ import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
 
 class NeoForgeAccessWidenerTest extends Specification implements GradleProjectTestTrait {
 	@Unroll
-	def "neoforge accesswidener (gradle #version)"() {
+	def "neoforge accesswidener (gradle #version) (deleteOriginalAw=#deleteOriginalAw)"() {
 		setup:
 		def gradle = gradleProject(project: "neoLoom/neoForge/accesswidener", version: version)
+		if (!deleteOriginalAw) {
+			gradle.buildGradle << """
+				remapJar { deleteOriginalAtAccessWideners = false }
+				""".stripIndent()
+		}
 		when:
 		def result = gradle.run(task: "build")
 		then:
 		result.task(":build").outcome == SUCCESS
 		gradle.getOutputZipEntry("fabric-example-mod-1.0.0.jar", "META-INF/accesstransformer.cfg") == expected().replaceAll('\r', '')
+		gradle.hasOutputZipEntry("fabric-example-mod-1.0.0.jar", "modid.accesswidener") == !deleteOriginalAw
 		where:
 		version << STANDARD_TEST_VERSIONS
+		deleteOriginalAw << [true, false]
 	}
 
 	@Unroll
-	def "neoforge accesswidener noRemap (gradle #version)"() {
+	def "neoforge accesswidener noRemap (gradle #version) (deleteOriginalAw=#deleteOriginalAw)"() {
 		setup:
 		def gradle = gradleProject(project: "neoLoom/neoForge/accesswidenerNoRemap", version: version)
+		if (deleteOriginalAw) {
+			gradle.buildGradle << """
+				loom.convertAw2At(tasks.named(\"jar\"), [\"modid.accesswidener\"])
+				""".stripIndent()
+		} else {
+			gradle.buildGradle << """
+				loom.convertAw2At(tasks.named(\"jar\"), [\"modid.accesswidener\"], false)
+				""".stripIndent()
+		}
 		when:
 		def result = gradle.run(task: "build")
 		then:
 		result.task(":build").outcome == SUCCESS
 		gradle.getOutputZipEntry("fabric-example-mod-1.0.0.jar", "META-INF/accesstransformer.cfg") == expected().replaceAll('\r', '')
+		gradle.hasOutputZipEntry("fabric-example-mod-1.0.0.jar", "modid.accesswidener") == !deleteOriginalAw
 		where:
 		version << STANDARD_TEST_VERSIONS
+		deleteOriginalAw << [true, false]
 	}
 
 	String expected() {

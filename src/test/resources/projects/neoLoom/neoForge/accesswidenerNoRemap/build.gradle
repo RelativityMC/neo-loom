@@ -32,4 +32,3 @@ tasks.withType(JavaCompile).configureEach {
 	it.options.release = 21
 }
 
-loom.convertAw2At(tasks.named("jar"), ["modid.accesswidener"])

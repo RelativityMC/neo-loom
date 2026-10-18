@@ -400,6 +400,9 @@ public interface LoomGradleExtensionAPI {
 	void convertAw2At(TaskProvider<? extends Jar> jarTask, List<String> atAccessWideners);
 
 	@ApiStatus.Experimental
+	void convertAw2At(TaskProvider<? extends Jar> jarTask, List<String> atAccessWideners, boolean deleteOriginal);
+
+	@ApiStatus.Experimental
 	void publishTransitiveCTNeoForge(ConfigurableFileCollection classTweakers);
 
 	@ApiStatus.Experimental

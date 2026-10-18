@@ -622,13 +622,22 @@ public abstract class LoomGradleExtensionApiImpl implements LoomGradleExtensionA
 
 	@Override
 	public void convertAw2At(TaskProvider<? extends Jar> jarTask, List<String> atAccessWideners) {
+		this.convertAw2At(jarTask, atAccessWideners, true);
+	}
+
+	@Override
+	public void convertAw2At(TaskProvider<? extends Jar> jarTask, List<String> atAccessWideners, boolean deleteOriginal) {
 		jarTask.configure(task -> {
 			if (task instanceof RemapJarTask remapJarTask) {
 				// For RemapJarTask, add to the atAccwssWideners property
 				remapJarTask.getAtAccessWideners().addAll(atAccessWideners);
+
+				if (!deleteOriginal) {
+					remapJarTask.getLogger().warn("Specifying deleteOriginal=false in loom.convertAw2At have no effect on RemapJarTask, use RemapJarTask.deleteOriginalAtAccessWideners instead");
+				}
 			} else {
 				// For regular Jar tasks (non-remap mode), add an Aw2AtAction
-				Aw2AtAction.addToTask(task, atAccessWideners);
+				Aw2AtAction.addToTask(task, atAccessWideners, deleteOriginal);
 			}
 		});
 	}

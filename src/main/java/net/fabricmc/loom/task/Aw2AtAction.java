@@ -35,6 +35,7 @@ import javax.inject.Inject;
 import org.gradle.api.Action;
 import org.gradle.api.Task;
 import org.gradle.api.file.RegularFileProperty;
+import org.gradle.api.provider.Property;
 import org.gradle.api.provider.SetProperty;
 import org.gradle.api.tasks.Input;
 import org.gradle.jvm.tasks.Jar;
@@ -42,7 +43,6 @@ import org.gradle.workers.WorkAction;
 import org.gradle.workers.WorkParameters;
 import org.gradle.workers.WorkQueue;
 import org.gradle.workers.WorkerExecutor;
-import org.jetbrains.annotations.UnknownNullability;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -56,12 +56,16 @@ public abstract class Aw2AtAction implements Action<Task>, Serializable {
 	@Input
 	public abstract SetProperty<String> getAtAccessWideners();
 
+	@Input
+	public abstract Property<Boolean> getDeleteOriginalAw();
+
 	@Inject
 	protected abstract WorkerExecutor getWorkerExecutor();
 
-	public static void addToTask(Jar task, @UnknownNullability List<String> atAccessWideners) {
+	public static void addToTask(Jar task, List<String> atAccessWideners, boolean deleteOriginalAw) {
 		Aw2AtAction aw2AtAction = task.getProject().getObjects().newInstance(Aw2AtAction.class);
 		aw2AtAction.getAtAccessWideners().addAll(atAccessWideners);
+		aw2AtAction.getDeleteOriginalAw().set(deleteOriginalAw);
 		task.doLast(aw2AtAction);
 	}
 
@@ -74,12 +78,14 @@ public abstract class Aw2AtAction implements Action<Task>, Serializable {
 		workQueue.submit(ConversionAction.class, p -> {
 			p.getArchiveFile().set(jarTask.getArchiveFile());
 			p.getAtAccessWideners().set(getAtAccessWideners());
+			p.getDeleteOriginalAw().set(getDeleteOriginalAw());
 		});
 	}
 
 	public interface Aw2AtParameters extends WorkParameters {
 		RegularFileProperty getArchiveFile();
 		SetProperty<String> getAtAccessWideners();
+		Property<Boolean> getDeleteOriginalAw();
 	}
 
 	public abstract static class ConversionAction implements WorkAction<Aw2AtParameters> {
@@ -92,7 +98,7 @@ public abstract class Aw2AtAction implements Action<Task>, Serializable {
 
 			if (!atAccessWideners.isEmpty()) {
 				try {
-					ModBuildExtensions.convertAwToAt(atAccessWideners, jarFile.toPath(), null, null, null);
+					ModBuildExtensions.convertAwToAt(atAccessWideners, jarFile.toPath(), getParameters().getDeleteOriginalAw().get());
 				} catch (IOException e) {
 					throw new RuntimeException(e);
 				}

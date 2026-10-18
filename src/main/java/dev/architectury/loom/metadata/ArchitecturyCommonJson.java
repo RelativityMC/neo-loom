@@ -29,18 +29,12 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 
-import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import org.jspecify.annotations.Nullable;
-import org.objectweb.asm.signature.SignatureReader;
-import org.objectweb.asm.util.CheckSignatureAdapter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

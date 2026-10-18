@@ -28,6 +28,8 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Stream;
 
@@ -109,6 +111,9 @@ public abstract class RemapJarTask extends AbstractRemapJarTask {
 	public abstract SetProperty<String> getAtAccessWideners();
 
 	@Input
+	public abstract Property<Boolean> getDeleteOriginalAtAccessWideners();
+
+	@Input
 	@ApiStatus.Internal
 	public abstract Property<Boolean> getUseMixinAP();
 	@Nested
@@ -142,6 +147,7 @@ public abstract class RemapJarTask extends AbstractRemapJarTask {
 		getMixinRefmapServiceOptions().set(MixinRefmapService.createOptions(this));
 
 		getModPlatform().set(getProject().provider(() -> extension.getMinecraftProvider().getModPlatform()));
+		getDeleteOriginalAtAccessWideners().convention(true).finalizeValueOnRead();
 	}
 
 	@Override
@@ -170,6 +176,7 @@ public abstract class RemapJarTask extends AbstractRemapJarTask {
 			}
 
 			params.getAtAccessWideners().set(getAtAccessWideners());
+			params.getDeleteOriginalAtAccessWideners().set(getDeleteOriginalAtAccessWideners());
 
 			params.getOptimizeFmj().set(getOptimizeFabricModJson().get());
 
@@ -182,6 +189,7 @@ public abstract class RemapJarTask extends AbstractRemapJarTask {
 		ConfigurableFileCollection getRemapClasspath();
 
 		SetProperty<String> getAtAccessWideners();
+		Property<Boolean> getDeleteOriginalAtAccessWideners();
 
 		Property<Boolean> getUseMixinExtension();
 		Property<Boolean> getOptimizeFmj();
@@ -233,7 +241,15 @@ public abstract class RemapJarTask extends AbstractRemapJarTask {
 				addNestedJars();
 
 				if (getParameters().getAtAccessWideners().isPresent()) {
-					ModBuildExtensions.convertAwToAt(getParameters().getAtAccessWideners().get(), outputFile, tinyRemapper, getParameters().getSourceNamespace().get(), getParameters().getTargetNamespace().get());
+					Map<String, ZipUtils.UnsafeUnaryOperator<byte[]>> transforms = new HashMap<>();
+
+					for (String path : getParameters().getAtAccessWideners().get()) {
+						transforms.put(path, this::remapAccessWidener);
+					}
+
+					ZipUtils.transform(outputFile, transforms);
+
+					ModBuildExtensions.convertAwToAt(getParameters().getAtAccessWideners().get(), outputFile, getParameters().getDeleteOriginalAtAccessWideners().get());
 				}
 
 				rewriteJar();

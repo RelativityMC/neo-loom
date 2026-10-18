@@ -36,6 +36,7 @@ import java.nio.file.Files;
 import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.nio.file.attribute.FileTime;
+import java.time.Instant;
 import java.util.Set;
 import java.util.jar.Attributes;
 import java.util.jar.JarFile;
@@ -46,8 +47,6 @@ import org.jspecify.annotations.Nullable;
 import net.fabricmc.classtweaker.api.ClassTweakerReader;
 import net.fabricmc.classtweaker.api.visitor.AccessWidenerVisitor;
 import net.fabricmc.classtweaker.api.visitor.ClassTweakerVisitor;
-import net.fabricmc.classtweaker.visitors.ClassTweakerRemapperVisitor;
-import net.fabricmc.tinyremapper.TinyRemapper;
 import net.fabricmc.loom.util.Constants;
 import net.fabricmc.loom.util.FileSystemUtil;
 
@@ -76,7 +75,7 @@ public final class ModBuildExtensions {
 		}
 	}
 
-	public static void convertAwToAt(Set<String> atAccessWideners, Path outputFile, @Nullable TinyRemapper tinyRemapper, @Nullable String sourceNamespace, @Nullable String targetNamespace) throws IOException {
+	public static void convertAwToAt(Set<String> atAccessWideners, Path outputFile, boolean deleteOriginalAw) throws IOException {
 		if (atAccessWideners.isEmpty()) {
 			return;
 		}
@@ -108,28 +107,21 @@ public final class ModBuildExtensions {
 						}
 					};
 
-					if (tinyRemapper != null && sourceNamespace != null && targetNamespace != null) {
-						visitor = new ClassTweakerRemapperVisitor(
-								visitor,
-								tinyRemapper.getEnvironment().getRemapper(),
-								sourceNamespace,
-								targetNamespace
-						);
-					}
-
 					ClassTweakerReader.create(visitor).read(reader);
 
 					at.merge(atSet);
 				}
 
-				Files.delete(awPath);
+				if (deleteOriginalAw) {
+					Files.delete(awPath);
+				}
 			}
 
 			try (Writer writer = new LfWriter(Files.newBufferedWriter(atPath))) {
 				AccessTransformFormats.FML.write(writer, at);
 			}
 
-			Files.setLastModifiedTime(atPath, FileTime.fromMillis(0L));
+			Files.setLastModifiedTime(atPath, FileTime.from(Instant.EPOCH));
 		}
 	}
 }
