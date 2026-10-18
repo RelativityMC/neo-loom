@@ -197,12 +197,12 @@ class SimpleProjectTest extends Specification implements GradleProjectTestTrait 
 		given:
 		def gradle = gradleProject(project: "minimalBase", version: version)
 		gradle.buildGradle.text = gradle.buildGradle.text.replace(
-				"id 'net.fabricmc.fabric-loom-remap'",
-				"id 'java-library'\n\tid 'net.fabricmc.fabric-loom-remap' apply false"
+				"id 'org.relativitymc.neo-loom-remap'",
+				"id 'java-library'\n\tid 'org.relativitymc.neo-loom-remap' apply false"
 				)
 		gradle.buildGradle << """
 			java.withSourcesJar()
-			apply plugin: 'net.fabricmc.fabric-loom-remap'
+			apply plugin: 'org.relativitymc.neo-loom-remap'
 
 			dependencies {
 				minecraft 'com.mojang:minecraft:1.16.5'
