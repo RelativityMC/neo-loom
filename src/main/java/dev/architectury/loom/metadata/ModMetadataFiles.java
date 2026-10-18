@@ -46,6 +46,7 @@ import net.fabricmc.loom.util.gradle.SourceSetHelper;
 public final class ModMetadataFiles {
 	private static final Logger LOGGER = Logging.getLogger(ModMetadataFiles.class);
 	private static final List<Function<ResourceGetter, @Nullable ModMetadata>> MOD_METADATA_TYPES = List.of(
+			ArchitecturyCommonJson::tryParse,
 			ForgeModMetadata::tryParse
 	);
 
