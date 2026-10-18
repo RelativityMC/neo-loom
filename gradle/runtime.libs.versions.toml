@@ -15,6 +15,10 @@ fabric-installer = "1.0.3"
 renderdoc = "1.37"
 enigma = "3.0.1"
 
+# Forge runtime libs
+unprotect = "2.0.2"
+forge-bootstrap-loom = "1.0.1"
+
 [libraries]
 # Decompilers
 cfr = { module = "net.fabricmc:cfr", version.ref = "cfr" }
@@ -31,3 +35,9 @@ fabric-installer = { module = "net.fabricmc:fabric-installer", version.ref = "fa
 # Dev tools
 renderdoc = { module = "org.renderdoc:renderdoc", version.ref = "renderdoc" } # Not a maven dependency
 enigma-swing = { module = "cuchaz:enigma-swing", version.ref = "enigma" }
+
+# Forge runtime libs
+unprotect-fancymodloader10 = { module = "io.github.juuxel:unprotect-fancymodloader10", version.ref = "unprotect" }
+unprotect-modlauncher = { module = "io.github.juuxel:unprotect-modlauncher", version.ref = "unprotect" }
+unprotect = { module = "io.github.juuxel:unprotect", version.ref = "unprotect" }
+forge-bootstrap-loom = { module = "org.relativitymc:forge-bootstrap-loom", version.ref = "forge-bootstrap-loom" }

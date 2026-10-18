@@ -36,6 +36,8 @@ import net.fabricmc.classtweaker.visitors.ClassTweakerRemapperVisitor;
 import net.fabricmc.loom.util.fmj.FabricModJson;
 import net.fabricmc.loom.util.fmj.FabricModJsonFactory;
 
+import org.relativitymc.neoloom.neoforge.meta.ModPlatform;
+
 public class AccessWidenerUtils {
 	/**
 	 * Remap a mods access widener from intermediary to named, so that loader can apply it in our dev-env.
@@ -55,8 +57,8 @@ public class AccessWidenerUtils {
 		return writer.getOutput();
 	}
 
-	public static AccessWidenerData readAccessWidenerData(Path inputJar) throws IOException {
-		if (!FabricModJsonFactory.isModJar(inputJar)) {
+	public static AccessWidenerData readAccessWidenerData(Path inputJar, ModPlatform modPlatform) throws IOException {
+		if (!FabricModJsonFactory.isModJar(inputJar, modPlatform)) {
 			return null;
 		}
 

@@ -49,6 +49,8 @@ import net.fabricmc.loom.util.service.Service;
 import net.fabricmc.loom.util.service.ServiceFactory;
 import net.fabricmc.loom.util.service.ServiceType;
 
+import dev.architectury.loom.extensions.ModBuildExtensions;
+
 public class MixinRefmapService extends Service<MixinRefmapService.Options> {
 	public static final ServiceType<Options, MixinRefmapService> TYPE = new ServiceType<>(Options.class, MixinRefmapService.class);
 
@@ -105,14 +107,22 @@ public class MixinRefmapService extends Service<MixinRefmapService.Options> {
 		super(options, serviceFactory);
 	}
 
-	public void applyToJar(Path path) throws IOException {
+	public void applyToJar(Path path, boolean readFromManifest) throws IOException {
 		final FabricModJson fabricModJson = FabricModJsonFactory.createFromZipNullable(path);
+		final List<String> allMixinConfigs = new ArrayList<>();
 
-		if (fabricModJson == null) {
+		if (fabricModJson != null) {
+			allMixinConfigs.addAll(fabricModJson.getMixinConfigurations());
+		}
+
+		if (readFromManifest) {
+			allMixinConfigs.addAll(ModBuildExtensions.readMixinConfigsFromManifest(path.toFile()));
+		}
+
+		if (allMixinConfigs.isEmpty()) {
 			return;
 		}
 
-		final List<String> allMixinConfigs = fabricModJson.getMixinConfigurations();
 		final List<String> mixinConfigs = getOptions().getMixinConfigs().get().stream()
 				.filter(allMixinConfigs::contains)
 				.toList();

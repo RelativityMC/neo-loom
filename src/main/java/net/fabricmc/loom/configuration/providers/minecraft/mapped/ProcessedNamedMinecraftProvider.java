@@ -46,6 +46,8 @@ import net.fabricmc.loom.configuration.providers.minecraft.SingleJarEnvType;
 import net.fabricmc.loom.configuration.providers.minecraft.SingleJarMinecraftProvider;
 import net.fabricmc.loom.configuration.providers.minecraft.SplitMinecraftProvider;
 
+import org.relativitymc.neoloom.neoforge.NFRTMergedMinecraftProvider;
+
 public abstract class ProcessedNamedMinecraftProvider<M extends MinecraftProvider, P extends NamedMinecraftProvider<M>> extends NamedMinecraftProvider<M> {
 	private final P parentMinecraftProvider;
 	private final MinecraftJarProcessorManager jarProcessorManager;
@@ -58,7 +60,9 @@ public abstract class ProcessedNamedMinecraftProvider<M extends MinecraftProvide
 
 	@Override
 	public List<MinecraftJar> provide(ProvideContext context) throws Exception {
-		final List<MinecraftJar> parentMinecraftJars = parentMinecraftProvider.getMinecraftJars();
+		final List<MinecraftJar> parentMinecraftJars = parentMinecraftProvider.getRemappedJars().stream()
+				.map(RemappedJars::outputJar)
+				.toList();
 		final Map<MinecraftJar, MinecraftJar> minecraftJarOutputMap = parentMinecraftJars.stream()
 				.collect(Collectors.toMap(Function.identity(), this::getProcessedJar));
 		final List<MinecraftJar> minecraftJars = List.copyOf(minecraftJarOutputMap.values());
@@ -83,7 +87,8 @@ public abstract class ProcessedNamedMinecraftProvider<M extends MinecraftProvide
 
 	@Override
 	public List<? extends OutputJar> getOutputJars() {
-		return parentMinecraftProvider.getMinecraftJars().stream()
+		return parentMinecraftProvider.getRemappedJars().stream()
+				.map(RemappedJars::outputJar)
 				.map(this::getProcessedJar)
 				.map(SimpleOutputJar::new)
 				.toList();
@@ -143,8 +148,9 @@ public abstract class ProcessedNamedMinecraftProvider<M extends MinecraftProvide
 
 	@Override
 	protected String getName(MinecraftJar.Type type) {
+		final String jarPrefix = parentMinecraftProvider.getMinecraftProvider().getJarPrefix();
 		// Hash the cache value so that we don't have to process the same JAR multiple times for many projects
-		return "minecraft-%s-%s".formatted(type.toString(), jarProcessorManager.getJarHash());
+		return jarPrefix + "minecraft-%s-%s".formatted(type.toString(), jarProcessorManager.getJarHash());
 	}
 
 	@Override
@@ -240,6 +246,17 @@ public abstract class ProcessedNamedMinecraftProvider<M extends MinecraftProvide
 		@Override
 		public SingleJarEnvType env() {
 			return env;
+		}
+	}
+
+	public static final class NeoForgeMergedImpl extends ProcessedNamedMinecraftProvider<NFRTMergedMinecraftProvider, NamedMinecraftProvider.NeoForgeMergedImpl> implements Merged {
+		public NeoForgeMergedImpl(NamedMinecraftProvider.NeoForgeMergedImpl parentMinecraftProvide, MinecraftJarProcessorManager jarProcessorManager) {
+			super(parentMinecraftProvide, jarProcessorManager);
+		}
+
+		@Override
+		public MinecraftJar getMergedJar() {
+			return getProcessedJar(getParentMinecraftProvider().getMergedJar());
 		}
 	}
 }

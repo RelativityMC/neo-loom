@@ -33,11 +33,14 @@ import net.fabricmc.loom.configuration.ConfigContext;
 import net.fabricmc.loom.configuration.decompile.DecompileConfiguration;
 import net.fabricmc.loom.configuration.decompile.SingleJarDecompileConfiguration;
 import net.fabricmc.loom.configuration.decompile.SplitDecompileConfiguration;
+import net.fabricmc.loom.configuration.decompile.MultiJarDecompileConfiguration;
 import net.fabricmc.loom.configuration.processors.MinecraftJarProcessorManager;
 import net.fabricmc.loom.configuration.providers.minecraft.mapped.IntermediaryMinecraftProvider;
 import net.fabricmc.loom.configuration.providers.minecraft.mapped.MappedMinecraftProvider;
 import net.fabricmc.loom.configuration.providers.minecraft.mapped.NamedMinecraftProvider;
 import net.fabricmc.loom.configuration.providers.minecraft.mapped.ProcessedNamedMinecraftProvider;
+
+import org.relativitymc.neoloom.neoforge.NFRTMergedMinecraftProvider;
 
 public record MinecraftJarConfiguration<
 		M extends MinecraftProvider,
@@ -102,6 +105,17 @@ public record MinecraftJarConfiguration<
 				NamedMinecraftProvider.SplitImpl::new,
 				ProcessedNamedMinecraftProvider.SplitImpl::new,
 				SplitDecompileConfiguration::new,
+				List.of("client", "server")
+			);
+	public static final MinecraftJarConfiguration<
+			NFRTMergedMinecraftProvider,
+			NamedMinecraftProvider.NeoForgeMergedImpl,
+			MappedMinecraftProvider> NEOFORGE_MERGED = new MinecraftJarConfiguration<>(
+				NFRTMergedMinecraftProvider::new,
+				IntermediaryMinecraftProvider.NeoForgeMergedImpl::new,
+				NamedMinecraftProvider.NeoForgeMergedImpl::new,
+				ProcessedNamedMinecraftProvider.NeoForgeMergedImpl::new,
+				MultiJarDecompileConfiguration::new,
 				List.of("client", "server")
 			);
 

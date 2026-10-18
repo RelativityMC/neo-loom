@@ -1,5 +1,5 @@
 plugins {
-	id 'fabric-loom'
+	id 'org.relativitymc.neo-loom-remap'
 }
 
 loom {

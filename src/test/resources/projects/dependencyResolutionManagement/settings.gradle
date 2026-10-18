@@ -1,11 +1,11 @@
 pluginManagement {
 	plugins {
-		id 'net.fabricmc.fabric-loom-repositories'
+		id 'org.relativitymc.neo-loom-repositories'
 	}
 }
 
 plugins {
-	id 'net.fabricmc.fabric-loom-repositories'
+	id 'org.relativitymc.neo-loom-repositories'
 }
 
 dependencyResolutionManagement {

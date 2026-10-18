@@ -33,6 +33,7 @@ import java.nio.file.FileSystem;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -60,20 +61,26 @@ import net.fabricmc.mappingio.tree.MemoryMappingTree;
 import net.fabricmc.stitch.Command;
 import net.fabricmc.stitch.commands.CommandProposeFieldNames;
 
-public final class RemapMappingConfiguration extends MappingConfiguration {
+import org.relativitymc.neoloom.neoforge.mappings.ForgeMigratedRemapMappingConfiguration;
+
+public non-sealed class RemapMappingConfiguration extends MappingConfiguration {
 	private final ServiceFactory serviceFactory;
 	private final Path baseTinyMappings;
-	public final Path tinyMappings;
+	public Path tinyMappings;
 	public final Path tinyMappingsJar;
 	@Nullable
 	private Map<String, String> signatureFixes;
 
-	private RemapMappingConfiguration(String mappingsIdentifier, Path mappingsWorkingDir, Path inputJar, ServiceFactory serviceFactory) {
+	private final Path mappingsWorkingDir;
+
+	protected RemapMappingConfiguration(String mappingsIdentifier, Path mappingsWorkingDir, Path inputJar, ServiceFactory serviceFactory) {
 		super(mappingsIdentifier, inputJar);
 		this.serviceFactory = serviceFactory;
 		this.baseTinyMappings = mappingsWorkingDir.resolve("mappings-base.tiny");
 		this.tinyMappings = mappingsWorkingDir.resolve("mappings.tiny");
 		this.tinyMappingsJar = mappingsWorkingDir.resolve("mappings.jar");
+
+		this.mappingsWorkingDir = mappingsWorkingDir;
 	}
 
 	public static RemapMappingConfiguration create(Project project, ServiceFactory serviceFactory, DependencyInfo dependency, MinecraftProvider minecraftProvider) {
@@ -83,7 +90,15 @@ public final class RemapMappingConfiguration extends MappingConfiguration {
 		final TinyJarInfo jarInfo = readJarInfo(inputJar, dependency, minecraftProvider, "mappings");
 		final String mappingsIdentifier = createMappingsIdentifier(mappingsName, version, getMappingsClassifier(dependency, jarInfo.v2()), minecraftProvider.minecraftVersion());
 		final Path workingDir = minecraftProvider.dir(mappingsIdentifier).toPath();
-		var mappingConfiguration = new RemapMappingConfiguration(mappingsIdentifier, workingDir, inputJar, serviceFactory);
+
+		final LoomGradleExtension extension = LoomGradleExtension.get(project);
+		RemapMappingConfiguration mappingConfiguration;
+
+		if (extension.getMinecraftProvider().getModPlatform().isForgeLike()) {
+			mappingConfiguration = new ForgeMigratedRemapMappingConfiguration(mappingsIdentifier, workingDir, inputJar, serviceFactory);
+		} else {
+			mappingConfiguration = new RemapMappingConfiguration(mappingsIdentifier, workingDir, inputJar, serviceFactory);
+		}
 
 		mappingConfiguration.setup(project, minecraftProvider, dependency, "mappings");
 		return mappingConfiguration;
@@ -114,10 +129,19 @@ public final class RemapMappingConfiguration extends MappingConfiguration {
 			storeMappings(project, minecraftProvider);
 		}
 
+		this.setupPost(project);
+
 		if (Files.notExists(tinyMappingsJar) || minecraftProvider.refreshDeps()) {
 			Files.deleteIfExists(tinyMappingsJar);
 			ZipUtils.add(tinyMappingsJar, TinyJarInfo.MAPPINGS_PATH, Files.readAllBytes(tinyMappings));
 		}
+	}
+
+	public void setupPost(Project project) throws IOException {
+		this.manipulateMappings(project);
+	}
+
+	protected void manipulateMappings(Project project) throws IOException {
 	}
 
 	private void storeMappings(Project project, MinecraftProvider minecraftProvider) throws IOException {
@@ -130,6 +154,8 @@ public final class RemapMappingConfiguration extends MappingConfiguration {
 			} else {
 				Files.copy(baseTinyMappings, tinyMappings, StandardCopyOption.REPLACE_EXISTING);
 			}
+
+			this.mergeExtraMappings(project);
 		} else {
 			final List<Path> minecraftJars = minecraftProvider.getMinecraftJars();
 
@@ -141,6 +167,9 @@ public final class RemapMappingConfiguration extends MappingConfiguration {
 			LOGGER.info(":populating field names");
 			suggestFieldNames(minecraftJars.get(0), baseTinyMappings, tinyMappings);
 		}
+	}
+
+	protected void mergeExtraMappings(Project project) throws IOException {
 	}
 
 	private static void validateMappings(MemoryMappingTree mappingTree) throws IOException {
@@ -204,6 +233,25 @@ public final class RemapMappingConfiguration extends MappingConfiguration {
 	@Nullable
 	public Map<String, String> getSignatureFixes() {
 		return signatureFixes;
+	}
+
+	public Path getReplacedTarget(LoomGradleExtension loom, String namespace) {
+		if (namespace.equals(MappingsNamespace.INTERMEDIARY.toString())) return this.tinyMappings;
+
+		Path path = mappingsWorkingDir.resolve("mappings-mixin-" + namespace + ".tiny");
+
+		try {
+			if (Files.notExists(path) || loom.refreshDeps()) {
+				List<String> lines = new ArrayList<>(Files.readAllLines(this.tinyMappings));
+				lines.set(0, lines.get(0).replace("intermediary", "yraidemretni").replace(namespace, "intermediary"));
+				Files.deleteIfExists(path);
+				Files.write(path, lines);
+			}
+
+			return path;
+		} catch (Exception e) {
+			throw new RuntimeException(e);
+		}
 	}
 
 	private static boolean areMappingsV2(Path path) throws IOException {

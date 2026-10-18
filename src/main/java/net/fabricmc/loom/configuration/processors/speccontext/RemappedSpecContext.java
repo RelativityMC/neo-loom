@@ -69,10 +69,11 @@ public record RemappedSpecContext(
 	@VisibleForTesting
 	public static RemappedSpecContext create(RemappedProjectView projectView) {
 		AsyncCache<List<FabricModJson>> fmjCache = new AsyncCache<>();
+		List<FabricModJson> extraTransformingMods = projectView.getExtraTransformingMods();
 		return new RemappedSpecContext(
-				getDependentMods(projectView, fmjCache),
+				SpecContext.distinctSorted(Stream.concat(getDependentMods(projectView, fmjCache).stream(), extraTransformingMods.stream()).toList()),
 				projectView.getMods(),
-				getCompileRuntimeMods(projectView, fmjCache),
+				Stream.concat(getCompileRuntimeMods(projectView, fmjCache).stream(), extraTransformingMods.stream().map(ModHolder::new)).toList(),
 				projectView.getProductionNamespace()
 		);
 	}

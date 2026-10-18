@@ -40,7 +40,7 @@ diff --git a/build.gradle b/build.gradle
  	id "eclipse"
  	id "maven-publish"
 -	id "fabric-loom" version "1.10.1" apply false
-+	id "fabric-loom" apply false
++	id "org.relativitymc.neo-loom-remap" apply false
  	id "com.diffplug.spotless" version "7.0.2"
  	id "me.modmuss50.remotesign" version "0.5.0" apply false
  	id "me.modmuss50.mod-publish-plugin" version "0.8.4"
@@ -77,6 +77,15 @@ diff --git a/build.gradle b/build.gradle
  }
 
  def moduleDependencies(project, List<String> depNames) {
+@@ -142,7 +128,7 @@
+
+ 	apply plugin: "java-library"
+ 	apply plugin: "checkstyle"
+-	apply plugin: "fabric-loom"
++	apply plugin: "org.relativitymc.neo-loom-remap"
+ 	apply plugin: "com.diffplug.spotless"
+
+ 	tasks.withType(JavaCompile).configureEach {
 @@ -355,7 +341,6 @@
 
  // Apply auxiliary buildscripts to submodules

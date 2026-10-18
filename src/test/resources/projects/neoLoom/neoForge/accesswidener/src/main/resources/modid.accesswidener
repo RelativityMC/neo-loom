@@ -1,0 +1,92 @@
+accessWidener v1 named
+
+accessible    class    net/minecraft/server/world/ChunkLevelManager$NearbyChunkTicketUpdater
+accessible    class    net/minecraft/server/world/ChunkLevelManager$DistanceFromNearestPlayerTracker
+accessible    class    net/minecraft/server/world/ServerChunkManager$MainThreadExecutor
+accessible    class    net/minecraft/world/storage/StorageIoWorker$Result
+accessible    class    net/minecraft/world/gen/surfacebuilder/MaterialRules$MaterialRuleContext
+accessible    class    net/minecraft/world/gen/surfacebuilder/MaterialRules$SequenceBlockStateRule
+accessible    class    net/minecraft/world/gen/surfacebuilder/MaterialRules$SequenceMaterialRule
+accessible    class    net/minecraft/world/gen/surfacebuilder/MaterialRules$BlockStateRule
+accessible    class    net/minecraft/structure/WoodlandMansionGenerator$FlagMatrix
+accessible    class    net/minecraft/structure/WoodlandMansionGenerator$MansionParameters
+accessible    class    net/minecraft/structure/WoodlandMansionGenerator$GenerationPiece
+accessible    class    net/minecraft/structure/StrongholdGenerator$PieceData
+accessible    class    net/minecraft/structure/StrongholdGenerator$Piece
+accessible    class    net/minecraft/structure/NetherFortressGenerator$PieceData
+accessible    class    net/minecraft/structure/NetherFortressGenerator$Piece
+accessible    class    net/minecraft/structure/OceanMonumentGenerator$PieceSetting
+accessible    class    net/minecraft/client/option/SimpleOption$Callbacks
+accessible    class    net/minecraft/server/world/ServerChunkLoadingManager$LevelManager
+accessible    class    net/minecraft/server/world/TicketDistanceLevelPropagator
+accessible    class    net/minecraft/server/world/ServerLightingProvider$Stage
+accessible    class    net/minecraft/world/gen/densityfunction/DensityFunctionTypes$Noise
+accessible    class    net/minecraft/world/gen/densityfunction/DensityFunctionTypes$Constant
+accessible    class    net/minecraft/world/gen/densityfunction/DensityFunctionTypes$EndIslands
+accessible    class    net/minecraft/world/storage/SerializingRegionBasedStorage$LoadResult
+accessible    class    net/minecraft/world/gen/densityfunction/DensityFunctionTypes$Shift
+accessible    class    net/minecraft/world/gen/densityfunction/DensityFunctionTypes$ShiftA
+accessible    class    net/minecraft/world/gen/densityfunction/DensityFunctionTypes$ShiftB
+accessible    class    net/minecraft/world/gen/densityfunction/DensityFunctionTypes$YClampedGradient
+accessible    class    net/minecraft/world/gen/densityfunction/DensityFunctionTypes$Clamp
+accessible    class    net/minecraft/world/gen/densityfunction/DensityFunctionTypes$Unary
+accessible    class    net/minecraft/world/gen/densityfunction/DensityFunctionTypes$BinaryOperation
+accessible    class    net/minecraft/world/gen/densityfunction/DensityFunctionTypes$LinearOperation
+accessible    class    net/minecraft/world/gen/densityfunction/DensityFunctionTypes$LinearOperation$SpecificType
+accessible    class    net/minecraft/world/gen/densityfunction/DensityFunctionTypes$BinaryOperationLike
+accessible    class    net/minecraft/world/gen/densityfunction/DensityFunctionTypes$RegistryEntryHolder
+accessible    class    net/minecraft/world/gen/densityfunction/DensityFunctionTypes$Wrapping
+accessible    class    net/minecraft/world/gen/densityfunction/DensityFunctionTypes$Wrapping$Type
+accessible    class    net/minecraft/world/gen/densityfunction/DensityFunctionTypes$Beardifier
+accessible    class    net/minecraft/world/gen/densityfunction/DensityFunctionTypes$BlendAlpha
+accessible    class    net/minecraft/world/gen/densityfunction/DensityFunctionTypes$BlendOffset
+accessible    class    net/minecraft/world/gen/densityfunction/DensityFunctionTypes$UnaryOperation
+accessible    class    net/minecraft/world/gen/densityfunction/DensityFunctionTypes$UnaryOperation$Type
+accessible    class    net/minecraft/world/gen/densityfunction/DensityFunctionTypes$ShiftedNoise
+accessible    class    net/minecraft/world/gen/densityfunction/DensityFunctionTypes$BlendDensity
+accessible    class    net/minecraft/world/gen/densityfunction/DensityFunctionTypes$Positional
+accessible    class    net/minecraft/world/gen/densityfunction/DensityFunctionTypes$RangeChoice
+accessible    class    net/minecraft/world/gen/densityfunction/DensityFunctionTypes$WeirdScaledSampler
+accessible    class    net/minecraft/world/gen/densityfunction/DensityFunctionTypes$Offset
+accessible    class    net/minecraft/world/gen/densityfunction/DensityFunctionTypes$FindTopSurface
+accessible    class    net/minecraft/world/gen/chunk/ChunkNoiseSampler$FlatCache
+accessible    class    net/minecraft/world/gen/chunk/ChunkNoiseSampler$Cache2D
+accessible    class    net/minecraft/world/gen/chunk/ChunkNoiseSampler$CacheOnce
+accessible    class    net/minecraft/world/gen/chunk/ChunkNoiseSampler$BlendAlphaDensityFunction
+accessible    class    net/minecraft/world/gen/chunk/ChunkNoiseSampler$BlendOffsetDensityFunction
+accessible    class    net/minecraft/world/gen/chunk/ChunkNoiseSampler$CellCache
+accessible    class    net/minecraft/world/gen/densityfunction/DensityFunctions$CaveScaler
+accessible    class    net/minecraft/world/gen/blockpredicate/CombinedBlockPredicate
+accessible    class    net/minecraft/world/gen/blockpredicate/AllOfBlockPredicate
+accessible    class    net/minecraft/world/gen/blockpredicate/AnyOfBlockPredicate
+
+extendable    class    net/minecraft/client/option/SimpleOption
+extendable    class    net/minecraft/world/storage/RegionBasedStorage
+extendable    class    net/minecraft/util/Identifier
+
+accessible    method    net/minecraft/util/collection/WeightedList                                     <init>              (Ljava/util/List;)V
+accessible    method    net/minecraft/nbt/NbtCompound                                                  <init>              (Ljava/util/Map;)V
+accessible    method    net/minecraft/nbt/NbtList                                                      <init>              (Ljava/util/List;)V
+accessible    method    net/minecraft/world/gen/surfacebuilder/MaterialRules$SequenceBlockStateRule    <init>              (Ljava/util/List;)V
+accessible    method    net/minecraft/world/storage/RegionBasedStorage                                 <init>              (Lnet/minecraft/world/storage/StorageKey;Ljava/nio/file/Path;Z)V
+accessible    method    net/minecraft/world/gen/densityfunction/DensityFunctionTypes$Wrapping          <init>              (Lnet/minecraft/world/gen/densityfunction/DensityFunctionTypes$Wrapping$Type;Lnet/minecraft/world/gen/densityfunction/DensityFunction;)V
+accessible    method    net/minecraft/world/gen/densityfunction/DensityFunctionTypes$RangeChoice       <init>              (Lnet/minecraft/world/gen/densityfunction/DensityFunction;DDLnet/minecraft/world/gen/densityfunction/DensityFunction;Lnet/minecraft/world/gen/densityfunction/DensityFunction;)V
+
+extendable    method    net/minecraft/server/world/ChunkHolder           setCompletedLevel      (I)V
+extendable    method    net/minecraft/world/chunk/AbstractChunkHolder    generate               (Lnet/minecraft/world/chunk/ChunkGenerationStep;Lnet/minecraft/world/ChunkLoadingManager;Lnet/minecraft/util/collection/BoundedRegionArray;)Ljava/util/concurrent/CompletableFuture;
+extendable    method    net/minecraft/world/chunk/AbstractChunkHolder    clearLoader            (Lnet/minecraft/world/chunk/ChunkLoader;)V
+extendable    method    net/minecraft/world/chunk/AbstractChunkHolder    createLoader           (Lnet/minecraft/server/world/ServerChunkLoadingManager;Lnet/minecraft/world/chunk/ChunkStatus;)V
+extendable    method    net/minecraft/world/chunk/AbstractChunkHolder    getOrCreateFuture      (Lnet/minecraft/world/chunk/ChunkStatus;)Ljava/util/concurrent/CompletableFuture;
+extendable    method    net/minecraft/world/chunk/AbstractChunkHolder    unload                 (Lnet/minecraft/world/chunk/ChunkStatus;Lnet/minecraft/world/chunk/ChunkStatus;)V
+extendable    method    net/minecraft/world/chunk/AbstractChunkHolder    unload                 (ILjava/util/concurrent/CompletableFuture;)V
+extendable    method    net/minecraft/world/chunk/AbstractChunkHolder    completeChunkFuture    (Lnet/minecraft/world/chunk/ChunkStatus;Lnet/minecraft/world/chunk/Chunk;)V
+extendable    method    net/minecraft/world/chunk/AbstractChunkHolder    getMaxPendingStatus    (Lnet/minecraft/world/chunk/ChunkStatus;)Lnet/minecraft/world/chunk/ChunkStatus;
+extendable    method    net/minecraft/world/chunk/AbstractChunkHolder    progressStatus         (Lnet/minecraft/world/chunk/ChunkStatus;)Z
+extendable    method    net/minecraft/world/chunk/AbstractChunkHolder    cannotBeLoaded         (Lnet/minecraft/world/chunk/ChunkStatus;)Z
+
+accessible    field    net/minecraft/server/world/ChunkHolder                               UNLOADED_WORLD_CHUNK_FUTURE Ljava/util/concurrent/CompletableFuture;
+accessible    field    net/minecraft/world/storage/StorageIoWorker$Result                   nbt                 Lnet/minecraft/nbt/NbtCompound;
+accessible    field    net/minecraft/world/storage/StorageIoWorker$Result                   future              Ljava/util/concurrent/CompletableFuture;
+accessible    field     net/minecraft/util/math/noise/SimplexNoiseSampler                   GRADIENTS           [[I
+accessible    field     net/minecraft/world/gen/chunk/AquiferSampler$FluidLevel             y                   I
+accessible    field     net/minecraft/world/gen/chunk/AquiferSampler$FluidLevel             state               Lnet/minecraft/block/BlockState;

@@ -1,0 +1,47 @@
+plugins {
+	id 'maven-publish'
+	id 'org.relativitymc.neo-loom'
+}
+
+version = project.mod_version
+group = project.maven_group
+
+loom {
+	accessWidenerPath = file("src/main/resources/modid.accesswidener")
+}
+
+dependencies {
+	minecraft 'com.mojang:minecraft:1.21.11_unobfuscated'
+	forgeUserdev 'net.neoforged:neoforge:21.11.38-beta:userdev'
+}
+
+base {
+	archivesName = project.archives_base_name
+}
+
+tasks.withType(JavaCompile).configureEach {
+	it.options.encoding = "UTF-8"
+
+	it.options.release = 21
+}
+
+
+loom.publishTransitiveCTNeoForge(files("src/main/resources/modid.accesswidener"))
+
+publishing {
+	repositories {
+		maven {
+			url = layout.buildDirectory.dir('repo')
+		}
+	}
+
+	publications {
+		maven(MavenPublication) {
+			groupId = 'org.gradle.sample'
+			artifactId = 'library'
+			version = '1.1'
+
+			from components.java
+		}
+	}
+}

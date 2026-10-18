@@ -32,6 +32,7 @@ import java.util.jar.Manifest;
 
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.Dependency;
+import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.services.BuildService;
@@ -54,6 +55,8 @@ public abstract class JarManifestService implements BuildService<JarManifestServ
 		Property<String> getTinyRemapperVersion();
 		Property<String> getFabricLoaderVersion();
 		Property<MixinVersion> getMixinVersion();
+
+		ListProperty<String> getForgeExtraMixinConfigs();
 	}
 
 	public static Provider<JarManifestService> get(Project project) {
@@ -69,6 +72,8 @@ public abstract class JarManifestService implements BuildService<JarManifestServ
 				params.getTinyRemapperVersion().set(tinyRemapperVersion.orElse("unknown"));
 				params.getFabricLoaderVersion().set(project.provider(() -> Optional.ofNullable(extension.getInstallerData()).map(InstallerData::version).orElse("unknown")));
 				params.getMixinVersion().set(getMixinVersion(project));
+
+				params.getForgeExtraMixinConfigs().set(extension.getForgeExtraMixinConfigs());
 			});
 		});
 	}
@@ -100,6 +105,10 @@ public abstract class JarManifestService implements BuildService<JarManifestServ
 		if (!attributes.containsKey(Constants.Manifest.MIXIN_VERSION)) {
 			attributes.putValue(Constants.Manifest.MIXIN_VERSION, p.getMixinVersion().get().version());
 			attributes.putValue(Constants.Manifest.MIXIN_GROUP, p.getMixinVersion().get().group());
+		}
+
+		if (p.getForgeExtraMixinConfigs().isPresent() && !p.getForgeExtraMixinConfigs().get().isEmpty()) {
+			attributes.putValue(Constants.NeoForge.MIXIN_CONFIGS_MANIFEST_KEY, String.join(",", p.getForgeExtraMixinConfigs().get()));
 		}
 	}
 

@@ -74,6 +74,8 @@ public interface RunConfiguration extends Named {
 
 	/**
 	 * The environment (or side) to run, usually client or server.
+	 *
+	 * <p>Neo Loom: can be any of the run template name in forge mode
 	 */
 	Property<String> getRuntimeEnvironment();
 
@@ -133,6 +135,13 @@ public interface RunConfiguration extends Named {
 	 */
 	@ApiStatus.Experimental
 	Property<String> getDevLaunchMainClass();
+
+	/**
+	 * Whether to use Forge run templates.
+	 *
+	 * <p>In most cases you want to keep this enabled.
+	 */
+	Property<Boolean> getUseForgeRunTemplates();
 
 	default void inherit(RunConfiguration parent) {
 		getJvmArguments().convention(parent.getJvmArguments());

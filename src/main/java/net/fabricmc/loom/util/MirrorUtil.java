@@ -66,4 +66,36 @@ public class MirrorUtil {
 
 		return Constants.FABRIC_REPOSITORY;
 	}
+
+	public static String getNeoForgeReleasesRepository(ExtensionAware aware) {
+		if (aware.getExtensions().getExtraProperties().has("loom_neoforge_releases_repository")) {
+			return String.valueOf(aware.getExtensions().getExtraProperties().get("loom_neoforge_releases_repository"));
+		}
+
+		return Constants.NEOFORGE_RELEASES_REPOSITORY;
+	}
+
+	public static String getNeoForgeMojangMetaRepository(ExtensionAware aware) {
+		if (aware.getExtensions().getExtraProperties().has("loom_neoforge_mojangmeta_repository")) {
+			return String.valueOf(aware.getExtensions().getExtraProperties().get("loom_neoforge_mojangmeta_repository"));
+		}
+
+		return Constants.NEOFORGE_MOJANGMETA_REPOSITORY;
+	}
+
+	public static String getArchitecturyRepository(ExtensionAware aware) {
+		if (aware.getExtensions().getExtraProperties().has("loom_architectury_repository")) {
+			return String.valueOf(aware.getExtensions().getExtraProperties().get("loom_architectury_repository"));
+		}
+
+		return Constants.ARCHITECTURY_REPOSITORY;
+	}
+
+	public static String getRelativityMCRepository(ExtensionAware aware) {
+		if (aware.getExtensions().getExtraProperties().has("loom_relativitymc_repository")) {
+			return String.valueOf(aware.getExtensions().getExtraProperties().get("loom_relativitymc_repository"));
+		}
+
+		return Constants.RELATIVITYMC_REPOSITORY;
+	}
 }

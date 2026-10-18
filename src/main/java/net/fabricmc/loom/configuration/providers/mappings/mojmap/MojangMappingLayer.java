@@ -47,7 +47,7 @@ import net.fabricmc.mappingio.tree.MemoryMappingTree;
 
 public record MojangMappingLayer(Path clientMappings, Path serverMappings, boolean nameSyntheticMembers, boolean dropNoneIntermediaryRoots,
 									@Nullable Supplier<MemoryMappingTree> intermediarySupplier, Logger logger) implements MappingLayer {
-	private static final Pattern SYNTHETIC_NAME_PATTERN = Pattern.compile("^(access|this|val\\$this|lambda\\$.*)\\$[0-9]+$");
+	public static final Pattern SYNTHETIC_NAME_PATTERN = Pattern.compile("^(access|this|val\\$this|lambda\\$.*)\\$[0-9]+$");
 
 	@Override
 	public void visit(MappingVisitor mappingVisitor) throws IOException {

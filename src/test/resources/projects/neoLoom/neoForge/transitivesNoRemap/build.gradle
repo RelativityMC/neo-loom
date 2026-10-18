@@ -1,0 +1,32 @@
+plugins {
+	id 'org.relativitymc.neo-loom'
+}
+
+version = project.mod_version
+group = project.maven_group
+
+repositories {
+	ivy {
+		url = uri(layout.projectDirectory.dir("repo"))
+		patternLayout {
+			artifact "[organisation]/[module]/[revision].[ext]"
+		}
+	}
+}
+
+dependencies {
+	minecraft 'com.mojang:minecraft:1.21.11_unobfuscated'
+	forgeUserdev 'net.neoforged:neoforge:21.11.38-beta:userdev'
+	neoForgeAccessTransformers "local:ivy:depAT@cfg"
+	neoForgeInterfaceInjections "local:ivy:depIJ@json"
+}
+
+base {
+	archivesName = project.archives_base_name
+}
+
+tasks.withType(JavaCompile).configureEach {
+	it.options.encoding = "UTF-8"
+
+	it.options.release = 21
+}

@@ -159,9 +159,11 @@ class MinecraftMetadataProviderTest extends DownloadTest {
 
 		return new MinecraftMetadataProvider.Options(
 				version,
+				null,
 				manifests,
 				customUrl,
 				testDir,
+				null,
 				testDir
 				)
 	}

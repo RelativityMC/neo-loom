@@ -60,7 +60,7 @@ class ExtractTestProject {
             """
 
 		def buildGradle = new File(targetDirectory, "build.gradle")
-		buildGradle.text = buildGradle.text.replace("id 'fabric-loom'", "id 'fabric-loom' version '1.8.local'")
+		buildGradle.text = buildGradle.text.replace("id 'org.relativitymc.neo-loom-remap'", "id 'org.relativitymc.neo-loom-remap' version '1.8.local'")
 	}
 
 	private static void copyDir(File source, File target) {

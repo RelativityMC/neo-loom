@@ -35,8 +35,8 @@ import net.fabricmc.loom.util.download.DownloadException;
 
 public record MojangMappingsSpec(boolean nameSyntheticMembers) implements MappingsSpec<MojangMappingLayer> {
 	// Keys in dependency manifest
-	private static final String MANIFEST_CLIENT_MAPPINGS = "client_mappings";
-	private static final String MANIFEST_SERVER_MAPPINGS = "server_mappings";
+	public static final String MANIFEST_CLIENT_MAPPINGS = "client_mappings";
+	public static final String MANIFEST_SERVER_MAPPINGS = "server_mappings";
 
 	@Override
 	public MojangMappingLayer createLayer(MappingContext context) {

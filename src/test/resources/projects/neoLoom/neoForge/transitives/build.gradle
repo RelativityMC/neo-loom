@@ -1,0 +1,44 @@
+plugins {
+	id 'org.relativitymc.neo-loom-remap'
+}
+
+version = project.mod_version
+group = project.maven_group
+
+repositories {
+	ivy {
+		url = uri(layout.projectDirectory.dir("repo"))
+		patternLayout {
+			artifact "[organisation]/[module]/[revision].[ext]"
+		}
+	}
+	maven {
+		url = "https://repo.codemc.io/repository/relativitymc/"
+	}
+}
+
+loom {
+	useIntermediateMappings = true
+	intermediaryUrl = 'https://repo.codemc.io/repository/relativitymc/org/relativitymc/intermediary/%1$s/intermediary-%1$s-v2.jar'
+}
+
+dependencies {
+	minecraft 'com.mojang:minecraft:1.21.11_unobfuscated'
+	mappings loom.layered {
+		it.mappings "org.relativitymc:modern-yarn:1.21.11_unobfuscated+build.2:v2"
+		it.mappings "org.relativitymc:modern-yarn-mappings-patch-neoforge:26.1+build.1"
+	}
+	forgeUserdev 'net.neoforged:neoforge:21.11.38-beta:userdev'
+	neoForgeAccessTransformers "local:ivy:depAT@cfg"
+	neoForgeInterfaceInjections "local:ivy:depIJ@json"
+}
+
+base {
+	archivesName = project.archives_base_name
+}
+
+tasks.withType(JavaCompile).configureEach {
+	it.options.encoding = "UTF-8"
+
+	it.options.release = 21
+}

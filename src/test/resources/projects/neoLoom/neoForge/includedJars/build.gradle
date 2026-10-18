@@ -1,0 +1,32 @@
+plugins {
+	id 'org.relativitymc.neo-loom-remap'
+}
+
+repositories {
+	mavenCentral()
+	maven {
+		url = "https://repo.codemc.io/repository/relativitymc/"
+	}
+}
+
+dependencies {
+	minecraft 'com.mojang:minecraft:1.21.11_unobfuscated'
+	mappings loom.layered {
+		it.mappings "org.relativitymc:modern-yarn:1.21.11_unobfuscated+build.2:v2"
+		it.mappings "org.relativitymc:modern-yarn-mappings-patch-neoforge:26.1+build.1"
+	}
+	forgeUserdev 'net.neoforged:neoforge:21.11.38-beta:userdev'
+
+	include 'org.apache.logging.log4j:log4j-core:2.22.0'
+
+	// Test bom/platform dependencies
+	include platform('net.kyori:adventure-bom:4.14.0')
+
+	// bom provides version
+	include 'net.kyori:adventure-text-serializer-gson'
+}
+
+loom {
+	useIntermediateMappings = true
+	intermediaryUrl = 'https://repo.codemc.io/repository/relativitymc/org/relativitymc/intermediary/%1$s/intermediary-%1$s-v2.jar'
+}

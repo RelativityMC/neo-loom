@@ -66,7 +66,7 @@ public final class GradleUtils {
 	}
 
 	public static boolean isLoomCompanionProject(Project project) {
-		return project.getPluginManager().hasPlugin(LoomCompanionGradlePlugin.NAME);
+		return project.getPluginManager().hasPlugin(LoomCompanionGradlePlugin.NAME) || project.getPluginManager().hasPlugin(LoomCompanionGradlePlugin.UPSTREAM_NAME);
 	}
 
 	public static Provider<Boolean> getBooleanPropertyProvider(Project project, String key) {

@@ -38,6 +38,8 @@ import net.fabricmc.loom.util.fmj.FabricModJson;
 import net.fabricmc.loom.util.fmj.FabricModJsonHelpers;
 import net.fabricmc.loom.util.gradle.GradleUtils;
 
+import org.relativitymc.neoloom.neoforge.modmeta.NFGeneratedMetaDependency;
+
 // Used to abstract out the Gradle API usage to ease unit testing.
 public interface ProjectView {
 	//Returns a list of Loom Projects found in the specified Configuration
@@ -45,6 +47,8 @@ public interface ProjectView {
 
 	// Returns the mods defined in the current project
 	List<FabricModJson> getMods();
+
+	List<FabricModJson> getExtraTransformingMods();
 
 	boolean disableProjectDependantMods();
 
@@ -87,6 +91,11 @@ public interface ProjectView {
 		@Override
 		public List<FabricModJson> getMods() {
 			return FabricModJsonHelpers.getModsInProject(project);
+		}
+
+		@Override
+		public List<FabricModJson> getExtraTransformingMods() {
+			return List.copyOf(NFGeneratedMetaDependency.create(project));
 		}
 
 		@Override

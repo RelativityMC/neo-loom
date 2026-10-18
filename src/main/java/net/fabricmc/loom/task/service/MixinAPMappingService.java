@@ -155,7 +155,7 @@ public class MixinAPMappingService extends Service<MixinAPMappingService.Options
 			o.getCompileOutputs().from(compileTask.getOutputs());
 			o.getMixinMappingFileName().set(mixinMappings.getName());
 			o.getFrom().set(from);
-			o.getTo().set(to);
+			o.getTo().set("intermediary"); // see AnnotationProcessorInvoker.passMixinArguments
 		});
 	}
 

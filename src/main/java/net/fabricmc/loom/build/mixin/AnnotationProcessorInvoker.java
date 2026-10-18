@@ -28,7 +28,6 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.function.Function;
@@ -103,14 +102,16 @@ public abstract class AnnotationProcessorInvoker<T extends Task> {
 
 			task.getOutputs().file(mixinMappings).withPropertyName("mixin-ap-" + sourceSet.getName() + "-" + name).optional();
 
+			// fabric-mixin-compile-extensions only supported official, named and intermediary, so replace everything with intermediary
+
 			String refmapTargetNamespace = loom.getMixin().getRefmapTargetNamespace().get();
-			String capitalizedTargetNamespace = refmapTargetNamespace.substring(0, 1).toUpperCase(Locale.ROOT) + refmapTargetNamespace.substring(1);
+			String capitalizedTargetNamespace = "Intermediary";
 
 			Map<String, String> args = new HashMap<>() {{
-					put(Constants.MixinArguments.IN_MAP_FILE_NAMED + capitalizedTargetNamespace, loom.getMappingConfiguration().tinyMappings.toFile().getCanonicalPath());
+					put(Constants.MixinArguments.IN_MAP_FILE_NAMED + capitalizedTargetNamespace, loom.getMappingConfiguration().getReplacedTarget(loomExtension, refmapTargetNamespace).toFile().getCanonicalPath());
 					put(Constants.MixinArguments.OUT_MAP_FILE_NAMED + capitalizedTargetNamespace, mixinMappings.getCanonicalPath());
 					put(Constants.MixinArguments.OUT_REFMAP_FILE, getRefmapDestination(task, refmapName));
-					put(Constants.MixinArguments.DEFAULT_OBFUSCATION_ENV, "named:" + refmapTargetNamespace);
+					put(Constants.MixinArguments.DEFAULT_OBFUSCATION_ENV, "named:intermediary");
 					put(Constants.MixinArguments.QUIET, "true");
 				}};
 
