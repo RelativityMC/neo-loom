@@ -45,6 +45,7 @@ import java.util.stream.Collectors;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.Dependency;
+import org.gradle.api.artifacts.ProjectDependency;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.logging.configuration.ConsoleOutput;
@@ -226,6 +227,7 @@ public abstract class GenerateDLIConfigTask extends AbstractLoomTask {
 			if (requiresLegacyClasspath[0]) {
 				Configuration runtimeClasspath = getProject().getConfigurations().detachedConfiguration(
 						getProject().getConfigurations().getByName("runtimeClasspath").getAllDependencies().stream()
+								.filter(dependency -> !(dependency instanceof ProjectDependency))
 								.filter(dependency -> dependency.getName() == null || !dependency.getName().startsWith(mergedJarName)) // load merged jar as a mod as well
 								.map(Dependency::copy)
 								.toArray(Dependency[]::new)
