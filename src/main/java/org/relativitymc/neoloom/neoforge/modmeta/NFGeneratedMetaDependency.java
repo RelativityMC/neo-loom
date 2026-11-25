@@ -44,6 +44,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
@@ -96,6 +97,18 @@ public class NFGeneratedMetaDependency {
 			LoomGradleExtension extension = LoomGradleExtension.get(project);
 			MappingsNamespace productionNamespace = extension.getProductionNamespaceEnum().get();
 
+			String extraKey = productionNamespace + "+"
+					+ extension.getMinecraftProvider().getMinecraftJars()
+						.stream()
+						.map(path -> {
+							try {
+								return getHash("minecraftJar", Files.readAllBytes(path), "");
+							} catch (IOException e) {
+								throw new UncheckedIOException(e);
+							}
+						})
+						.collect(Collectors.joining("-"));
+
 			File cacheDir = new File(extension.getFiles().getRootProjectPersistentCache(), "neo-loom-generated-ct");
 			cacheDir.mkdirs();
 
@@ -112,7 +125,7 @@ public class NFGeneratedMetaDependency {
 					throw new UncheckedIOException(e);
 				}
 
-				byte[] cachedCt = tryReadFromCache(cacheDir, AT_KEY, atBytes);
+				byte[] cachedCt = tryReadFromCache(cacheDir, AT_KEY, atBytes, extraKey);
 
 				if (cachedCt != null) {
 					result.add(new ModMetadataFabricModJson(
@@ -141,7 +154,7 @@ public class NFGeneratedMetaDependency {
 								new MetaModMetadata(MOD_ID_PREFIX_AT + mavenNotation),
 								new MetaModSource(awContent)
 						));
-						storeCache(cacheDir, AT_KEY, atBytes, awContent);
+						storeCache(cacheDir, AT_KEY, atBytes, extraKey, awContent);
 					}
 				}
 			}
@@ -157,7 +170,7 @@ public class NFGeneratedMetaDependency {
 					throw new UncheckedIOException(e);
 				}
 
-				byte[] cachedCt = tryReadFromCache(cacheDir, IJ_KEY, ijBytes);
+				byte[] cachedCt = tryReadFromCache(cacheDir, IJ_KEY, ijBytes, extraKey);
 
 				ClassTweakerWriter classTweaker = ClassTweakerWriter.create(ClassTweaker.CT_LATEST);
 				classTweaker.visitHeader(productionNamespace.toString());
@@ -195,7 +208,7 @@ public class NFGeneratedMetaDependency {
 								new MetaModMetadata(MOD_ID_PREFIX_IJ + mavenNotation),
 								new MetaModSource(awContent)
 						));
-						storeCache(cacheDir, IJ_KEY, ijBytes, awContent);
+						storeCache(cacheDir, IJ_KEY, ijBytes, extraKey, awContent);
 					}
 				}
 			}
@@ -295,8 +308,8 @@ public class NFGeneratedMetaDependency {
 		};
 	}
 
-	private static byte @Nullable [] tryReadFromCache(File cacheDir, String key, byte[] input) {
-		String hash = getHash(key, input);
+	private static byte @Nullable [] tryReadFromCache(File cacheDir, String key, byte[] input, String extraKey) {
+		String hash = getHash(key, input, extraKey);
 		File cachedFile = new File(cacheDir, key + hash);
 		File cachedHashFile = new File(cacheDir, key + hash + ".sha256");
 
@@ -304,7 +317,7 @@ public class NFGeneratedMetaDependency {
 			try {
 				byte[] cachedContent = Files.readAllBytes(cachedFile.toPath());
 				String expectedCachedHash = Files.readString(cachedHashFile.toPath(), StandardCharsets.UTF_8);
-				String foundCachedHash = getHash("content", cachedContent);
+				String foundCachedHash = getHash("content", cachedContent, extraKey);
 
 				if (expectedCachedHash.equals(foundCachedHash)) {
 					return cachedContent;
@@ -317,11 +330,11 @@ public class NFGeneratedMetaDependency {
 		return null;
 	}
 
-	private static void storeCache(File cacheDir, String key, byte[] input, byte[] output) {
-		String hash = getHash(key, input);
+	private static void storeCache(File cacheDir, String key, byte[] input, String extraKey, byte[] output) {
+		String hash = getHash(key, input, extraKey);
 		File cachedFile = new File(cacheDir, key + hash);
 		File cachedHashFile = new File(cacheDir, key + hash + ".sha256");
-		String contentHash = getHash("content", output);
+		String contentHash = getHash("content", output, extraKey);
 
 		try {
 			Files.write(cachedFile.toPath(), output, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
@@ -331,7 +344,7 @@ public class NFGeneratedMetaDependency {
 		}
 	}
 
-	private static String getHash(String key, byte[] input) {
+	private static String getHash(String key, byte[] input, String extraKey) {
 		MessageDigest digest;
 
 		try {
@@ -342,6 +355,7 @@ public class NFGeneratedMetaDependency {
 
 		digest.update(key.getBytes(StandardCharsets.UTF_8));
 		digest.update(input);
+		digest.update(extraKey.getBytes(StandardCharsets.UTF_8));
 		digest.update(key.getBytes(StandardCharsets.UTF_8));
 		return bytesToHex(digest.digest());
 	}
